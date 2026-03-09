@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>材料评审与面试管理系统 - 报名表审核</title>
+    <!-- 引入Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入DataTables样式 -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <style>
+        /* 自定义样式 */
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+        }
+        .stats-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .tree-node {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .tree-node:hover {
+            background-color: #e9ecef;
+        }
+        .tree-node.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .batch-actions {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #dee2e6;
+        }
+        .table-container {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-clipboard-check me-2"></i>材料评审与面试管理系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">报名表审核</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">面试管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">成绩管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">公共资源库</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>管理员
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">个人中心</a></li>
+                            <li><a class="dropdown-item" href="#">修改密码</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">退出登录</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 左侧三级目录导航 -->
+            <div class="col-md-3 col-lg-2 p-3 sidebar">
+                <h5 class="mb-3"><i class="fas fa-folder-tree me-2"></i>项目目录</h5>
+                
+                <!-- 项目分类 -->
+                <div class="mb-4">
+                    <h6 class="text-secondary">2024年招生项目</h6>
+                    <ul class="list-unstyled ms-2 mt-2">
+                        <!-- 项目名称 -->
+                        <li class="mb-1">
+                            <div class="tree-node d-flex justify-content-between align-items-center" data-project="研究生招生">
+                                <span><i class="fas fa-chevron-right me-2"></i>研究生招生</span>
+                                <span class="badge bg-secondary">12个班级</span>
+                            </div>
+                            <!-- 班级列表 -->
+                            <ul class="list-unstyled ms-4 mt-1" id="class-list-1">
+                                <li class="mb-1">
+                                    <div class="tree-node active d-flex justify-content-between align-items-center" data-class="计算机科学与技术">
+                                        <span><i class="fas fa-user-friends me-2"></i>计算机科学与技术</span>
+                                        <span class="badge bg-primary">86人</span>
+                                    </div>
+                                </li>
+                                <li class="mb-1">
+                                    <div class="tree-node d-flex justify-content-between align-items-center" data-class="电子信息工程">
+                                        <span><i class="fas fa-user-friends me-2"></i>电子信息工程</span>
+                                        <span class="badge bg-primary">78人</span>
+                                    </div>
+                                </li>
+                                <li class="mb-1">
+                                    <div class="tree-node d-flex justify-content-between align-items-center" data-class="软件工程">
+                                        <span><i class="fas fa-user-friends me-2"></i>软件工程</span>
+                                        <span class="badge bg-primary">65人</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="mb-1">
+                            <div class="tree-node d-flex justify-content-between align-items-center" data-project="专升本招生">
+                                <span><i class="fas fa-chevron-right me-2"></i>专升本招生</span>
+                                <span class="badge bg-secondary">8个班级</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 班级统计信息卡片 -->
+                <div class="stats-card bg-white p-3 mt-4">
+                    <h6 class="text-center mb-3">计算机科学与技术 - 统计</h6>
+                    <div class="row text-center">
+                        <div class="col-6 mb-2">
+                            <div class="bg-light p-2 rounded">
+                                <div class="fw-bold">86</div>
+                                <div class="text-sm text-secondary">总报名人数</div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <div class="bg-light p-2 rounded">
+                                <div class="fw-bold">82</div>
+                                <div class="text-sm text-secondary">已提交人数</div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <div class="bg-light p-2 rounded">
+                                <div class="fw-bold">36</div>
+                                <div class="text-sm text-secondary">待审核人数</div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <div class="bg-light p-2 rounded">
+                                <div class="fw-bold">41</div>
+                                <div class="text-sm text-secondary">已通过人数</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧主要内容区域 -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="fas fa-list-alt me-2"></i>报名表审核</h4>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2" type="button">
+                            <i class="fas fa-sync-alt me-1"></i>刷新数据
+                        </button>
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#filterModal">
+                            <i class="fas fa-filter me-1"></i>高级筛选
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 批量操作区域 -->
+                <div class="batch-actions">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <div class="d-flex align-items-center">
+                                <input type="checkbox" id="selectAll" class="form-check-input me-2">
+                                <label for="selectAll" class="form-check-label mb-0">全选</label>
+                                <span class="ms-2 text-secondary">(已选: 0 人)</span>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex flex-wrap gap-2">
+                                <!-- 批量审核操作 -->
+                                <div class="dropdown">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-check-double me-1"></i>批量审核
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">初审通过</a></li>
+                                        <li><a class="dropdown-item" href="#">复审通过</a></li>
+                                        <li><a class="dropdown-item" href="#">退回修改</a></li>
+                                        <li><a class="dropdown-item" href="#">不通过</a></li>
+                                    </ul>
+                                </div>
+
+                                <!-- 批量下载 -->
+                                <button class="btn btn-success" type="button">
+                                    <i class="fas fa-download me-1"></i>批量下载材料
+                                </button>
+
+                                <!-- 批量设置批次 -->
+                                <div class="dropdown">
+                                    <button class="btn btn-warning dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-tags me-1"></i>设置批次
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">第一批</a></li>
+                                        <li><a class="dropdown-item" href="#">第二批</a></li>
+                                        <li><a class="dropdown-item" href="#">第三批</a></li>
+                                    </ul>
+                                </div>
+
+                                <!-- 调整报考项目 -->
+                                <div class="dropdown">
+                                    <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-exchange-alt me-1"></i>调整报考项目
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">研究生招生</a></li>
+                                        <li><a class="dropdown-item" href="#">专升本招生</a></li>
+                                    </ul>
+                                </div>
+
+                                <!-- 发送消息 -->
+                                <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#messageModal">
+                                    <i class="fas fa-envelope me-1"></i>发送消息
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 搜索筛选栏 -->
+                <div class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" placeholder="考生姓名/准考证号">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select">
+                                <option value="">全部审核状态</option>
+                                <option value="pending">待审核</option>
+                                <option value="first-pass">初审通过</option>
+                                <option value="second-pass">复审通过</option>
+                                <option value="modify">退回修改</option>
+                                <option value="reject">不通过</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select">
+                                <option value="">全部批次</option>
+                                <option value="1">第一批</option>
+                                <option value="2">第二批</option>
+                                <option value="3">第三批</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select">
+                                <option value="">面试资格</option>
+                                <option value="yes">有</option>
+                                <option value="no">无</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary w-100">
+                                <i class="fas fa-search me-1"></i>搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 考生列表表格 -->
+                <div class="table-container">
+                    <table id="applicantTable" class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="50px"><input type="checkbox" class="form-check-input"></th>
+                                <th>准考证号</th>
+                                <th>考生姓名</th>
+                                <th>性别</th>
+                                <th>报考专业</th>
+                                <th>提交时间</th>
+                                <th>审核状态</th>
+                                <th>面试资格</th>
+                                <th>批次</th>
+                                <th width="200px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox" class="form-check-input"></td>
+                                <td>202405001</td>
+                                <td>张三</td>
+                                <td>男</td>
+                                <td>计算机科学与技术</td>
+                                <td>2024-05-10 14:30:25</td>
+                                <td><span class="status-badge bg-warning text-white">待审核</span></td>
+                                <td><span class="status-badge bg-secondary">未确认</span></td>
+                                <td>第一批</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看材料">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success" title="下载材料">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info" title="审核操作">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="form-check-input"></td>
+                                <td>202405002</td>
+                                <td>李四</td>
+                                <td>女</td>
+                                <td>计算机科学与技术</td>
+                                <td>2024-05-11 09:15:42</td>
+                                <td><span class="status-badge bg-success text-white">初审通过</span></td>
+                                <td><span class="status-badge bg-success text-white">已确认</span></td>
+                                <td>第一批</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看材料">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success" title="下载材料">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info" title="审核操作">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="form-check-input"></td>
+                                <td>202405003</td>
+                                <td>王五</td>
+                                <td>男</td>
+                                <td>计算机科学与技术</td>
+                                <td>2024-05-09 16:45:18</td>
+                                <td><span class="status-badge bg-danger text-white">退回修改</span></td>
+                                <td><span class="status-badge bg-secondary">未确认</span></td>
+                                <td>第二批</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看材料">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success" title="下载材料">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info" title="审核操作">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页控件 -->
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">上一页</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">下一页</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- 高级筛选模态框 -->
+    <div class="modal fade" id="filterModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-filter me-2"></i>高级筛选</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">报名时间范围</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" placeholder="开始日期">
+                                <span class="input-group-text">至</span>
+                                <input type="date" class="form-control" placeholder="结束日期">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">成绩范围</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" placeholder="最低分数">
+                                <span class="input-group-text">至</span>
+                                <input type="number" class="form-control" placeholder="最高分数">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">学历</label>
+                            <select class="form-select">
+                                <option value="">全部</option>
+                                <option value="undergraduate">本科</option>
+                                <option value="junior">专科</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">是否有推荐信</label>
+                            <select class="form-select">
+                                <option value="">全部</option>
+                                <option value="yes">有</option>
+                                <option value="no">无</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">应用筛选</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发送消息模态框 -->
+    <div class="modal fade" id="messageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-envelope me-2"></i>批量发送消息</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">发送方式</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked id="emailSend">
+                                <label class="form-check-label" for="emailSend">邮件</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="smsSend">
+                                <label class="form-check-label" for="smsSend">短信</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">模板选择</label>
+                            <select class="form-select">
+                                <option value="">自定义模板</option>
+                                <option value="audit-pass">审核通过通知</option>
+                                <option value="audit-reject">审核不通过通知</option>
+                                <option value="interview-notice">面试通知</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">消息内容</label>
+                            <textarea class="form-control" rows="6" placeholder="请输入消息内容...">尊敬的考生：
+
+您的报名材料已审核完成，请登录系统查看审核结果。
+
+如有疑问，请联系：010-12345678
+
+招生办公室</textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>本次将向选中的 0 位考生发送消息
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">发送消息</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入JS库 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        // 页面加载完成后初始化
+        $(document).ready(function() {
+            // 初始化数据表格
+            $('#applicantTable').DataTable({
+                paging: false,
+                searching: false,
+                info: false,
+                ordering: false
+            });
+
+            // 全选/取消全选
+            $('#selectAll').on('change', function() {
+                $('tbody input[type="checkbox"]').prop('checked', this.checked);
+                updateSelectedCount();
+            });
+
+            // 单个复选框变化
+            $('tbody input[type="checkbox"]').on('change', function() {
+                updateSelectedCount();
+                // 同步全选框状态
+                const allChecked = $('tbody input[type="checkbox"]').length === $('tbody input[type="checkbox"]:checked').length;
+                $('#selectAll').prop('checked', allChecked);
+            });
+
+            // 更新选中人数
+            function updateSelectedCount() {
+                const count = $('tbody input[type="checkbox"]:checked').length;
+                $('.ms-2.text-secondary').text(`(已选: ${count} 人)`);
+            }
+
+            // 树形节点点击事件
+            $('.tree-node').on('click', function() {
+                // 移除其他active状态
+                $('.tree-node').removeClass('active');
+                // 添加当前active状态
+                $(this).addClass('active');
+                // 这里可以添加加载对应班级数据的逻辑
+            });
+        });
+    </script>
+</body>
+</html>
