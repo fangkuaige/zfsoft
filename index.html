@@ -50,6 +50,34 @@
             border-radius: 8px;
             overflow: hidden;
         }
+        /* 审核提示样式 */
+        .audit-tip {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .audit-tip i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        /* 文件下载进度提示 */
+        .download-progress {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 9999;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -185,6 +213,14 @@
                     </div>
                 </div>
 
+                <!-- 审核提示区域 -->
+                <div class="audit-tip">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>审核提示：</strong>当前有36条待审核材料，其中12条材料存在信息不全问题，请优先审核标记为<span class="text-danger fw-bold">退回修改</span>的考生材料，并在2024-05-20前完成全部初审工作。
+                    </div>
+                </div>
+
                 <!-- 批量操作区域 -->
                 <div class="batch-actions">
                     <div class="row align-items-center">
@@ -203,15 +239,15 @@
                                         <i class="fas fa-check-double me-1"></i>批量审核
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#">初审通过</a></li>
-                                        <li><a class="dropdown-item" href="#">复审通过</a></li>
-                                        <li><a class="dropdown-item" href="#">退回修改</a></li>
-                                        <li><a class="dropdown-item" href="#">不通过</a></li>
+                                        <li><a class="dropdown-item" href="#" data-audit-action="first-pass">初审通过</a></li>
+                                        <li><a class="dropdown-item" href="#" data-audit-action="second-pass">复审通过</a></li>
+                                        <li><a class="dropdown-item" href="#" data-audit-action="modify">退回修改</a></li>
+                                        <li><a class="dropdown-item" href="#" data-audit-action="reject">不通过</a></li>
                                     </ul>
                                 </div>
 
                                 <!-- 批量下载 -->
-                                <button class="btn btn-success" type="button">
+                                <button class="btn btn-success" type="button" id="batchDownloadBtn">
                                     <i class="fas fa-download me-1"></i>批量下载材料
                                 </button>
 
@@ -251,10 +287,10 @@
                 <div class="mb-4">
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <input type="text" class="form-control" placeholder="考生姓名/准考证号">
+                            <input type="text" class="form-control" id="searchInput" placeholder="考生姓名/准考证号">
                         </div>
                         <div class="col-md-2">
-                            <select class="form-select">
+                            <select class="form-select" id="statusSelect">
                                 <option value="">全部审核状态</option>
                                 <option value="pending">待审核</option>
                                 <option value="first-pass">初审通过</option>
@@ -264,7 +300,7 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <select class="form-select">
+                            <select class="form-select" id="batchSelect">
                                 <option value="">全部批次</option>
                                 <option value="1">第一批</option>
                                 <option value="2">第二批</option>
@@ -272,14 +308,14 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <select class="form-select">
+                            <select class="form-select" id="interviewSelect">
                                 <option value="">面试资格</option>
                                 <option value="yes">有</option>
                                 <option value="no">无</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <button class="btn btn-primary w-100">
+                            <button class="btn btn-primary w-100" id="searchBtn">
                                 <i class="fas fa-search me-1"></i>搜索
                             </button>
                         </div>
@@ -291,7 +327,7 @@
                     <table id="applicantTable" class="table table-striped table-hover">
                         <thead class="table-dark">
                             <tr>
-                                <th width="50px"><input type="checkbox" class="form-check-input"></th>
+                                <th width="50px"><input type="checkbox" class="form-check-input" id="tableSelectAll"></th>
                                 <th>准考证号</th>
                                 <th>考生姓名</th>
                                 <th>性别</th>
@@ -300,100 +336,16 @@
                                 <th>审核状态</th>
                                 <th>面试资格</th>
                                 <th>批次</th>
-                                <th width="200px">操作</th>
+                                <th width="220px">操作</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><input type="checkbox" class="form-check-input"></td>
-                                <td>202405001</td>
-                                <td>张三</td>
-                                <td>男</td>
-                                <td>计算机科学与技术</td>
-                                <td>2024-05-10 14:30:25</td>
-                                <td><span class="status-badge bg-warning text-white">待审核</span></td>
-                                <td><span class="status-badge bg-secondary">未确认</span></td>
-                                <td>第一批</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" title="查看材料">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-success" title="下载材料">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-outline-info" title="审核操作">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><input type="checkbox" class="form-check-input"></td>
-                                <td>202405002</td>
-                                <td>李四</td>
-                                <td>女</td>
-                                <td>计算机科学与技术</td>
-                                <td>2024-05-11 09:15:42</td>
-                                <td><span class="status-badge bg-success text-white">初审通过</span></td>
-                                <td><span class="status-badge bg-success text-white">已确认</span></td>
-                                <td>第一批</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" title="查看材料">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-success" title="下载材料">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-outline-info" title="审核操作">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><input type="checkbox" class="form-check-input"></td>
-                                <td>202405003</td>
-                                <td>王五</td>
-                                <td>男</td>
-                                <td>计算机科学与技术</td>
-                                <td>2024-05-09 16:45:18</td>
-                                <td><span class="status-badge bg-danger text-white">退回修改</span></td>
-                                <td><span class="status-badge bg-secondary">未确认</span></td>
-                                <td>第二批</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" title="查看材料">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-success" title="下载材料">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-outline-info" title="审核操作">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <!-- 数据将通过DataTables动态加载 -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- 分页控件 -->
-                <nav class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1">上一页</a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">下一页</a>
-                        </li>
-                    </ul>
-                </nav>
+                <!-- DataTables自带分页，移除手动分页 -->
             </div>
         </div>
     </div>
@@ -411,22 +363,22 @@
                         <div class="col-md-6">
                             <label class="form-label">报名时间范围</label>
                             <div class="input-group">
-                                <input type="date" class="form-control" placeholder="开始日期">
+                                <input type="date" class="form-control" placeholder="开始日期" id="startDate">
                                 <span class="input-group-text">至</span>
-                                <input type="date" class="form-control" placeholder="结束日期">
+                                <input type="date" class="form-control" placeholder="结束日期" id="endDate">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">成绩范围</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" placeholder="最低分数">
+                                <input type="number" class="form-control" placeholder="最低分数" id="minScore">
                                 <span class="input-group-text">至</span>
-                                <input type="number" class="form-control" placeholder="最高分数">
+                                <input type="number" class="form-control" placeholder="最高分数" id="maxScore">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">学历</label>
-                            <select class="form-select">
+                            <select class="form-select" id="educationSelect">
                                 <option value="">全部</option>
                                 <option value="undergraduate">本科</option>
                                 <option value="junior">专科</option>
@@ -434,7 +386,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">是否有推荐信</label>
-                            <select class="form-select">
+                            <select class="form-select" id="recommendationSelect">
                                 <option value="">全部</option>
                                 <option value="yes">有</option>
                                 <option value="no">无</option>
@@ -444,7 +396,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary">应用筛选</button>
+                    <button type="button" class="btn btn-primary" id="applyFilterBtn">应用筛选</button>
                 </div>
             </div>
         </div>
@@ -473,7 +425,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">模板选择</label>
-                            <select class="form-select">
+                            <select class="form-select" id="templateSelect">
                                 <option value="">自定义模板</option>
                                 <option value="audit-pass">审核通过通知</option>
                                 <option value="audit-reject">审核不通过通知</option>
@@ -482,7 +434,7 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">消息内容</label>
-                            <textarea class="form-control" rows="6" placeholder="请输入消息内容...">尊敬的考生：
+                            <textarea class="form-control" id="messageContent" rows="6" placeholder="请输入消息内容...">尊敬的考生：
 
 您的报名材料已审核完成，请登录系统查看审核结果。
 
@@ -492,17 +444,71 @@
                         </div>
                         <div class="col-12">
                             <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>本次将向选中的 0 位考生发送消息
+                                <i class="fas fa-info-circle me-2"></i>本次将向选中的 <span id="selectedCount">0</span> 位考生发送消息
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary">发送消息</button>
+                    <button type="button" class="btn btn-primary" id="sendMessageBtn">发送消息</button>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- 审核操作模态框 -->
+    <div class="modal fade" id="auditModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>审核操作</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="currentStudentId">
+                    <div class="mb-3">
+                        <label class="form-label">考生信息</label>
+                        <div id="studentInfo" class="form-control-plaintext">张三 (准考证号：202405001)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">审核状态</label>
+                        <select class="form-select" id="auditStatus">
+                            <option value="pending">待审核</option>
+                            <option value="first-pass">初审通过</option>
+                            <option value="second-pass">复审通过</option>
+                            <option value="modify">退回修改</option>
+                            <option value="reject">不通过</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">审核意见</label>
+                        <textarea class="form-control" id="auditComment" rows="3" placeholder="请输入审核意见（将发送给考生）"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">面试资格</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="interviewQualification" id="interviewYes" value="yes">
+                            <label class="form-check-label" for="interviewYes">有</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="interviewQualification" id="interviewNo" value="no" checked>
+                            <label class="form-check-label" for="interviewNo">无</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmAuditBtn">确认审核</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 下载进度提示 -->
+    <div class="download-progress" id="downloadProgress">
+        <i class="fas fa-download me-2"></i>
+        <span id="downloadText">正在下载文件...</span>
     </div>
 
     <!-- 引入JS库 -->
@@ -512,34 +518,153 @@
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     
     <script>
+        // 模拟考生数据
+        const applicantData = [
+            { id: 1, examId: "202405001", name: "张三", gender: "男", major: "计算机科学与技术", submitTime: "2024-05-10 14:30:25", status: "pending", interview: "no", batch: "第一批" },
+            { id: 2, examId: "202405002", name: "李四", gender: "女", major: "计算机科学与技术", submitTime: "2024-05-11 09:15:42", status: "first-pass", interview: "yes", batch: "第一批" },
+            { id: 3, examId: "202405003", name: "王五", gender: "男", major: "计算机科学与技术", submitTime: "2024-05-09 16:45:18", status: "modify", interview: "no", batch: "第二批" },
+            { id: 4, examId: "202405004", name: "赵六", gender: "女", major: "计算机科学与技术", submitTime: "2024-05-12 10:20:30", status: "second-pass", interview: "yes", batch: "第一批" },
+            { id: 5, examId: "202405005", name: "钱七", gender: "男", major: "计算机科学与技术", submitTime: "2024-05-08 15:10:45", status: "reject", interview: "no", batch: "第二批" },
+            { id: 6, examId: "202405006", name: "孙八", gender: "女", major: "计算机科学与技术", submitTime: "2024-05-13 09:05:12", status: "pending", interview: "no", batch: "第三批" },
+            { id: 7, examId: "202405007", name: "周九", gender: "男", major: "计算机科学与技术", submitTime: "2024-05-11 14:20:18", status: "first-pass", interview: "yes", batch: "第一批" },
+            { id: 8, examId: "202405008", name: "吴十", gender: "女", major: "计算机科学与技术", submitTime: "2024-05-10 11:30:40", status: "modify", interview: "no", batch: "第二批" },
+            { id: 9, examId: "202405009", name: "郑十一", gender: "男", major: "计算机科学与技术", submitTime: "2024-05-09 08:45:22", status: "pending", interview: "no", batch: "第一批" },
+            { id: 10, examId: "202405010", name: "王十二", gender: "女", major: "计算机科学与技术", submitTime: "2024-05-12 16:15:30", status: "second-pass", interview: "yes", batch: "第三批" },
+            { id: 11, examId: "202405011", name: "李十三", gender: "男", major: "计算机科学与技术", submitTime: "2024-05-08 13:25:10", status: "pending", interview: "no", batch: "第二批" },
+            { id: 12, examId: "202405012", name: "张十四", gender: "女", major: "计算机科学与技术", submitTime: "2024-05-11 10:10:55", status: "first-pass", interview: "yes", batch: "第一批" }
+        ];
+
+        // 状态样式映射
+        const statusStyleMap = {
+            "pending": { class: "bg-warning text-white", text: "待审核" },
+            "first-pass": { class: "bg-success text-white", text: "初审通过" },
+            "second-pass": { class: "bg-primary text-white", text: "复审通过" },
+            "modify": { class: "bg-danger text-white", text: "退回修改" },
+            "reject": { class: "bg-dark text-white", text: "不通过" }
+        };
+
+        // 面试资格样式映射
+        const interviewStyleMap = {
+            "yes": { class: "bg-success text-white", text: "已确认" },
+            "no": { class: "bg-secondary", text: "未确认" }
+        };
+
         // 页面加载完成后初始化
         $(document).ready(function() {
-            // 初始化数据表格
-            $('#applicantTable').DataTable({
-                paging: false,
-                searching: false,
-                info: false,
-                ordering: false
+            // 初始化数据表格（启用分页）
+            const table = $('#applicantTable').DataTable({
+                data: applicantData,
+                columns: [
+                    { 
+                        data: null, 
+                        render: function(data, type, row) {
+                            return `<input type="checkbox" class="form-check-input row-checkbox" data-id="${row.id}">`;
+                        },
+                        orderable: false
+                    },
+                    { data: "examId", title: "准考证号" },
+                    { data: "name", title: "考生姓名" },
+                    { data: "gender", title: "性别" },
+                    { data: "major", title: "报考专业" },
+                    { data: "submitTime", title: "提交时间" },
+                    { 
+                        data: "status", 
+                        title: "审核状态",
+                        render: function(data) {
+                            const style = statusStyleMap[data];
+                            return `<span class="status-badge ${style.class}">${style.text}</span>`;
+                        }
+                    },
+                    { 
+                        data: "interview", 
+                        title: "面试资格",
+                        render: function(data) {
+                            const style = interviewStyleMap[data];
+                            return `<span class="status-badge ${style.class}">${style.text}</span>`;
+                        }
+                    },
+                    { data: "batch", title: "批次" },
+                    { 
+                        data: null, 
+                        title: "操作",
+                        render: function(data, type, row) {
+                            return `
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary view-material" data-id="${row.id}" title="查看材料">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-success download-material" data-id="${row.id}" data-name="${row.name}" title="下载材料">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="btn btn-outline-info audit-operation" data-id="${row.id}" data-name="${row.name}" data-examid="${row.examId}" title="审核操作">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            `;
+                        },
+                        orderable: false
+                    }
+                ],
+                // 分页配置
+                paging: true,
+                pageLength: 8,
+                lengthChange: true,
+                lengthMenu: [[8, 15, 20, -1], [8, 15, 20, "全部"]],
+                searching: true,
+                info: true,
+                ordering: true,
+                responsive: true,
+                language: {
+                    "sProcessing": "处理中...",
+                    "sLengthMenu": "显示 _MENU_ 条结果",
+                    "sZeroRecords": "没有匹配结果",
+                    "sInfo": "显示第 _START_ 至 _END_ 条结果，共 _TOTAL_ 条",
+                    "sInfoEmpty": "显示第 0 至 0 条结果，共 0 条",
+                    "sInfoFiltered": "(由 _MAX_ 条结果过滤)",
+                    "sInfoPostFix": "",
+                    "sSearch": "搜索:",
+                    "sUrl": "",
+                    "sEmptyTable": "表中数据为空",
+                    "sLoadingRecords": "载入中...",
+                    "sInfoThousands": ",",
+                    "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "上页",
+                        "sNext": "下页",
+                        "sLast": "末页"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": 以升序排列此列",
+                        "sSortDescending": ": 以降序排列此列"
+                    }
+                }
             });
 
-            // 全选/取消全选
+            // 全选/取消全选（表格头部）
+            $('#tableSelectAll').on('change', function() {
+                $('.row-checkbox').prop('checked', this.checked);
+                updateSelectedCount();
+            });
+
+            // 顶部全选按钮
             $('#selectAll').on('change', function() {
-                $('tbody input[type="checkbox"]').prop('checked', this.checked);
+                $('.row-checkbox, #tableSelectAll').prop('checked', this.checked);
                 updateSelectedCount();
             });
 
             // 单个复选框变化
-            $('tbody input[type="checkbox"]').on('change', function() {
+            $(document).on('change', '.row-checkbox', function() {
                 updateSelectedCount();
                 // 同步全选框状态
-                const allChecked = $('tbody input[type="checkbox"]').length === $('tbody input[type="checkbox"]:checked').length;
-                $('#selectAll').prop('checked', allChecked);
+                const allChecked = $('.row-checkbox').length === $('.row-checkbox:checked').length;
+                $('#selectAll, #tableSelectAll').prop('checked', allChecked);
             });
 
             // 更新选中人数
             function updateSelectedCount() {
-                const count = $('tbody input[type="checkbox"]:checked').length;
+                const count = $('.row-checkbox:checked').length;
                 $('.ms-2.text-secondary').text(`(已选: ${count} 人)`);
+                $('#selectedCount').text(count);
             }
 
             // 树形节点点击事件
@@ -548,8 +673,246 @@
                 $('.tree-node').removeClass('active');
                 // 添加当前active状态
                 $(this).addClass('active');
-                // 这里可以添加加载对应班级数据的逻辑
+                // 模拟加载对应班级数据
+                showToast(`已切换至【${$(this).data('class') || $(this).data('project')}】数据`);
             });
+
+            // 单个材料下载
+            $(document).on('click', '.download-material', function() {
+                const studentId = $(this).data('id');
+                const studentName = $(this).data('name');
+                
+                // 显示下载进度
+                $('#downloadProgress').fadeIn();
+                $('#downloadText').text(`正在下载 ${studentName} 的材料...`);
+                
+                // 模拟下载延迟
+                setTimeout(() => {
+                    // 创建下载链接
+                    const link = document.createElement('a');
+                    link.href = `#download/${studentId}`; // 实际项目中替换为真实下载地址
+                    link.download = `${studentName}_报名表及附件.zip`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // 隐藏进度提示
+                    $('#downloadText').text(`已完成 ${studentName} 材料下载`);
+                    setTimeout(() => {
+                        $('#downloadProgress').fadeOut();
+                    }, 1500);
+                    
+                    showToast(`${studentName} 的材料下载完成`);
+                }, 1000);
+            });
+
+            // 批量下载材料
+            $('#batchDownloadBtn').on('click', function() {
+                const selectedCount = $('.row-checkbox:checked').length;
+                
+                if (selectedCount === 0) {
+                    showToast('请先选择需要下载的考生', 'warning');
+                    return;
+                }
+                
+                // 显示下载进度
+                $('#downloadProgress').fadeIn();
+                $('#downloadText').text(`正在打包 ${selectedCount} 位考生的材料...`);
+                
+                // 模拟批量下载延迟
+                setTimeout(() => {
+                    // 创建下载链接
+                    const link = document.createElement('a');
+                    link.href = '#batch-download'; // 实际项目中替换为真实下载地址
+                    link.download = `批量材料_${new Date().getTime()}.zip`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // 隐藏进度提示
+                    $('#downloadText').text(`已完成 ${selectedCount} 位考生材料打包下载`);
+                    setTimeout(() => {
+                        $('#downloadProgress').fadeOut();
+                    }, 1500);
+                    
+                    showToast(`已完成 ${selectedCount} 位考生材料批量下载`);
+                }, 2000);
+            });
+
+            // 审核操作
+            $(document).on('click', '.audit-operation', function() {
+                const studentId = $(this).data('id');
+                const studentName = $(this).data('name');
+                const examId = $(this).data('examid');
+                
+                // 设置模态框内容
+                $('#currentStudentId').val(studentId);
+                $('#studentInfo').text(`${studentName} (准考证号：${examId})`);
+                
+                // 打开审核模态框
+                const auditModal = new bootstrap.Modal(document.getElementById('auditModal'));
+                auditModal.show();
+            });
+
+            // 确认审核
+            $('#confirmAuditBtn').on('click', function() {
+                const studentId = $('#currentStudentId').val();
+                const auditStatus = $('#auditStatus').val();
+                const auditComment = $('#auditComment').val();
+                const interviewQualification = $('input[name="interviewQualification"]:checked').val();
+                
+                if (!auditComment && (auditStatus === 'modify' || auditStatus === 'reject')) {
+                    showToast('退回修改或不通过时必须填写审核意见', 'warning');
+                    return;
+                }
+                
+                // 模拟审核提交
+                showToast('审核操作已提交，数据正在更新...');
+                
+                setTimeout(() => {
+                    // 更新表格数据
+                    const rowIndex = table.column(0).data().indexOf(table.column(0).data().filter(function(value, index) {
+                        return table.row(index).data().id == studentId;
+                    })[0]);
+                    
+                    if (rowIndex !== -1) {
+                        table.row(rowIndex).data({
+                            ...table.row(rowIndex).data(),
+                            status: auditStatus,
+                            interview: interviewQualification
+                        }).draw();
+                    }
+                    
+                    // 关闭模态框
+                    const auditModal = bootstrap.Modal.getInstance(document.getElementById('auditModal'));
+                    auditModal.hide();
+                    
+                    showToast('审核操作完成，已更新考生状态');
+                }, 800);
+            });
+
+            // 批量审核操作
+            $('.dropdown-item[data-audit-action]').on('click', function(e) {
+                e.preventDefault();
+                const action = $(this).data('audit-action');
+                const selectedCount = $('.row-checkbox:checked').length;
+                
+                if (selectedCount === 0) {
+                    showToast('请先选择需要审核的考生', 'warning');
+                    return;
+                }
+                
+                // 确认批量操作
+                if (confirm(`确定要将选中的 ${selectedCount} 位考生批量设置为【${statusStyleMap[action].text}】吗？`)) {
+                    showToast(`正在批量更新 ${selectedCount} 位考生的审核状态...`);
+                    
+                    // 模拟批量更新
+                    setTimeout(() => {
+                        // 更新表格中选中行的状态
+                        $('.row-checkbox:checked').each(function() {
+                            const studentId = $(this).data('id');
+                            const rowIndex = table.column(0).data().indexOf(table.column(0).data().filter(function(value, index) {
+                                return table.row(index).data().id == studentId;
+                            })[0]);
+                            
+                            if (rowIndex !== -1) {
+                                table.row(rowIndex).data({
+                                    ...table.row(rowIndex).data(),
+                                    status: action
+                                }).draw();
+                            }
+                        });
+                        
+                        showToast(`已完成 ${selectedCount} 位考生的批量审核操作`);
+                    }, 1000);
+                }
+            });
+
+            // 搜索功能
+            $('#searchBtn').on('click', function() {
+                const searchText = $('#searchInput').val().toLowerCase();
+                const status = $('#statusSelect').val();
+                const batch = $('#batchSelect').val();
+                const interview = $('#interviewSelect').val();
+                
+                // 构建筛选条件
+                table.search('').columns().search('').draw();
+                
+                if (searchText) {
+                    table.search(searchText).draw();
+                }
+                
+                // 可以扩展更多筛选逻辑
+                showToast('搜索条件已应用');
+            });
+
+            // 高级筛选应用
+            $('#applyFilterBtn').on('click', function() {
+                // 获取筛选条件
+                const startDate = $('#startDate').val();
+                const endDate = $('#endDate').val();
+                const minScore = $('#minScore').val();
+                const maxScore = $('#maxScore').val();
+                const education = $('#educationSelect').val();
+                const recommendation = $('#recommendationSelect').val();
+                
+                // 模拟应用筛选
+                $('#filterModal').modal('hide');
+                showToast('高级筛选条件已应用');
+            });
+
+            // 发送消息
+            $('#sendMessageBtn').on('click', function() {
+                const selectedCount = $('.row-checkbox:checked').length;
+                
+                if (selectedCount === 0) {
+                    showToast('请先选择需要发送消息的考生', 'warning');
+                    return;
+                }
+                
+                const emailSend = $('#emailSend').is(':checked');
+                const smsSend = $('#smsSend').is(':checked');
+                
+                if (!emailSend && !smsSend) {
+                    showToast('请至少选择一种发送方式', 'warning');
+                    return;
+                }
+                
+                // 模拟发送消息
+                $('#messageModal').modal('hide');
+                showToast(`正在向 ${selectedCount} 位考生发送消息...`);
+                
+                setTimeout(() => {
+                    showToast(`已成功向 ${selectedCount} 位考生发送消息（邮件：${emailSend?'是':'否'}，短信：${smsSend?'是':'否'}）`);
+                }, 1000);
+            });
+
+            // 提示框函数
+            function showToast(message, type = 'success') {
+                // 创建toast元素
+                const toastHtml = `
+                    <div class="toast align-items-center text-white bg-${type === 'warning' ? 'warning' : 'success'} border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                // 添加到页面
+                $('body').append(toastHtml);
+                
+                // 显示toast
+                const toast = new bootstrap.Toast($('.toast:last'));
+                toast.show();
+                
+                // 自动移除
+                setTimeout(() => {
+                    $('.toast:last').remove();
+                }, 3000);
+            }
         });
     </script>
 </body>
