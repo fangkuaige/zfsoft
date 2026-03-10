@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- 引入SheetJS库处理Excel文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        neutral: '#86909C'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .form-input-focus {
+                @apply border-primary ring-2 ring-primary/20 outline-none;
+            }
+            .btn-hover {
+                @apply hover:opacity-90 transition-all duration-200;
+            }
+        }
+        /* 全页面样式 */
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { display: flex; flex-direction: column; }
+        main { flex: 1; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3">
+            <h1 class="text-xl font-bold text-gray-800">笔试成绩录入系统</h1>
+        </div>
+    </header> -->
+
+    
+    <main class="px-4 py-6">
+        <!-- 成绩录入 -->
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-primary"></i>成绩录入
+            </h2>
+            <form id="scoreForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="space-y-2">
+                    <label for="studentName" class="text-sm font-medium text-gray-700">学生姓名 <span class="text-danger">*</span></label>
+                    <input type="text" id="studentName" class="w-full px-3 py-2 border rounded focus:form-input-focus" placeholder="请输入" required>
+                </div>
+                <div class="space-y-2">
+                    <label for="studentId" class="text-sm font-medium text-gray-700">学号 <span class="text-danger">*</span></label>
+                    <input type="text" id="studentId" class="w-full px-3 py-2 border rounded focus:form-input-focus" placeholder="请输入" required>
+                </div>
+                <div class="space-y-2">
+                    <label for="examSubject" class="text-sm font-medium text-gray-700">考试科目 <span class="text-danger">*</span></label>
+                    <select id="examSubject" class="w-full px-3 py-2 border rounded focus:form-input-focus" required>
+                        <option value="">请选择</option>
+                        <option value="语文">语文</option><option value="数学">数学</option><option value="英语">英语</option>
+                        <option value="物理">物理</option><option value="化学">化学</option><option value="生物">生物</option>
+                        <option value="历史">历史</option><option value="地理">地理</option><option value="政治">政治</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label for="examScore" class="text-sm font-medium text-gray-700">笔试成绩 <span class="text-danger">*</span></label>
+                    <input type="number" id="examScore" min="0" max="100" step="0.5" class="w-full px-3 py-2 border rounded focus:form-input-focus" placeholder="0-100分" required>
+                </div>
+                <div class="space-y-2">
+                    <label for="examDate" class="text-sm font-medium text-gray-700">考试日期 <span class="text-danger">*</span></label>
+                    <input type="date" id="examDate" class="w-full px-3 py-2 border rounded focus:form-input-focus" required>
+                </div>
+                <div class="space-y-2">
+                    <label for="examRemark" class="text-sm font-medium text-gray-700">备注</label>
+                    <input type="text" id="examRemark" class="w-full px-3 py-2 border rounded focus:form-input-focus" placeholder="可选">
+                </div>
+                <div class="md:col-span-2 lg:col-span-3 flex gap-3 pt-2">
+                    <button type="submit" class="flex-1 px-4 py-2 bg-primary text-white rounded btn-hover flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-save"></i>保存成绩
+                    </button>
+                    <button type="reset" class="px-4 py-2 bg-gray-200 text-gray-700 rounded btn-hover flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-refresh"></i>重置
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 批量导入 -->
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-file-import text-primary"></i>批量导入
+            </h2>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary">
+                <i class="fa-solid fa-cloud-upload text-4xl text-gray-400 mb-3"></i>
+                <p class="text-gray-600 mb-4">拖拽Excel文件到此处，或点击选择文件</p>
+                <label class="px-4 py-2 bg-primary text-white rounded btn-hover cursor-pointer">
+                    <i class="fa-solid fa-file-excel"></i>选择Excel文件
+                    <input type="file" accept=".xlsx,.xls" class="hidden" id="batchFile">
+                </label>
+                <!-- 模板下载链接 -->
+                <p class="text-xs text-gray-500 mt-3">支持：.xlsx .xls | <a href="javascript:void(0)" onclick="downloadTemplate()" class="text-primary cursor-pointer">模板下载</a></p>
+            </div>
+        </section>
+
+        <!-- 成绩列表 -->
+        <section class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-table text-primary"></i>成绩列表
+                </h2>
+                <div class="flex gap-2">
+                    <button id="exportBtn" class="px-3 py-1.5 bg-primary text-white rounded btn-hover flex items-center gap-1">
+                        <i class="fa-solid fa-download"></i><span class="hidden sm:inline">导出Excel</span>
+                    </button>
+                    <button id="clearBtn" class="px-3 py-1.5 bg-danger text-white rounded btn-hover flex items-center gap-1">
+                        <i class="fa-solid fa-trash"></i><span class="hidden sm:inline">清空数据</span>
+                    </button>
+                    <input type="text" id="searchInput" placeholder="搜索姓名/学号/科目" class="px-3 py-1.5 border rounded focus:form-input-focus w-48">
+                    <button id="searchBtn" class="px-3 py-1.5 bg-primary text-white rounded btn-hover"><i class="fa-solid fa-search"></i></button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-left">
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">序号</th>
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">学生姓名</th>
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">学号</th>
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">考试科目</th>
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">成绩</th>
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">考试日期</th>
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">备注</th>
+                            <th class="px-4 py-3 border-b text-sm font-medium text-gray-700">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoreTableBody">
+                        <tr class="text-center"><td colspan="8" class="px-4 py-8 text-gray-500">暂无数据</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-between items-center mt-4">
+                <p class="text-sm text-gray-600" id="paginationInfo">共 0 条数据</p>
+                <div class="flex gap-2">
+                    <button id="prevPage" disabled class="px-2 py-1 border rounded disabled:opacity-50">上一页</button>
+                    <button id="nextPage" disabled class="px-2 py-1 border rounded disabled:opacity-50">下一页</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- <footer class="bg-white border-t py-4 mt-auto">
+        <div class="container mx-auto text-center text-sm text-gray-600">© 2026 笔试成绩录入系统</div>
+    </footer> -->
+
+    <!-- 提示弹窗 -->
+    <div id="toast" class="fixed top-20 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg opacity-0 transition-opacity z-50 flex items-center gap-2">
+        <i class="fa-solid fa-info-circle"></i><span id="toastText">操作提示</span>
+    </div>
+
+    <script>
+        let scoreData = JSON.parse(localStorage.getItem('scoreData')) || [];
+        const pageSize = 10;
+        let currentPage = 1;
+
+        const scoreForm = document.getElementById('scoreForm');
+        const scoreTableBody = document.getElementById('scoreTableBody');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const batchFile = document.getElementById('batchFile');
+        const toast = document.getElementById('toast');
+        const toastText = document.getElementById('toastText');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+            updatePagination();
+            scoreForm.addEventListener('submit', handleFormSubmit);
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) { currentPage--; renderTable(); updatePagination(); }
+            });
+            nextPageBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(scoreData.length / pageSize);
+                if (currentPage < totalPages) { currentPage++; renderTable(); updatePagination(); }
+            });
+            searchBtn.addEventListener('click', handleSearch);
+            searchInput.addEventListener('keydown', e => e.key === 'Enter' && handleSearch());
+            exportBtn.addEventListener('click', exportExcel); // 改为导出Excel
+            clearBtn.addEventListener('click', clearAllData);
+            batchFile.addEventListener('change', handleExcelImport); // 改为导入Excel
+        });
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const formData = {
+                studentName: document.getElementById('studentName').value.trim(),
+                studentId: document.getElementById('studentId').value.trim(),
+                examSubject: document.getElementById('examSubject').value,
+                examScore: parseFloat(document.getElementById('examScore').value) || 0,
+                examDate: document.getElementById('examDate').value,
+                examRemark: document.getElementById('examRemark').value.trim() || '-',
+                id: Date.now()
+            };
+            if (formData.examScore < 0 || formData.examScore > 100) {
+                showToast('成绩必须在0-100分之间', 'danger');
+                return;
+            }
+            const isDuplicate = scoreData.some(item =>
+                item.studentId === formData.studentId && item.examSubject === formData.examSubject
+            );
+            if (isDuplicate) {
+                showToast('该学生该科目成绩已录入', 'warning');
+                return;
+            }
+            scoreData.unshift(formData);
+            localStorage.setItem('scoreData', JSON.stringify(scoreData));
+            scoreForm.reset();
+            renderTable();
+            updatePagination();
+            showToast('成绩录入成功', 'success');
+        }
+
+        function renderTable(filteredData = null) {
+            const data = filteredData || scoreData;
+            const totalPages = Math.ceil(data.length / pageSize);
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, data.length);
+            const pageData = data.slice(startIndex, endIndex);
+            scoreTableBody.innerHTML = '';
+            if (data.length === 0) {
+                scoreTableBody.innerHTML = `<tr class="text-center"><td colspan="8" class="px-4 py-8 text-gray-500">暂无成绩数据</td></tr>`;
+                return;
+            }
+            pageData.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 border-b';
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-sm">${startIndex + index + 1}</td>
+                    <td class="px-4 py-3 text-sm">${item.studentName}</td>
+                    <td class="px-4 py-3 text-sm">${item.studentId}</td>
+                    <td class="px-4 py-3 text-sm">${item.examSubject}</td>
+                    <td class="px-4 py-3 text-sm ${item.examScore < 60 ? 'text-danger' : ''}">${item.examScore}</td>
+                    <td class="px-4 py-3 text-sm">${formatDate(item.examDate)}</td>
+                    <td class="px-4 py-3 text-sm">${item.examRemark}</td>
+                    <td class="px-4 py-3 text-sm">
+                        <button class="text-warning mr-2 hover:underline" onclick="editData(${item.id})"><i class="fa-solid fa-edit"></i>编辑</button>
+                        <button class="text-danger hover:underline" onclick="deleteData(${item.id})"><i class="fa-solid fa-trash"></i>删除</button>
+                    </td>
+                `;
+                scoreTableBody.appendChild(tr);
+            });
+            paginationInfo.textContent = `共 ${data.length} 条数据，当前第 ${currentPage}/${totalPages || 1} 页`;
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(scoreData.length / pageSize);
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages || totalPages === 0;
+        }
+
+        function handleSearch() {
+            const keyword = searchInput.value.trim().toLowerCase();
+            if (!keyword) { renderTable(); updatePagination(); return; }
+            const filtered = scoreData.filter(item =>
+                item.studentName.toLowerCase().includes(keyword) ||
+                item.studentId.toLowerCase().includes(keyword) ||
+                item.examSubject.toLowerCase().includes(keyword)
+            );
+            currentPage = 1;
+            renderTable(filtered);
+            updatePagination();
+            showToast(`找到 ${filtered.length} 条匹配数据`, 'success');
+        }
+
+        function editData(id) {
+            const item = scoreData.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('studentName').value = item.studentName;
+            document.getElementById('studentId').value = item.studentId;
+            document.getElementById('examSubject').value = item.examSubject;
+            document.getElementById('examScore').value = item.examScore;
+            document.getElementById('examDate').value = item.examDate;
+            document.getElementById('examRemark').value = item.examRemark === '-' ? '' : item.examRemark;
+            scoreData = scoreData.filter(i => i.id !== id);
+            localStorage.setItem('scoreData', JSON.stringify(scoreData));
+            showToast('请修改后重新提交', 'warning');
+        }
+
+        function deleteData(id) {
+            if (!confirm('确定删除？')) return;
+            scoreData = scoreData.filter(i => i.id !== id);
+            localStorage.setItem('scoreData', JSON.stringify(scoreData));
+            const totalPages = Math.ceil(scoreData.length / pageSize);
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+            renderTable();
+            updatePagination();
+            showToast('删除成功', 'success');
+        }
+
+        // 导出Excel文件（核心修改）
+        function exportExcel() {
+            if (scoreData.length === 0) {
+                showToast('暂无数据可导出', 'warning');
+                return;
+            }
+
+            // 构造Excel数据
+            const header = ['序号', '学生姓名', '学号', '考试科目', '成绩', '考试日期', '备注'];
+            const data = scoreData.map((item, index) => [
+                index + 1,
+                item.studentName || '',
+                item.studentId || '',
+                item.examSubject || '',
+                isNaN(item.examScore) ? 0 : item.examScore,
+                formatDate(item.examDate) || '',
+                item.examRemark || '-'
+            ]);
+
+            // 创建工作簿和工作表
+            const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '笔试成绩');
+
+            // 生成并下载Excel文件
+            const filename = `笔试成绩_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            
+            showToast('Excel导出成功', 'success');
+        }
+
+        // 下载Excel模板（核心修改）
+        function downloadTemplate() {
+            // 模板表头和示例数据
+            const header = ['学生姓名', '学号', '考试科目', '成绩', '考试日期', '备注'];
+            const exampleData = ['张三', '2026001', '数学', 95.5, '2026-03-10', '无'];
+            
+            // 创建工作簿和工作表
+            const ws = XLSX.utils.aoa_to_sheet([header, exampleData]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '成绩模板');
+
+            // 生成并下载模板文件
+            XLSX.writeFile(wb, '成绩导入模板.xlsx');
+            showToast('Excel模板下载成功', 'success');
+        }
+
+        // 导入Excel文件（核心修改）
+        function handleExcelImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    // 解析Excel文件
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, { type: 'array' });
+                    const wsname = wb.SheetNames[0];
+                    const ws = wb.Sheets[wsname];
+                    
+                    // 转换为JSON格式（跳过表头）
+                    const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                    if (jsonData.length <= 1) {
+                        showToast('Excel文件无有效数据', 'warning');
+                        return;
+                    }
+
+                    let success = 0, fail = 0;
+                    // 从第二行开始处理数据（第一行是表头）
+                    jsonData.slice(1).forEach(row => {
+                        if (!row || row.length < 5) { // 至少需要姓名、学号、科目、成绩、日期
+                            fail++;
+                            return;
+                        }
+
+                        // 提取数据并校验
+                        const [name, id, subject, score, date, remark] = row;
+                        const scoreNum = parseFloat(score);
+                        
+                        // 数据校验
+                        if (!name || !id || !subject || isNaN(scoreNum) || !date) {
+                            fail++;
+                            return;
+                        }
+                        if (scoreNum < 0 || scoreNum > 100) {
+                            fail++;
+                            return;
+                        }
+
+                        // 检查重复数据
+                        const isDuplicate = scoreData.some(item =>
+                            item.studentId === String(id).trim() && item.examSubject === String(subject).trim()
+                        );
+                        if (isDuplicate) {
+                            fail++;
+                            return;
+                        }
+
+                        // 新增数据
+                        scoreData.push({
+                            studentName: String(name).trim(),
+                            studentId: String(id).trim(),
+                            examSubject: String(subject).trim(),
+                            examScore: scoreNum,
+                            examDate: String(date).trim().replace(/\//g, '-'),
+                            examRemark: remark ? String(remark).trim() : '-',
+                            id: Date.now() + Math.random()
+                        });
+                        success++;
+                    });
+
+                    // 保存数据并更新表格
+                    localStorage.setItem('scoreData', JSON.stringify(scoreData));
+                    renderTable();
+                    updatePagination();
+                    showToast(`导入完成：成功${success}条，失败${fail}条`, 'success');
+
+                } catch (err) {
+                    showToast('Excel导入失败：' + err.message, 'danger');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function clearAllData() {
+            if (!confirm('确定清空所有数据？')) return;
+            scoreData = [];
+            localStorage.removeItem('scoreData');
+            renderTable();
+            updatePagination();
+            showToast('所有数据已清空', 'danger');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+        }
+
+        function showToast(msg, type = 'info') {
+            toastText.textContent = msg;
+            const icon = toast.querySelector('i');
+            icon.className = '';
+            toast.className = toast.className.replace(/bg-\w+\/90/g, '');
+            switch (type) {
+                case 'success': icon.className = 'fa-solid fa-check-circle text-success'; toast.classList.add('bg-success/90'); break;
+                case 'warning': icon.className = 'fa-solid fa-exclamation-triangle text-warning'; toast.classList.add('bg-warning/90'); break;
+                case 'danger': icon.className = 'fa-solid fa-times-circle text-danger'; toast.classList.add('bg-danger/90'); break;
+                default: icon.className = 'fa-solid fa-info-circle text-primary'; toast.classList.add('bg-gray-800');
+            }
+            toast.style.opacity = '1';
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => toast.style.opacity = '0', 3000);
+        }
+    </script>
+</body>
+</html>

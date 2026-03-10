@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生科目面试资格确认系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft Yahei', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            /* 让body占满整个视口高度 */
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 最外层容器填满整个页面 */
+        .container {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            /* 使用弹性布局让内容自适应高度 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 页面内提示框样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .filter-panel {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            border-color: #3498db;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-reset {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+        .btn-reset:hover {
+            background-color: #c0392b;
+        }
+
+        .table-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            /* 让表格容器占满剩余高度（预留分页控件高度） */
+            flex: 1;
+            /* 固定表格容器高度，防止查询后行高变化 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            /* 移除表格高度100%，避免行高拉伸 */
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            /* 固定单元格行高，防止拉伸 */
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-qualified {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-unqualified {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .status-pending {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+
+        .action-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .action-btn-confirm {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .action-btn-reject {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 0;
+            color: #999;
+            /* 空状态固定高度，防止拉伸 */
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .total-count {
+            margin-top: 15px;
+            text-align: right;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 分页控件样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            gap: 8px;
+            padding: 10px;
+        }
+
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .pagination-btn:hover {
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        .pagination-btn.active {
+            background-color: #3498db;
+            color: #fff;
+            border-color: #3498db;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #ddd;
+            color: #999;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            th, td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+
+            .toast {
+                width: 80%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面内提示框 -->
+    <div class="toast" id="toast"></div>
+
+    <div class="container">
+        <!-- <header>
+            <h1>学生科目面试资格确认系统</h1>
+            <p>管理和筛选学生面试资格状态</p>
+        </header> -->
+
+        <!-- 筛选面板 -->
+        <div class="filter-panel">
+            <div class="filter-group">
+                <label for="student-name">学生姓名</label>
+                <input type="text" id="student-name" placeholder="请输入学生姓名">
+            </div>
+            <div class="filter-group">
+                <label for="subject">报考科目</label>
+                <select id="subject">
+                    <option value="">全部科目</option>
+                    <option value="语文">语文</option>
+                    <option value="数学">数学</option>
+                    <option value="英语">英语</option>
+                    <option value="物理">物理</option>
+                    <option value="化学">化学</option>
+                    <option value="生物">生物</option>
+                    <option value="历史">历史</option>
+                    <option value="地理">地理</option>
+                    <option value="政治">政治</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="qualification-status">资格状态</label>
+                <select id="qualification-status">
+                    <option value="">全部状态</option>
+                    <option value="qualified">已确认资格</option>
+                    <option value="unqualified">未通过资格</option>
+                    <option value="pending">待审核</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="year">年级</label>
+                <select id="year">
+                    <option value="">全部年级</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" id="filter-btn">筛选</button>
+                <button class="btn btn-reset" id="reset-btn">重置</button>
+            </div>
+        </div>
+
+        <!-- 学生列表表格 -->
+        <div class="table-container">
+            <table id="student-table">
+                <thead>
+                    <tr>
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>年级</th> <!-- 改回年级表头 -->
+                        <th>班级</th>
+                        <th>报考科目</th>
+                        <th>报名时间</th>
+                        <th>资格状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="student-table-body">
+                    <!-- 学生数据将通过JS动态渲染 -->
+                </tbody>
+            </table>
+
+            <!-- 分页控件 -->
+            <div class="pagination" id="pagination">
+                <button class="pagination-btn" id="prev-page" disabled>上一页</button>
+                <span class="pagination-info" id="page-info">第 1 页 / 共 1 页</span>
+                <button class="pagination-btn" id="next-page" disabled>下一页</button>
+            </div>
+        </div>
+
+        <div class="total-count" id="total-count">
+            共 <span id="count-number">0</span> 名学生
+        </div>
+    </div>
+
+    <script>
+        // 模拟学生数据（数据内容保持不变）
+        const studentData = [
+            { id: '2024001', name: '张三', year: '2024', class: '1班', subject: '数学', applyTime: '2024-03-01', status: 'qualified' },
+            { id: '2024002', name: '李四', year: '2023', class: '3班', subject: '物理', applyTime: '2024-03-02', status: 'unqualified' },
+            { id: '2024003', name: '王五', year: '2022', class: '2班', subject: '英语', applyTime: '2024-03-03', status: 'pending' },
+            { id: '2024004', name: '赵六', year: '2024', class: '4班', subject: '语文', applyTime: '2024-03-04', status: 'qualified' },
+            { id: '2024005', name: '钱七', year: '2023', class: '5班', subject: '化学', applyTime: '2024-03-05', status: 'pending' },
+            { id: '2024006', name: '孙八', year: '2022', class: '6班', subject: '数学', applyTime: '2024-03-06', status: 'unqualified' },
+            { id: '2024007', name: '周九', year: '2024', class: '2班', subject: '物理', applyTime: '2024-03-07', status: 'qualified' },
+            { id: '2024008', name: '吴十', year: '2023', class: '1班', subject: '英语', applyTime: '2024-03-08', status: 'pending' },
+            { id: '2024009', name: '郑十一', year: '2022', class: '3班', subject: '语文', applyTime: '2024-03-09', status: 'unqualified' },
+            { id: '2024010', name: '王十二', year: '2024', class: '5班', subject: '生物', applyTime: '2024-03-10', status: 'qualified' },
+            { id: '2024011', name: '李十三', year: '2023', class: '4班', subject: '化学', applyTime: '2024-03-11', status: 'pending' },
+            { id: '2024012', name: '张十四', year: '2022', class: '2班', subject: '生物', applyTime: '2024-03-12', status: 'qualified' }
+        ];
+
+        // 状态文本映射
+        const statusTextMap = {
+            'qualified': '已确认资格',
+            'unqualified': '未通过资格',
+            'pending': '待审核'
+        };
+
+        // 状态样式类映射
+        const statusClassMap = {
+            'qualified': 'status-qualified',
+            'unqualified': 'status-unqualified',
+            'pending': 'status-pending'
+        };
+
+        // 分页配置
+        let currentPage = 1; // 当前页码
+        const pageSize = 5;  // 每页显示条数
+        let filteredData = []; // 筛选后的数据集
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化时将全部数据赋值给筛选数据集
+            filteredData = [...studentData];
+            // 渲染第一页数据
+            renderStudentList(getPageData(filteredData, currentPage, pageSize));
+            // 更新分页控件
+            updatePagination(filteredData.length, currentPage, pageSize);
+            // 绑定事件
+            bindEventListeners();
+        });
+
+        // 页面内提示框函数
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.getElementById('toast');
+            // 设置提示内容和类型
+            toast.textContent = message;
+            toast.className = 'toast'; // 重置样式
+            toast.classList.add(type, 'show');
+            
+            // 自动隐藏
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // 获取指定页的数据
+        function getPageData(data, pageNum, pageSize) {
+            const startIndex = (pageNum - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            return data.slice(startIndex, endIndex);
+        }
+
+        // 渲染学生列表（修复行高问题）
+        function renderStudentList(data) {
+            const tableBody = document.getElementById('student-table-body');
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="8" class="empty-state">暂无符合条件的学生数据</td>`;
+                tableBody.appendChild(emptyRow);
+            } else {
+                data.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.year}</td> <!-- 数据内容保持不变 -->
+                        <td>${student.class}</td>
+                        <td>${student.subject}</td>
+                        <td>${student.applyTime}</td>
+                        <td><span class="status-tag ${statusClassMap[student.status]}">${statusTextMap[student.status]}</span></td>
+                        <td>
+                            <button class="action-btn action-btn-confirm" data-id="${student.id}" data-status="qualified">确认资格</button>
+                            <button class="action-btn action-btn-reject" data-id="${student.id}" data-status="unqualified">拒绝资格</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // 更新总数
+            document.getElementById('count-number').textContent = filteredData.length;
+        }
+
+        // 更新分页控件
+        function updatePagination(totalCount, currentPage, pageSize) {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const prevBtn = document.getElementById('prev-page');
+            const nextBtn = document.getElementById('next-page');
+            const pageInfo = document.getElementById('page-info');
+
+            // 更新分页信息文本
+            pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+
+            // 禁用/启用上一页按钮
+            prevBtn.disabled = currentPage === 1;
+            // 禁用/启用下一页按钮
+            nextBtn.disabled = currentPage === totalPages || totalCount === 0;
+        }
+
+        // 绑定事件监听
+        function bindEventListeners() {
+            // 筛选按钮点击事件
+            document.getElementById('filter-btn').addEventListener('click', function() {
+                filterStudents();
+                showToast('筛选完成！', 'success');
+            });
+
+            // 重置按钮点击事件
+            document.getElementById('reset-btn').addEventListener('click', function() {
+                document.getElementById('student-name').value = '';
+                document.getElementById('subject').value = '';
+                document.getElementById('qualification-status').value = '';
+                document.getElementById('year').value = '';
+                // 重置分页和筛选数据
+                currentPage = 1;
+                filteredData = [...studentData];
+                // 渲染第一页数据
+                renderStudentList(getPageData(filteredData, currentPage, pageSize));
+                // 更新分页控件
+                updatePagination(filteredData.length, currentPage, pageSize);
+                showToast('已重置筛选条件', 'success');
+            });
+
+            // 状态操作按钮事件（事件委托）
+            document.getElementById('student-table-body').addEventListener('click', function(e) {
+                if (e.target.classList.contains('action-btn')) {
+                    const studentId = e.target.dataset.id;
+                    const newStatus = e.target.dataset.status;
+                    updateStudentStatus(studentId, newStatus);
+                }
+            });
+
+            // 支持回车键触发筛选
+            document.getElementById('student-name').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    filterStudents();
+                    showToast('筛选完成！', 'success');
+                }
+            });
+
+            // 上一页按钮事件
+            document.getElementById('prev-page').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderStudentList(getPageData(filteredData, currentPage, pageSize));
+                    updatePagination(filteredData.length, currentPage, pageSize);
+                }
+            });
+
+            // 下一页按钮事件
+            document.getElementById('next-page').addEventListener('click', function() {
+                const totalPages = Math.ceil(filteredData.length / pageSize);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderStudentList(getPageData(filteredData, currentPage, pageSize));
+                    updatePagination(filteredData.length, currentPage, pageSize);
+                }
+            });
+        }
+
+        // 筛选学生数据
+        function filterStudents() {
+            const nameKeyword = document.getElementById('student-name').value.trim().toLowerCase();
+            const subject = document.getElementById('subject').value;
+            const status = document.getElementById('qualification-status').value;
+            const year = document.getElementById('year').value;
+
+            // 筛选逻辑
+            filteredData = studentData.filter(student => {
+                // 姓名筛选（模糊匹配）
+                const nameMatch = nameKeyword === '' || student.name.toLowerCase().includes(nameKeyword);
+                // 科目筛选
+                const subjectMatch = subject === '' || student.subject === subject;
+                // 状态筛选
+                const statusMatch = status === '' || student.status === status;
+                // 年级筛选（数据字段还是year，只是表头显示年级）
+                const yearMatch = year === '' || student.year === year;
+
+                return nameMatch && subjectMatch && statusMatch && yearMatch;
+            });
+
+            // 筛选后重置到第一页
+            currentPage = 1;
+            // 渲染筛选结果的第一页
+            renderStudentList(getPageData(filteredData, currentPage, pageSize));
+            // 更新分页控件
+            updatePagination(filteredData.length, currentPage, pageSize);
+        }
+
+        // 更新学生资格状态
+        function updateStudentStatus(studentId, newStatus) {
+            // 查找并更新对应学生的状态
+            const student = studentData.find(item => item.id === studentId);
+            if (student) {
+                student.status = newStatus;
+                // 重新筛选（保持当前筛选条件）
+                filterStudents();
+                // 页面内提示（替换alert）
+                showToast(`已成功更新${student.name}的面试资格状态！`, 'success');
+            } else {
+                showToast('未找到该学生信息', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生科目面试录取结果管理系统</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- 引入Chart.js用于数据可视化 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入SheetJS用于导出Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Tailwind自定义配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        neutral: '#86909C'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .table-hover-row {
+                @apply hover:bg-gray-50 transition-colors duration-200;
+            }
+            .btn-base {
+                @apply px-3 py-1.5 rounded text-sm font-medium transition-all duration-200;
+            }
+            .btn-primary {
+                @apply btn-base bg-primary text-white hover:bg-primary/90 active:bg-primary/80;
+            }
+            .btn-success {
+                @apply btn-base bg-success text-white hover:bg-success/90 active:bg-success/80;
+            }
+            .btn-warning {
+                @apply btn-base bg-warning text-white hover:bg-warning/90 active:bg-warning/80;
+            }
+            .btn-danger {
+                @apply btn-base bg-danger text-white hover:bg-danger/90 active:bg-danger/80;
+            }
+            .btn-outline {
+                @apply btn-base border border-gray-300 hover:bg-gray-50 active:bg-gray-100;
+            }
+            .input-base {
+                @apply px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
+            }
+            .pagination-btn-active {
+                @apply bg-primary text-white;
+            }
+            .pagination-btn {
+                @apply relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 focus:z-20 focus:outline-offset-0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <!-- <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-graduation-cap text-primary text-2xl mr-2"></i>
+                    <h1 class="text-xl font-semibold text-gray-900">面试录取结果管理系统</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button class="flex items-center text-sm font-medium text-gray-700 hover:text-primary">
+                            <i class="fa-solid fa-bell mr-1"></i>
+                            <span class="hidden sm:inline">通知</span>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-danger rounded-full"></span>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full">
+                        <span class="text-sm font-medium hidden sm:inline">管理员</span>
+                        <i class="fa-solid fa-chevron-down text-xs text-gray-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header> -->
+
+    <!-- 主内容区 -->
+    <main class=" px-4 sm:px-6 lg:px-8 py-6">
+        <!-- 筛选查询区域 -->
+        <section class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">学生姓名</label>
+                    <input type="text" id="studentName" class="input-base w-full" placeholder="请输入学生姓名">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">面试科目</label>
+                    <select id="subject" class="input-base w-full">
+                        <option value="">全部科目</option>
+                        <option value="语文">语文</option>
+                        <option value="数学">数学</option>
+                        <option value="英语">英语</option>
+                        <option value="物理">物理</option>
+                        <option value="化学">化学</option>
+                        <option value="生物">生物</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">录取状态</label>
+                    <select id="admissionStatus" class="input-base w-full">
+                        <option value="">全部状态</option>
+                        <option value="录取">录取</option>
+                        <option value="待定">待定</option>
+                        <option value="未录取">未录取</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="searchBtn" class="btn-primary w-full">
+                        <i class="fa-solid fa-search mr-1"></i> 查询
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-between mt-4">
+                <div class="flex space-x-2">
+                    <button id="resetBtn" class="btn-outline">
+                        <i class="fa-solid fa-refresh mr-1"></i> 重置
+                    </button>
+                    <button id="exportBtn" class="btn-outline">
+                        <i class="fa-solid fa-download mr-1"></i> 导出数据
+                    </button>
+                </div>
+                <div>
+                    <button id="batchOperateBtn" class="btn-outline">
+                        <i class="fa-solid fa-cogs mr-1"></i> 批量操作
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据概览区域 -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">总面试人数</p>
+                        <h3 class="text-2xl font-semibold mt-1" id="totalCount">12</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-success">
+                    <i class="fa-solid fa-arrow-up"></i> 8.2% 较上学期
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">录取人数</p>
+                        <h3 class="text-2xl font-semibold mt-1">8</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-success">
+                    <i class="fa-solid fa-arrow-up"></i> 5.7% 较上学期
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">待定人数</p>
+                        <h3 class="text-2xl font-semibold mt-1">2</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center text-warning">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-danger">
+                    <i class="fa-solid fa-arrow-down"></i> 3.1% 较上学期
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">未录取人数</p>
+                        <h3 class="text-2xl font-semibold mt-1">2</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-danger/10 flex items-center justify-center text-danger">
+                        <i class="fa-solid fa-times-circle"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-danger">
+                    <i class="fa-solid fa-arrow-up"></i> 2.4% 较上学期
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据可视化区域 -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <h2 class="text-lg font-semibold mb-4">各科目录取率分布</h2>
+                <div class="h-64">
+                    <canvas id="subjectAdmissionChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <h2 class="text-lg font-semibold mb-4">录取状态占比</h2>
+                <div class="h-64">
+                    <canvas id="statusRatioChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据表格区域 -->
+        <section class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-semibold">学生面试录取结果列表</h2>
+                <button id="addBtn" class="btn-primary">
+                    <i class="fa-solid fa-plus mr-1"></i> 新增结果
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="resultTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                                <input type="checkbox" id="selectAll" class="rounded text-primary focus:ring-primary">
+                            </th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学号</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">面试科目</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">面试分数</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">录取状态</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">面试时间</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="tableBody">
+                        <!-- 表格数据由JS动态渲染 -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- 分页区域 -->
+            <div class="px-4 py-3 flex items-center justify-between border-t border-gray-200">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    <button id="prevPageMobile" class="btn-outline">上一页</button>
+                    <button id="nextPageMobile" class="btn-outline">下一页</button>
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700" id="pageInfo">
+                            显示 <span class="font-medium" id="startNum">1</span> 到 <span class="font-medium" id="endNum">3</span> 条，共 <span class="font-medium" id="totalNum">12</span> 条记录
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                            <button id="prevPage" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">上一页</span>
+                                <i class="fa-solid fa-chevron-left h-5 w-5"></i>
+                            </button>
+                            <div id="paginationNumbers"></div>
+                            <button id="nextPage" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">下一页</span>
+                                <i class="fa-solid fa-chevron-right h-5 w-5"></i>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <!-- <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <p class="text-center text-sm text-gray-500">© 2024 学生科目面试录取结果管理系统 - 保留所有权利</p>
+        </div>
+    </footer> -->
+
+    <!-- 新增/编辑弹窗（默认隐藏） -->
+    <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold" id="modalTitle">新增面试录取结果</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <form id="resultForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">学号</label>
+                    <input type="text" name="studentId" class="input-base w-full" placeholder="请输入学号" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                    <input type="text" name="studentName" class="input-base w-full" placeholder="请输入姓名" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">面试科目</label>
+                    <select name="subject" class="input-base w-full" required>
+                        <option value="">请选择科目</option>
+                        <option value="语文">语文</option>
+                        <option value="数学">数学</option>
+                        <option value="英语">英语</option>
+                        <option value="物理">物理</option>
+                        <option value="化学">化学</option>
+                        <option value="生物">生物</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">面试分数</label>
+                    <input type="number" name="score" min="0" max="100" class="input-base w-full" placeholder="请输入分数" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">录取状态</label>
+                    <select name="status" class="input-base w-full" required>
+                        <option value="">请选择状态</option>
+                        <option value="录取">录取</option>
+                        <option value="待定">待定</option>
+                        <option value="未录取">未录取</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">面试时间</label>
+                    <input type="date" name="interviewDate" class="input-base w-full" required>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelBtn" class="btn-outline">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 脚本逻辑 -->
+    <script>
+        // 模拟数据源
+        let studentData = [
+            { id: "2024001", name: "张三", subject: "数学", score: 92, status: "录取", date: "2024-05-10" },
+            { id: "2024002", name: "李四", subject: "英语", score: 78, status: "待定", date: "2024-05-11" },
+            { id: "2024003", name: "王五", subject: "语文", score: 65, status: "未录取", date: "2024-05-12" },
+            { id: "2024004", name: "赵六", subject: "物理", score: 88, status: "录取", date: "2024-05-10" },
+            { id: "2024005", name: "钱七", subject: "化学", score: 75, status: "待定", date: "2024-05-11" },
+            { id: "2024006", name: "孙八", subject: "生物", score: 90, status: "录取", date: "2024-05-12" },
+            { id: "2024007", name: "周九", subject: "数学", score: 60, status: "未录取", date: "2024-05-10" },
+            { id: "2024008", name: "吴十", subject: "英语", score: 85, status: "录取", date: "2024-05-11" },
+            { id: "2024009", name: "郑十一", subject: "语文", score: 72, status: "待定", date: "2024-05-12" },
+            { id: "2024010", name: "王十二", subject: "物理", score: 80, status: "录取", date: "2024-05-10" },
+            { id: "2024011", name: "李十三", subject: "化学", score: 68, status: "未录取", date: "2024-05-11" },
+            { id: "2024012", name: "张十四", subject: "生物", score: 89, status: "录取", date: "2024-05-12" }
+        ];
+
+        // 分页配置 - 修复作用域问题
+        let currentPage = 1;
+        const pageSize = 3; // 每页显示3条
+        let totalPages = Math.ceil(studentData.length / pageSize);
+
+        // 页面加载完成后初始化
+        window.onload = function() {
+            // 初始化图表
+            initCharts();
+            // 初始化表格和分页
+            renderTable(currentPage);
+            renderPagination();
+            // 更新总人数显示
+            updateTotalCount();
+            // 绑定所有事件
+            bindAllEvents();
+        };
+
+        // 更新总人数显示
+        function updateTotalCount() {
+            document.getElementById('totalCount').textContent = studentData.length;
+            document.getElementById('totalNum').textContent = studentData.length;
+        }
+
+        // 初始化图表
+        function initCharts() {
+            // 各科目录取率图表
+            const subjectChartCtx = document.getElementById('subjectAdmissionChart').getContext('2d');
+            new Chart(subjectChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['语文', '数学', '英语', '物理', '化学', '生物'],
+                    datasets: [{
+                        label: '面试人数',
+                        data: [28, 32, 25, 18, 15, 10],
+                        backgroundColor: '#E8F3FF',
+                        borderColor: '#165DFF',
+                        borderWidth: 1
+                    }, {
+                        label: '录取人数',
+                        data: [20, 25, 18, 12, 9, 6],
+                        backgroundColor: '#D7F2E9',
+                        borderColor: '#00B42A',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#F2F3F5' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { position: 'top' } }
+                }
+            });
+
+            // 录取状态占比图表
+            const statusChartCtx = document.getElementById('statusRatioChart').getContext('2d');
+            new Chart(statusChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['录取', '待定', '未录取'],
+                    datasets: [{
+                        data: [8, 2, 2],
+                        backgroundColor: ['#00B42A', '#FF7D00', '#F53F3F'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // 渲染表格数据
+        function renderTable(page) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = ''; // 清空表格
+            
+            // 计算分页范围
+            const startIndex = (page - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, studentData.length);
+            const currentData = studentData.slice(startIndex, endIndex);
+            
+            // 更新分页信息
+            document.getElementById('startNum').textContent = startIndex + 1;
+            document.getElementById('endNum').textContent = endIndex;
+            
+            // 渲染每行数据
+            currentData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'table-hover-row';
+                
+                // 状态样式
+                let statusClass = '';
+                switch(item.status) {
+                    case '录取': statusClass = 'bg-success/10 text-success'; break;
+                    case '待定': statusClass = 'bg-warning/10 text-warning'; break;
+                    case '未录取': statusClass = 'bg-danger/10 text-danger'; break;
+                }
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <input type="checkbox" class="row-checkbox rounded text-primary focus:ring-primary" data-id="${item.id}">
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.id}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${item.name}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${item.subject}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${item.score}</td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${statusClass}">${item.status}</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${item.date}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button class="text-primary hover:text-primary/80 mr-3 edit-btn" data-id="${item.id}">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i>编辑
+                        </button>
+                        <button class="text-danger hover:text-danger/80 delete-btn" data-id="${item.id}">
+                            <i class="fa-solid fa-trash mr-1"></i>删除
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 渲染分页按钮
+        function renderPagination() {
+            const paginationNumbers = document.getElementById('paginationNumbers');
+            paginationNumbers.innerHTML = '';
+            
+            // 重新计算总页数
+            totalPages = Math.ceil(studentData.length / pageSize);
+            
+            // 生成分页按钮
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.className = i === currentPage ? 'pagination-btn pagination-btn-active' : 'pagination-btn';
+                btn.textContent = i;
+                btn.onclick = function() {
+                    currentPage = i;
+                    renderTable(currentPage);
+                    renderPagination();
+                };
+                paginationNumbers.appendChild(btn);
+            }
+            
+            // 禁用/启用上下页按钮
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            const prevMobileBtn = document.getElementById('prevPageMobile');
+            const nextMobileBtn = document.getElementById('nextPageMobile');
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            prevMobileBtn.disabled = currentPage === 1;
+            nextMobileBtn.disabled = currentPage === totalPages;
+            
+            // 更新按钮样式
+            prevBtn.classList.toggle('text-gray-400', currentPage === 1);
+            nextBtn.classList.toggle('text-gray-400', currentPage === totalPages);
+            prevMobileBtn.classList.toggle('opacity-50', currentPage === 1);
+            nextMobileBtn.classList.toggle('opacity-50', currentPage === 1);
+        }
+
+        // 绑定所有事件
+        function bindAllEvents() {
+            // 1. 全选复选框
+            document.getElementById('selectAll').onchange = function() {
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+            };
+
+            // 2. 新增按钮
+            document.getElementById('addBtn').onclick = function() {
+                document.getElementById('modalTitle').textContent = '新增面试录取结果';
+                document.getElementById('resultForm').reset();
+                document.getElementById('resultForm').studentId.removeAttribute('readonly');
+                document.getElementById('modal').classList.remove('hidden');
+            };
+
+            // 3. 关闭弹窗
+            document.getElementById('closeModal').onclick = hideModal;
+            document.getElementById('cancelBtn').onclick = hideModal;
+            document.getElementById('modal').onclick = function(e) {
+                if (e.target === this) hideModal();
+            };
+
+            // 4. 表单提交（新增/编辑）
+            document.getElementById('resultForm').onsubmit = function(e) {
+                e.preventDefault();
+                const form = this;
+                const formData = {
+                    id: form.studentId.value,
+                    name: form.studentName.value,
+                    subject: form.subject.value,
+                    score: parseInt(form.score.value),
+                    status: form.status.value,
+                    date: form.interviewDate.value
+                };
+
+                // 判断是新增还是编辑
+                if (form.studentId.hasAttribute('readonly')) {
+                    // 编辑
+                    const index = studentData.findIndex(item => item.id === formData.id);
+                    if (index !== -1) {
+                        studentData[index] = formData;
+                        alert(`编辑成功！学号：${formData.id}`);
+                    }
+                } else {
+                    // 新增
+                    studentData.push(formData);
+                    alert('新增成功！');
+                    currentPage = totalPages; // 跳转到最后一页
+                }
+
+                // 刷新数据
+                updateTotalCount();
+                renderTable(currentPage);
+                renderPagination();
+                hideModal();
+            };
+
+            // 5. 表格行操作（删除/编辑）
+            document.getElementById('tableBody').onclick = function(e) {
+                // 编辑按钮
+                if (e.target.closest('.edit-btn')) {
+                    const btn = e.target.closest('.edit-btn');
+                    const id = btn.dataset.id;
+                    const student = studentData.find(item => item.id === id);
+                    if (student) {
+                        const form = document.getElementById('resultForm');
+                        document.getElementById('modalTitle').textContent = '编辑面试录取结果';
+                        form.studentId.value = student.id;
+                        form.studentName.value = student.name;
+                        form.subject.value = student.subject;
+                        form.score.value = student.score;
+                        form.status.value = student.status;
+                        form.interviewDate.value = student.date;
+                        form.studentId.setAttribute('readonly', 'readonly');
+                        document.getElementById('modal').classList.remove('hidden');
+                    }
+                }
+
+                // 删除按钮
+                if (e.target.closest('.delete-btn')) {
+                    const btn = e.target.closest('.delete-btn');
+                    const id = btn.dataset.id;
+                    const student = studentData.find(item => item.id === id);
+                    
+                    if (confirm(`确定要删除 ${student.name}（学号：${student.id}）的记录吗？`)) {
+                        // 删除数据
+                        studentData = studentData.filter(item => item.id !== id);
+                        // 刷新数据
+                        updateTotalCount();
+                        // 重新计算分页
+                        totalPages = Math.ceil(studentData.length / pageSize);
+                        if (currentPage > totalPages && totalPages > 0) {
+                            currentPage = totalPages;
+                        }
+                        // 重新渲染
+                        renderTable(currentPage);
+                        renderPagination();
+                        alert('删除成功！');
+                    }
+                }
+            };
+
+            // 6. 分页按钮
+            document.getElementById('prevPage').onclick = function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable(currentPage);
+                    renderPagination();
+                }
+            };
+
+            document.getElementById('nextPage').onclick = function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable(currentPage);
+                    renderPagination();
+                }
+            };
+
+            document.getElementById('prevPageMobile').onclick = function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable(currentPage);
+                    renderPagination();
+                }
+            };
+
+            document.getElementById('nextPageMobile').onclick = function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable(currentPage);
+                    renderPagination();
+                }
+            };
+
+            // 7. 导出数据
+            document.getElementById('exportBtn').onclick = function() {
+                // 准备导出数据
+                const exportData = studentData.map(item => ({
+                    学号: item.id,
+                    姓名: item.name,
+                    面试科目: item.subject,
+                    面试分数: item.score,
+                    录取状态: item.status,
+                    面试时间: item.date
+                }));
+                
+                // 创建Excel
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "面试录取结果");
+                XLSX.writeFile(wb, "学生面试录取结果.xlsx");
+                alert('数据导出成功！文件已下载');
+            };
+
+            // 8. 批量操作
+            document.getElementById('batchOperateBtn').onclick = function() {
+                const checkedIds = [];
+                document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+                    checkedIds.push(cb.dataset.id);
+                });
+
+                if (checkedIds.length === 0) {
+                    alert('请先选择要操作的记录！');
+                    return;
+                }
+
+                const action = prompt(`已选择 ${checkedIds.length} 条记录，请输入要执行的操作（删除/导出）：`);
+                if (action === '删除') {
+                    if (confirm(`确定要删除选中的 ${checkedIds.length} 条记录吗？`)) {
+                        // 批量删除
+                        studentData = studentData.filter(item => !checkedIds.includes(item.id));
+                        // 刷新数据
+                        updateTotalCount();
+                        totalPages = Math.ceil(studentData.length / pageSize);
+                        if (currentPage > totalPages && totalPages > 0) {
+                            currentPage = totalPages;
+                        }
+                        renderTable(currentPage);
+                        renderPagination();
+                        alert(`成功删除 ${checkedIds.length} 条记录！`);
+                    }
+                } else if (action === '导出') {
+                    // 批量导出
+                    const exportData = studentData
+                        .filter(item => checkedIds.includes(item.id))
+                        .map(item => ({
+                            学号: item.id,
+                            姓名: item.name,
+                            面试科目: item.subject,
+                            面试分数: item.score,
+                            录取状态: item.status,
+                            面试时间: item.date
+                        }));
+                    
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "批量导出面试结果");
+                    XLSX.writeFile(wb, "批量导出-学生面试录取结果.xlsx");
+                    alert('选中数据导出成功！');
+                } else if (action !== null) {
+                    alert('不支持的操作类型！仅支持：删除/导出');
+                }
+            };
+
+            // 9. 筛选查询
+            document.getElementById('searchBtn').onclick = function() {
+                const name = document.getElementById('studentName').value.trim().toLowerCase();
+                const subject = document.getElementById('subject').value;
+                const status = document.getElementById('admissionStatus').value;
+                
+                const filteredData = studentData.filter(item => {
+                    const nameMatch = !name || item.name.toLowerCase().includes(name);
+                    const subjectMatch = !subject || item.subject === subject;
+                    const statusMatch = !status || item.status === status;
+                    return nameMatch && subjectMatch && statusMatch;
+                });
+                
+                alert(`查询到 ${filteredData.length} 条符合条件的记录`);
+                // 如需实际筛选显示，可替换为：
+                // studentData = filteredData;
+                // updateTotalCount();
+                // renderTable(1);
+                // renderPagination();
+            };
+
+            // 10. 重置筛选
+            document.getElementById('resetBtn').onclick = function() {
+                document.getElementById('studentName').value = '';
+                document.getElementById('subject').value = '';
+                document.getElementById('admissionStatus').value = '';
+            };
+        }
+
+        // 隐藏弹窗
+        function hideModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

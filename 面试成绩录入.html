@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生面试成绩录入系统</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- 引入SheetJS (Excel导出) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Tailwind自定义配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#6B7280',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        light: '#F2F3F5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .form-input-focus {
+                @apply border-primary ring-2 ring-primary/20;
+            }
+            .table-hover-row {
+                @apply hover:bg-light transition-colors duration-200;
+            }
+        }
+        
+        /* 全屏样式 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        main {
+            flex: 1;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- 顶部导航栏 -->
+    <!-- <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-800">学生面试成绩录入系统</h1>
+            </div>
+        </div>
+    </header> -->
+
+    <main class="px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- 左侧录入表单 -->
+        <section class="lg:col-span-1 bg-white rounded-lg shadow-sm p-6 h-full">
+            <h2 class="text-lg font-semibold mb-6 pb-2 border-b border-gray-200">成绩录入</h2>
+            <form id="scoreForm" class="space-y-4">
+                <!-- 隐藏的编辑ID -->
+                <input type="hidden" id="editId" value="">
+                
+                <div>
+                    <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">学生姓名 <span class="text-danger">*</span></label>
+                    <input type="text" id="studentName" name="studentName" required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:form-input-focus transition-all">
+                </div>
+
+                <div>
+                    <label for="studentId" class="block text-sm font-medium text-gray-700 mb-1">学号 <span class="text-danger">*</span></label>
+                    <input type="text" id="studentId" name="studentId" required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:form-input-focus transition-all">
+                </div>
+
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">面试科目 <span class="text-danger">*</span></label>
+                    <select id="subject" name="subject" required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:form-input-focus transition-all">
+                        <option value="">请选择科目</option>
+                        <option value="前端开发">前端开发</option>
+                        <option value="后端开发">后端开发</option>
+                        <option value="移动端开发">移动端开发</option>
+                        <option value="算法">算法</option>
+                        <option value="项目答辩">项目答辩</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="score" class="block text-sm font-medium text-gray-700 mb-1">面试成绩 <span class="text-danger">*</span></label>
+                    <input type="number" id="score" name="score" min="0" max="100" step="0.1" required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:form-input-focus transition-all">
+                    <p class="text-xs text-gray-500 mt-1">分数范围：0-100分，支持小数点后1位</p>
+                </div>
+
+                <div>
+                    <label for="interviewer" class="block text-sm font-medium text-gray-700 mb-1">面试官</label>
+                    <input type="text" id="interviewer" name="interviewer" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:form-input-focus transition-all">
+                </div>
+
+                <div>
+                    <label for="remark" class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+                    <textarea id="remark" name="remark" rows="3" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:form-input-focus transition-all resize-none"></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" id="submitBtn" class="flex-1 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-save"></i>
+                        保存
+                    </button>
+                    <button type="reset" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors">
+                        重置
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 右侧数据列表 -->
+        <section class="lg:col-span-2 bg-white rounded-lg shadow-sm p-6 h-full">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold">成绩列表</h2>
+                <div class="flex gap-2">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="搜索姓名/学号/科目"
+                            class="pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:form-input-focus transition-all w-64">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <!-- 新增：导出数据按钮 -->
+                    <button id="exportBtn" class="bg-primary text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-primary/90 transition-colors">
+                        <i class="fa-solid fa-file-excel"></i>
+                        导出数据
+                    </button>
+                    <button id="clearAllBtn" class="bg-danger text-white px-3 py-2 rounded-md hover:bg-danger/90 transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-trash"></i>
+                        清空
+                    </button>
+                </div>
+            </div>
+
+            <!-- 列表容器 -->
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-left">
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700 w-12">序号</th>
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700">姓名</th>
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700">学号</th>
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700">科目</th>
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700">成绩</th>
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700">面试官</th>
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700">录入时间</th>
+                            <th class="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-700 w-24">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoreTableBody">
+                        <!-- 空数据提示 -->
+                        <tr id="emptyRow" class="table-hover-row">
+                            <td colspan="8" class="px-4 py-10 text-center text-gray-500">
+                                <i class="fa-solid fa-file-empty text-4xl mb-2"></i>
+                                <p>暂无成绩数据，请先录入</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页 (简单实现) -->
+            <div class="mt-6 flex justify-between items-center">
+                <p class="text-sm text-gray-500" id="totalCount">共 0 条数据</p>
+                <div class="flex gap-2">
+                    <button id="prevPage" disabled class="px-3 py-1 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed hover:bg-gray-50">上一页</button>
+                    <span id="pageInfo" class="px-3 py-1 text-sm">1 / 1</span>
+                    <button id="nextPage" disabled class="px-3 py-1 border border-gray-300 rounded-md text-gray-500 cursor-not-allowed hover:bg-gray-50">下一页</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 底部版权
+    <footer class="bg-white border-t border-gray-200 py-4 mt-auto">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            © 2026 学生面试成绩录入系统 - 前端开发版
+        </div>
+    </footer> -->
+
+    <!-- 提示弹窗 (模态框) -->
+    <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 transform transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-800">提示</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p id="modalContent" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end gap-3">
+                <button id="modalCancelBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">取消</button>
+                <button id="modalConfirmBtn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 核心数据存储 (使用localStorage持久化)
+        let scoreData = JSON.parse(localStorage.getItem('studentScoreData')) || [];
+        // 分页配置
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+
+        // DOM元素获取
+        const scoreForm = document.getElementById('scoreForm');
+        const scoreTableBody = document.getElementById('scoreTableBody');
+        const emptyRow = document.getElementById('emptyRow');
+        const totalCount = document.getElementById('totalCount');
+        const pageInfo = document.getElementById('pageInfo');
+        const prevPage = document.getElementById('prevPage');
+        const nextPage = document.getElementById('nextPage');
+        const searchInput = document.getElementById('searchInput');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const closeModal = document.getElementById('closeModal');
+        const editId = document.getElementById('editId');
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+            bindEvents();
+        });
+
+        // 事件绑定
+        function bindEvents() {
+            // 表单提交
+            scoreForm.addEventListener('submit', handleFormSubmit);
+            
+            // 分页按钮
+            prevPage.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            nextPage.addEventListener('click', () => {
+                const totalPages = Math.ceil(scoreData.length / PAGE_SIZE);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+
+            // 搜索功能
+            searchInput.addEventListener('input', debounce(() => {
+                currentPage = 1; // 搜索时重置页码
+                renderTable();
+            }, 300));
+
+            // 清空所有数据
+            clearAllBtn.addEventListener('click', () => {
+                if (scoreData.length === 0) {
+                    showModal('提示', '暂无数据可清空', false);
+                    return;
+                }
+                showModal('确认清空', '确定要清空所有成绩数据吗？此操作不可恢复！', true, () => {
+                    scoreData = [];
+                    localStorage.setItem('studentScoreData', JSON.stringify(scoreData));
+                    currentPage = 1;
+                    renderTable();
+                    showModal('提示', '所有数据已清空', false);
+                });
+            });
+
+            // 导出Excel
+            exportBtn.addEventListener('click', exportToExcel);
+
+            // 模态框关闭
+            closeModal.addEventListener('click', hideModal);
+            modalCancelBtn.addEventListener('click', hideModal);
+        }
+
+        // 表单提交处理
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            // 获取表单数据
+            const formData = {
+                id: editId.value || Date.now().toString(), // 唯一ID
+                name: document.getElementById('studentName').value.trim(),
+                studentId: document.getElementById('studentId').value.trim(),
+                subject: document.getElementById('subject').value,
+                score: parseFloat(document.getElementById('score').value),
+                interviewer: document.getElementById('interviewer').value.trim(),
+                remark: document.getElementById('remark').value.trim(),
+                createTime: new Date().toLocaleString() // 录入时间
+            };
+
+            // 编辑模式
+            if (editId.value) {
+                const index = scoreData.findIndex(item => item.id === editId.value);
+                if (index !== -1) {
+                    scoreData[index] = { ...scoreData[index], ...formData };
+                    showModal('提示', '数据修改成功！', false);
+                }
+            } else {
+                // 新增模式
+                scoreData.unshift(formData); // 新增数据放在最前面
+                showModal('提示', '数据录入成功！', false);
+            }
+
+            // 保存到localStorage
+            localStorage.setItem('studentScoreData', JSON.stringify(scoreData));
+            
+            // 重置表单
+            scoreForm.reset();
+            editId.value = '';
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-save"></i> 保存';
+            
+            // 重新渲染表格
+            renderTable();
+        }
+
+        // 渲染表格数据
+        function renderTable() {
+            // 过滤搜索数据
+            const searchText = searchInput.value.trim().toLowerCase();
+            let filteredData = scoreData;
+            if (searchText) {
+                filteredData = scoreData.filter(item => 
+                    item.name.toLowerCase().includes(searchText) ||
+                    item.studentId.toLowerCase().includes(searchText) ||
+                    item.subject.toLowerCase().includes(searchText)
+                );
+            }
+
+            // 处理分页
+            const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            // 更新分页信息
+            totalCount.textContent = `共 ${filteredData.length} 条数据`;
+            pageInfo.textContent = `${currentPage} / ${totalPages || 1}`;
+            
+            // 禁用/启用分页按钮
+            prevPage.disabled = currentPage <= 1;
+            nextPage.disabled = currentPage >= totalPages || filteredData.length === 0;
+            prevPage.classList.toggle('cursor-not-allowed', prevPage.disabled);
+            prevPage.classList.toggle('text-gray-500', prevPage.disabled);
+            prevPage.classList.toggle('text-gray-700', !prevPage.disabled);
+            nextPage.classList.toggle('cursor-not-allowed', nextPage.disabled);
+            nextPage.classList.toggle('text-gray-500', nextPage.disabled);
+            nextPage.classList.toggle('text-gray-700', !nextPage.disabled);
+
+            // 清空表格
+            scoreTableBody.innerHTML = '';
+
+            // 空数据处理
+            if (filteredData.length === 0) {
+                scoreTableBody.innerHTML = `
+                    <tr class="table-hover-row">
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-500">
+                            <i class="fa-solid fa-file-empty text-4xl mb-2"></i>
+                            <p>${searchText ? '未找到匹配的数据' : '暂无成绩数据，请先录入'}</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // 渲染数据行
+            pageData.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'table-hover-row';
+                tr.innerHTML = `
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm text-gray-700">${startIndex + index + 1}</td>
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm text-gray-700">${item.name}</td>
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm text-gray-700">${item.studentId}</td>
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm text-gray-700">${item.subject}</td>
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm text-gray-700">${item.score}</td>
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm text-gray-700">${item.interviewer || '-'}</td>
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm text-gray-500">${item.createTime}</td>
+                    <td class="px-4 py-3 border-b border-gray-200 text-sm">
+                        <div class="flex gap-2">
+                            <button class="edit-btn text-primary hover:text-primary/80" data-id="${item.id}">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button class="delete-btn text-danger hover:text-danger/80" data-id="${item.id}">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                scoreTableBody.appendChild(tr);
+
+                // 绑定编辑/删除事件
+                tr.querySelector('.edit-btn').addEventListener('click', () => handleEdit(item.id));
+                tr.querySelector('.delete-btn').addEventListener('click', () => handleDelete(item.id));
+            });
+        }
+
+        // 编辑数据
+        function handleEdit(id) {
+            const item = scoreData.find(item => item.id === id);
+            if (!item) return;
+
+            // 填充表单
+            document.getElementById('studentName').value = item.name;
+            document.getElementById('studentId').value = item.studentId;
+            document.getElementById('subject').value = item.subject;
+            document.getElementById('score').value = item.score;
+            document.getElementById('interviewer').value = item.interviewer;
+            document.getElementById('remark').value = item.remark;
+            editId.value = item.id;
+
+            // 修改按钮文字
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-edit"></i> 修改';
+            
+            // 滚动到表单区域
+            document.querySelector('form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 删除数据
+        function handleDelete(id) {
+            showModal('确认删除', '确定要删除这条成绩数据吗？此操作不可恢复！', true, () => {
+                scoreData = scoreData.filter(item => item.id !== id);
+                localStorage.setItem('studentScoreData', JSON.stringify(scoreData));
+                
+                // 处理分页边界
+                const totalPages = Math.ceil(scoreData.length / PAGE_SIZE);
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                }
+                
+                renderTable();
+                showModal('提示', '数据删除成功！', false);
+            });
+        }
+
+        // 导出Excel
+        function exportToExcel() {
+            if (scoreData.length === 0) {
+                showModal('提示', '暂无数据可导出', false);
+                return;
+            }
+
+            // 整理导出数据
+            const exportData = scoreData.map(item => ({
+                '序号': scoreData.indexOf(item) + 1,
+                '姓名': item.name,
+                '学号': item.studentId,
+                '面试科目': item.subject,
+                '面试成绩': item.score,
+                '面试官': item.interviewer || '-',
+                '备注': item.remark || '-',
+                '录入时间': item.createTime
+            }));
+
+            // 创建工作簿
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '学生面试成绩');
+
+            // 导出文件
+            XLSX.writeFile(wb, `学生面试成绩_${new Date().toLocaleDateString()}.xlsx`);
+        }
+
+        // 显示模态框
+        function showModal(title, content, showCancel = true, confirmCallback = null) {
+            modalTitle.textContent = title;
+            modalContent.textContent = content;
+            modalCancelBtn.style.display = showCancel ? 'block' : 'none';
+            modal.classList.remove('hidden');
+            
+            // 绑定确认事件
+            modalConfirmBtn.onclick = () => {
+                hideModal();
+                if (confirmCallback) confirmCallback();
+            };
+        }
+
+        // 隐藏模态框
+        function hideModal() {
+            modal.classList.add('hidden');
+            modalConfirmBtn.onclick = null; // 清空回调
+        }
+
+        // 防抖函数
+        function debounce(func, delay) {
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+    </script>
+</body>
+</html>

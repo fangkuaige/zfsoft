@@ -3,1485 +3,796 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>正方研究生信息管理平台 - 报名表审核</title>
-    <!-- 引入Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入Font Awesome图标 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入DataTables样式 -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <title>研究生管理系统</title>
     <style>
-        /* 自定义样式 */
-        .sidebar {
-            min-height: calc(100vh - 56px);
-            background-color: #f8f9fa;
-            border-right: 1px solid #dee2e6;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
         }
-        .stats-card {
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-        .tree-node {
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .tree-node:hover {
-            background-color: #e9ecef;
-        }
-        .tree-node.active {
-            background-color: #0d6efd;
-            color: white;
-        }
-        .batch-actions {
-            background-color: #f8f9fa;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border: 1px solid #dee2e6;
-        }
-        .table-container {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
+
+        body, html {
+            height: 100%;
             overflow: hidden;
+            background-color: #EDF2FF; /* 全局浅蓝背景 */
         }
-        /* 审核提示样式 */
-        .audit-tip {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
+
+        /* 整体布局容器 */
+        .container {
             display: flex;
-            align-items: center;
+            height: 100%;
+            flex-direction: column;
         }
-        .audit-tip i {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-        /* 文件下载进度提示 */
-        .download-progress {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #28a745;
+
+        /* 顶部导航栏 - 深蓝色主基调 */
+        .top-header {
+            height: 60px;
+            background-color: #1565C0; /* 深海蓝主色 */
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            z-index: 9999;
-            display: none;
-        }
-        /* 材料详情样式 */
-        .material-item {
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 24px;
+            box-shadow: 0 2px 12px rgba(21, 101, 192, 0.18);
+            z-index: 10;
+            border-bottom: 1px solid #2176D2;
         }
-        .material-item:hover {
-            background-color: #f8f9fa;
+
+        .system-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        /* 图片预览模态框样式 */
-        .image-preview-modal .modal-dialog {
-            max-width: 80%;
+
+        .system-title::before {
+            content: "";
+            width: 4px;
+            height: 20px;
+            background-color: #64B5F6;
+            border-radius: 2px;
         }
-        .preview-image {
-            max-width: 100%;
-            max-height: 80vh;
-            object-fit: contain;
+
+        /* 用户信息区域 - 右上角 */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 24px;
         }
-        /* 项目展开/收起样式 */
-        .project-toggle {
-            transition: transform 0.3s ease;
+
+        .role-switch {
+            position: relative;
         }
-        .project-toggle.open {
+
+        .role-btn {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .role-btn:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .role-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            min-width: 140px;
+            display: none;
+            z-index: 99;
+            overflow: hidden;
+            border: 1px solid #E3F2FD;
+        }
+
+        .role-dropdown.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .role-option {
+            padding: 10px 16px;
+            color: #263238;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .role-option:hover {
+            background-color: #E3F2FD;
+            color: #1565C0;
+            padding-left: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #64B5F6, #1565C0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 2px 8px rgba(21, 101, 192, 0.2);
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            font-size: 14px;
+            color: #fff;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(244, 67, 54, 0.2);
+            border-color: rgba(244, 67, 54, 0.3);
+            color: #FFEBEE;
+        }
+
+        /* 主体内容容器 */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            height: calc(100% - 60px);
+        }
+
+        /* 左侧导航栏 - 深蓝系 */
+        .sidebar {
+            width: 220px;
+            background-color: #0D47A1;
+            color: #E3F2FD;
+            height: 100%;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .menu-group {
+            margin-bottom: 16px;
+        }
+
+        .menu-group-title {
+            padding: 16px 24px 8px;
+            font-size: 12px;
+            color: #90CAF9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* 一级菜单 */
+        .menu-item {
+            padding: 14px 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #BBDEFB;
+            padding-left: 28px;
+        }
+
+        .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-left-color: #64B5F6;
+        }
+
+        .menu-arrow {
+            font-size: 12px;
+            transition: transform 0.2s ease;
+            color: #90CAF9;
+        }
+
+        .menu-arrow.expanded {
             transform: rotate(90deg);
+            color: #64B5F6;
         }
-        /* 隐藏班级列表 */
-        .class-list {
+
+        /* 二级菜单 */
+        .submenu {
+            background-color: rgba(0, 0, 0, 0.1);
             display: none;
         }
-        .class-list.show {
+
+        .submenu.show {
             display: block;
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+
+        .submenu-item {
+            padding: 12px 24px 12px 40px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #BBDEFB;
+        }
+
+        .submenu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding-left: 44px;
+        }
+
+        .submenu-item.active {
+            color: #64B5F6;
+            font-weight: 500;
+            background-color: rgba(100, 181, 246, 0.1);
+        }
+
+        /* 右侧主内容区 - 蓝色渐变基调 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: linear-gradient(to bottom, #F5F9FF, #EDF2FF);
+        }
+
+        /* 页签区域 - 浅蓝系 */
+        .tabs-header {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-bottom: 1px solid #E3F2FD;
+            padding: 0 16px;
+            height: 48px;
+            box-shadow: 0 1px 3px rgba(21, 101, 192, 0.05);
+        }
+
+        .tab-item {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            height: 47px;
+            line-height: 47px;
+            background-color: #F5F9FF;
+            border: 1px solid #E3F2FD;
+            border-bottom: none;
+            margin-right: 8px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            position: relative;
+            font-size: 14px;
+            color: #5C6BC0;
+            transition: all 0.2s;
+        }
+
+        .tab-item:hover {
+            background-color: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .tab-item.active {
+            background-color: #EDF2FF;
+            color: #1565C0;
+            font-weight: 600;
+            border-color: #64B5F6;
+            border-bottom: 1px solid #EDF2FF;
+        }
+
+        .tab-close {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #90CAF9;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .tab-close:hover {
+            color: white;
+            background-color: #EF5350;
+            transform: rotate(90deg);
+        }
+
+        /* iframe 容器 */
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 欢迎/空内容提示 - 增强版 */
+        .welcome-tip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #F5F9FF 0%, #EDF2FF 100%);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .welcome-card {
+            max-width: 600px;
+            background-color: white;
+            border-radius: 16px;
+            padding: 48px;
+            box-shadow: 0 8px 24px rgba(21, 101, 192, 0.08);
+            border: 1px solid #E3F2FD;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .welcome-icon {
+            font-size: 80px;
+            color: #64B5F6;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #64B5F6, #1565C0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            color: #1565C0;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .welcome-desc {
+            font-size: 16px;
+            color: #5C6BC0;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .welcome-tips {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 32px;
+        }
+
+        .welcome-tip-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            max-width: 120px;
+        }
+
+        .tip-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #E3F2FD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1565C0;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .tip-text {
+            font-size: 14px;
+            color: #5C6BC0;
+        }
+
+        .version-info {
+            margin-top: 32px;
+            font-size: 12px;
+            color: #90CAF9;
         }
     </style>
 </head>
 <body>
-    <!-- 顶部导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-clipboard-check me-2"></i>正方研究生信息管理平台
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">报名表审核</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">面试管理</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">成绩管理</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">公共资源库</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>管理员
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#">个人中心</a></li>
-                            <li><a class="dropdown-item" href="#">修改密码</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">退出登录</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <!-- 左侧三级目录导航 -->
-            <div class="col-md-3 col-lg-2 p-3 sidebar">
-                <h5 class="mb-3"><i class="fas fa-folder-tree me-2"></i>项目目录</h5>
+    <div class="container">
+        <!-- 顶部导航栏 -->
+        <div class="top-header">
+            <div class="system-title">研究生管理系统</div>
+            
+            <!-- 用户信息区域 - 右上角 -->
+            <div class="user-menu">
+                <!-- 角色切换 -->
+                <div class="role-switch" id="roleSwitch">
+                    <button class="role-btn" id="roleBtn">
+                        <span id="currentRole">系统管理员</span>
+                        <span>▼</span>
+                    </button>
+                    <div class="role-dropdown" id="roleDropdown">
+                        <div class="role-option" data-role="系统管理员">系统管理员</div>
+                        <div class="role-option" data-role="导师">导师</div>
+                        <div class="role-option" data-role="学生">学生</div>
+                    </div>
+                </div>
                 
-                <!-- 项目分类 -->
-                <div class="mb-4">
-                    <h6 class="text-secondary">2024年招生项目</h6>
-                    <ul class="list-unstyled ms-2 mt-2">
-                        <!-- 研究生招生项目 -->
-                        <li class="mb-1">
-                            <div class="tree-node d-flex justify-content-between align-items-center" data-project="研究生招生">
-                                <span><i class="fas fa-chevron-right me-2 project-toggle open"></i>研究生招生</span>
-                                <span class="badge bg-secondary" id="graduate-class-count">3个班级</span>
-                            </div>
-                            <!-- 研究生班级列表 -->
-                            <ul class="list-unstyled ms-4 mt-1 class-list show" id="graduate-class-list">
-                                <li class="mb-1">
-                                    <div class="tree-node active d-flex justify-content-between align-items-center" data-class="计算机科学与技术" data-project-type="研究生招生">
-                                        <span><i class="fas fa-user-friends me-2"></i>计算机科学与技术</span>
-                                        <span class="badge bg-primary" id="cs-count">12人</span>
-                                    </div>
-                                </li>
-                                <li class="mb-1">
-                                    <div class="tree-node d-flex justify-content-between align-items-center" data-class="电子信息工程" data-project-type="研究生招生">
-                                        <span><i class="fas fa-user-friends me-2"></i>电子信息工程</span>
-                                        <span class="badge bg-primary">78人</span>
-                                    </div>
-                                </li>
-                                <li class="mb-1">
-                                    <div class="tree-node d-flex justify-content-between align-items-center" data-class="软件工程" data-project-type="研究生招生">
-                                        <span><i class="fas fa-user-friends me-2"></i>软件工程</span>
-                                        <span class="badge bg-primary">65人</span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </li>
-                        
-                        <!-- 专升本招生项目 -->
-                        <li class="mb-1">
-                            <div class="tree-node d-flex justify-content-between align-items-center" data-project="专升本招生">
-                                <span><i class="fas fa-chevron-right me-2 project-toggle"></i>专升本招生</span>
-                                <span class="badge bg-secondary" id="college-class-count">3个班级</span>
-                            </div>
-                            <!-- 专升本班级列表 -->
-                            <ul class="list-unstyled ms-4 mt-1 class-list" id="college-class-list">
-                                <li class="mb-1">
-                                    <div class="tree-node d-flex justify-content-between align-items-center" data-class="计算机应用技术" data-project-type="专升本招生">
-                                        <span><i class="fas fa-user-friends me-2"></i>计算机应用技术</span>
-                                        <span class="badge bg-primary">45人</span>
-                                    </div>
-                                </li>
-                                <li class="mb-1">
-                                    <div class="tree-node d-flex justify-content-between align-items-center" data-class="电子商务" data-project-type="专升本招生">
-                                        <span><i class="fas fa-user-friends me-2"></i>电子商务</span>
-                                        <span class="badge bg-primary">38人</span>
-                                    </div>
-                                </li>
-                                <li class="mb-1">
-                                    <div class="tree-node d-flex justify-content-between align-items-center" data-class="机械设计制造" data-project-type="专升本招生">
-                                        <span><i class="fas fa-user-friends me-2"></i>机械设计制造</span>
-                                        <span class="badge bg-primary">52人</span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                <!-- 用户信息 -->
+                <div class="user-info">
+                    <div class="user-avatar">正</div>
+                    <div class="user-name">正方</div>
+                    <div class="logout-btn" id="logoutBtn">退出登录</div>
                 </div>
-
-                <!-- 班级统计信息卡片 -->
-                <div class="stats-card bg-white p-3 mt-4" id="stats-card">
-                    <h6 class="text-center mb-3" id="stats-title">计算机科学与技术 - 统计</h6>
-                    <div class="row text-center">
-                        <div class="col-6 mb-2">
-                            <div class="bg-light p-2 rounded">
-                                <div class="fw-bold" id="total-count">0</div>
-                                <div class="text-sm text-secondary">总报名人数</div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-2">
-                            <div class="bg-light p-2 rounded">
-                                <div class="fw-bold" id="submitted-count">0</div>
-                                <div class="text-sm text-secondary">已提交人数</div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-2">
-                            <div class="bg-light p-2 rounded">
-                                <div class="fw-bold" id="pending-count">0</div>
-                                <div class="text-sm text-secondary">待审核人数</div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-2">
-                            <div class="bg-light p-2 rounded">
-                                <div class="fw-bold" id="passed-count">0</div>
-                                <div class="text-sm text-secondary">已通过人数</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 右侧主要内容区域 -->
-            <div class="col-md-9 col-lg-10 p-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4><i class="fas fa-list-alt me-2"></i>报名表审核</h4>
-                    <div>
-                        <button class="btn btn-outline-secondary me-2" type="button">
-                            <i class="fas fa-sync-alt me-1"></i>刷新数据
-                        </button>
-                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#filterModal">
-                            <i class="fas fa-filter me-1"></i>高级筛选
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 审核提示区域 -->
-                <div class="audit-tip">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <strong>审核提示：</strong>当前有<span id="tip-pending-count">0</span>条待审核材料，其中12条材料存在信息不全问题，请优先审核标记为<span class="text-danger fw-bold">退回修改</span>的考生材料，并在2024-05-20前完成全部初审工作。
-                    </div>
-                </div>
-
-                <!-- 批量操作区域 -->
-                <div class="batch-actions">
-                    <div class="row align-items-center">
-                        <div class="col-md-3 mb-2 mb-md-0">
-                            <div class="d-flex align-items-center">
-                                <input type="checkbox" id="selectAll" class="form-check-input me-2">
-                                <label for="selectAll" class="form-check-label mb-0">全选</label>
-                                <span class="ms-2 text-secondary">(已选: 0 人)</span>
-                            </div>
-                        </div>
-                        <div class="col-md-9">
-                            <div class="d-flex flex-wrap gap-2">
-                                <!-- 批量审核操作 -->
-                                <div class="dropdown">
-                                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-check-double me-1"></i>批量审核
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" data-audit-action="first-pass">初审通过</a></li>
-                                        <li><a class="dropdown-item" href="#" data-audit-action="second-pass">复审通过</a></li>
-                                        <li><a class="dropdown-item" href="#" data-audit-action="modify">退回修改</a></li>
-                                        <li><a class="dropdown-item" href="#" data-audit-action="reject">不通过</a></li>
-                                    </ul>
-                                </div>
-
-                                <!-- 批量下载 -->
-                                <button class="btn btn-success" type="button" id="batchDownloadBtn">
-                                    <i class="fas fa-download me-1"></i>批量下载材料
-                                </button>
-
-                                <!-- 批量设置批次 -->
-                                <div class="dropdown">
-                                    <button class="btn btn-warning dropdown-toggle" type="button" data-bs-toggle="dropdown" id="batchSetBtn">
-                                        <i class="fas fa-tags me-1"></i>设置批次
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" data-batch="第一批">第一批</a></li>
-                                        <li><a class="dropdown-item" href="#" data-batch="第二批">第二批</a></li>
-                                        <li><a class="dropdown-item" href="#" data-batch="第三批">第三批</a></li>
-                                    </ul>
-                                </div>
-
-                                <!-- 调整报考项目 -->
-                                <div class="dropdown">
-                                    <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" id="projectChangeBtn">
-                                        <i class="fas fa-exchange-alt me-1"></i>调整报考项目
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" data-project-change="研究生招生">研究生招生</a></li>
-                                        <li><a class="dropdown-item" href="#" data-project-change="专升本招生">专升本招生</a></li>
-                                    </ul>
-                                </div>
-
-                                <!-- 发送消息 -->
-                                <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#messageModal">
-                                    <i class="fas fa-envelope me-1"></i>发送消息
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 搜索筛选栏 -->
-                <div class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" id="searchInput" placeholder="考生姓名/准考证号">
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-select" id="statusSelect">
-                                <option value="">全部审核状态</option>
-                                <option value="pending">待审核</option>
-                                <option value="first-pass">初审通过</option>
-                                <option value="second-pass">复审通过</option>
-                                <option value="modify">退回修改</option>
-                                <option value="reject">不通过</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-select" id="batchSelect">
-                                <option value="">全部批次</option>
-                                <option value="1">第一批</option>
-                                <option value="2">第二批</option>
-                                <option value="3">第三批</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-select" id="interviewSelect">
-                                <option value="">面试资格</option>
-                                <option value="yes">有</option>
-                                <option value="no">无</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-primary w-100" id="searchBtn">
-                                <i class="fas fa-search me-1"></i>搜索
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 考生列表表格 -->
-                <div class="table-container">
-                    <table id="applicantTable" class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th width="50px"><input type="checkbox" class="form-check-input" id="tableSelectAll"></th>
-                                <th>准考证号</th>
-                                <th>考生姓名</th>
-                                <th>性别</th>
-                                <th>报考专业</th>
-                                <th>提交时间</th>
-                                <th>审核状态</th>
-                                <th>面试资格</th>
-                                <th>批次</th>
-                                <th width="220px">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- 数据将通过DataTables动态加载 -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- DataTables自带分页，移除手动分页 -->
             </div>
         </div>
-    </div>
 
-    <!-- 高级筛选模态框 -->
-    <div class="modal fade" id="filterModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-filter me-2"></i>高级筛选</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">报名时间范围</label>
-                            <div class="input-group">
-                                <input type="date" class="form-control" placeholder="开始日期" id="startDate">
-                                <span class="input-group-text">至</span>
-                                <input type="date" class="form-control" placeholder="结束日期" id="endDate">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">成绩范围</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" placeholder="最低分数" id="minScore">
-                                <span class="input-group-text">至</span>
-                                <input type="number" class="form-control" placeholder="最高分数" id="maxScore">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">学历</label>
-                            <select class="form-select" id="educationSelect">
-                                <option value="">全部</option>
-                                <option value="undergraduate">本科</option>
-                                <option value="junior">专科</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">是否有推荐信</label>
-                            <select class="form-select" id="recommendationSelect">
-                                <option value="">全部</option>
-                                <option value="yes">有</option>
-                                <option value="no">无</option>
-                            </select>
-                        </div>
+        <!-- 主体内容容器 -->
+        <div class="content-wrapper">
+            <!-- 左侧导航栏（带二级菜单） -->
+            <div class="sidebar">
+                <div class="menu-group">
+                    <div class="menu-group-title">系统管理</div>
+                    <div class="menu-item" id="menu1">
+                        <span>数据概览</span>
+                        <span class="menu-arrow">▶</span>
+                    </div>
+                    <div class="submenu" id="submenu1">
+                        <div class="submenu-item" data-url="pages/dashboard/overview.html" data-title="总览">总览</div>
+                        <div class="submenu-item" data-url="pages/dashboard/statistics.html" data-title="统计分析">统计分析</div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="applyFilterBtn">应用筛选</button>
+
+                <div class="menu-group">
+                    <div class="menu-group-title">核心功能</div>
+                    <div class="menu-item" id="menu2">
+                        <span>材料评审与面试管理</span>
+                        <span class="menu-arrow">▶</span>
+                    </div>
+                    <div class="submenu" id="submenu2">
+                        <div class="submenu-item" data-url="报名表审核.html" data-title="报名表审核">报名表审核</div>
+                        <div class="submenu-item" data-url="笔试成绩录入.html" data-title="笔试成绩录入">笔试成绩录入</div>
+                        <div class="submenu-item" data-url="面试资格确认.html" data-title="面试资格确认">面试资格确认</div>
+                        <div class="submenu-item" data-url="面试成绩录入.html" data-title="面试成绩录入">面试成绩录入</div>
+                        <div class="submenu-item" data-url="学生面试结果管理.html" data-title="学生面试结果管理">学生面试结果管理</div>
+                    </div>
+
+                    <!-- <div class="menu-item" id="menu3">
+                        <span>导师管理</span>
+                        <span class="menu-arrow">▶</span>
+                    </div>
+                    <div class="submenu" id="submenu3">
+                        <div class="submenu-item" data-url="pages/teacher/list.html" data-title="导师列表">导师列表</div>
+                        <div class="submenu-item" data-url="pages/teacher/allot.html" data-title="分配学生">分配学生</div>
+                    </div>
+
+                    <div class="menu-item" id="menu4">
+                        <span>论文管理</span>
+                        <span class="menu-arrow">▶</span>
+                    </div>
+                    <div class="submenu" id="submenu4">
+                        <div class="submenu-item" data-url="pages/thesis/submit.html" data-title="论文提交">论文提交</div>
+                        <div class="submenu-item" data-url="pages/thesis/review.html" data-title="论文评审">论文评审</div>
+                        <div class="submenu-item" data-url="pages/thesis/archive.html" data-title="论文归档">论文归档</div>
+                    </div> -->
+                </div>
+
+                <div class="menu-group">
+                    <div class="menu-group-title">系统设置</div>
+                    <div class="menu-item" id="menu5">
+                        <span>公告管理</span>
+                        <span class="menu-arrow">▶</span>
+                    </div>
+                    <div class="submenu" id="submenu5">
+                        <div class="submenu-item" data-url="pages/notice/list.html" data-title="公告列表">公告列表</div>
+                        <div class="submenu-item" data-url="pages/notice/publish.html" data-title="发布公告">发布公告</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧主内容区 -->
+            <div class="main-content">
+                <!-- 页签头部 -->
+                <div class="tabs-header" id="tabsHeader">
+                    <!-- 页签会通过JS动态生成 -->
+                </div>
+
+                <!-- iframe容器 -->
+                <div class="iframe-container">
+                    <!-- 欢迎界面（默认空页面） -->
+                    <div class="welcome-tip" id="welcomeTip">
+                        <div class="welcome-card">
+                            <div class="welcome-icon">🎓</div>
+                            <div class="welcome-title">欢迎使用研究生管理系统</div>
+                            <div class="welcome-desc">
+                                您好，<span id="welcomeUserName">正方</span>（<span id="welcomeRole">系统管理员</span>）！<br>
+                                这是一个专为研究生管理打造的一体化平台，您可以通过左侧菜单访问各项功能，
+                                包括学生管理、导师管理、论文管理等核心模块。
+                            </div>
+                            <div class="welcome-tips">
+                                <div class="welcome-tip-item">
+                                    <div class="tip-icon">📋</div>
+                                    <div class="tip-text">点击菜单打开功能页面</div>
+                                </div>
+                                <div class="welcome-tip-item">
+                                    <div class="tip-icon">🔄</div>
+                                    <div class="tip-text">支持多页签切换</div>
+                                </div>
+                                <div class="welcome-tip-item">
+                                    <div class="tip-icon">👤</div>
+                                    <div class="tip-text">可切换不同角色权限</div>
+                                </div>
+                            </div>
+                            <div class="version-info">v1.0.0 | 2026 研究生管理系统</div>
+                        </div>
+                    </div>
+                    <iframe id="mainIframe" style="display: none;"></iframe>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 发送消息模态框 -->
-    <div class="modal fade" id="messageModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-envelope me-2"></i>批量发送消息</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">发送方式</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked id="emailSend">
-                                <label class="form-check-label" for="emailSend">邮件</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="smsSend">
-                                <label class="form-check-label" for="smsSend">短信</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">模板选择</label>
-                            <select class="form-select" id="templateSelect">
-                                <option value="">自定义模板</option>
-                                <option value="audit-pass">审核通过通知</option>
-                                <option value="audit-reject">审核不通过通知</option>
-                                <option value="interview-notice">面试通知</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">消息内容</label>
-                            <textarea class="form-control" id="messageContent" rows="6" placeholder="请输入消息内容...">尊敬的考生：
-
-您的报名材料已审核完成，请登录系统查看审核结果。
-
-如有疑问，请联系：010-12345678
-
-招生办公室</textarea>
-                        </div>
-                        <div class="col-12">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>本次将向选中的 <span id="selectedCount">0</span> 位考生发送消息
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="sendMessageBtn">发送消息</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 审核操作模态框 -->
-    <div class="modal fade" id="auditModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>审核操作</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="currentStudentId">
-                    <div class="mb-3">
-                        <label class="form-label">考生信息</label>
-                        <div id="studentInfo" class="form-control-plaintext">张三 (准考证号：202405001)</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">审核状态</label>
-                        <select class="form-select" id="auditStatus">
-                            <option value="pending">待审核</option>
-                            <option value="first-pass">初审通过</option>
-                            <option value="second-pass">复审通过</option>
-                            <option value="modify">退回修改</option>
-                            <option value="reject">不通过</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">审核意见</label>
-                        <textarea class="form-control" id="auditComment" rows="3" placeholder="请输入审核意见（将发送给考生）"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">面试资格</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="interviewQualification" id="interviewYes" value="yes">
-                            <label class="form-check-label" for="interviewYes">有</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="interviewQualification" id="interviewNo" value="no" checked>
-                            <label class="form-check-label" for="interviewNo">无</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="confirmAuditBtn">确认审核</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 查看材料详情模态框 -->
-    <div class="modal fade" id="viewMaterialModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-file-alt me-2"></i>考生材料详情</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="viewStudentId">
-                    <!-- 考生基本信息 -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-user me-2"></i>基本信息</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <strong>准考证号：</strong> <span id="viewExamId"></span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>考生姓名：</strong> <span id="viewName"></span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>性别：</strong> <span id="viewGender"></span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>报考专业：</strong> <span id="viewMajor"></span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>提交时间：</strong> <span id="viewSubmitTime"></span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>审核状态：</strong> <span id="viewStatus"></span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>面试资格：</strong> <span id="viewInterview"></span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>批次：</strong> <span id="viewBatch"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 材料列表 -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-paperclip me-2"></i>上传材料列表</h6>
-                        </div>
-                        <div class="card-body" id="materialList">
-                            <!-- 材料列表将动态加载 -->
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary" id="downloadAllMaterialBtn">
-                        <i class="fas fa-download me-1"></i>下载全部材料
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 图片预览模态框 -->
-    <div class="modal fade image-preview-modal" id="imagePreviewModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-image me-2"></i>图片预览</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="previewImageSrc" class="preview-image" src="" alt="图片预览">
-                    <div class="mt-3">
-                        <p id="previewFileName" class="text-muted"></p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary" id="downloadPreviewImage">
-                        <i class="fas fa-download me-1"></i>下载图片
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 下载进度提示 -->
-    <div class="download-progress" id="downloadProgress">
-        <i class="fas fa-download me-2"></i>
-        <span id="downloadText">正在下载文件...</span>
-    </div>
-
-    <!-- 引入JS库 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-    
     <script>
         // 全局变量
-        let currentClass = "计算机科学与技术";
-        let currentProjectType = "研究生招生";
-        let applicantData = [];
-        
-        // 生成指定数量的考生数据
-        function generateStudentData(className, projectType, count) {
-            const data = [];
-            const majors = {
-                "研究生招生": ["计算机科学与技术", "电子信息工程", "软件工程"],
-                "专升本招生": ["计算机应用技术", "电子商务", "机械设计制造"]
-            };
-            
-            const statusList = ["pending", "first-pass", "second-pass", "modify", "reject"];
-            const interviewList = ["yes", "no"];
-            const batchList = ["第一批", "第二批", "第三批"];
-            
-            // 生成基础准考证号前缀
-            const examIdPrefix = projectType === "研究生招生" ? "202405" : "202406";
-            
-            for (let i = 1; i <= count; i++) {
-                // 生成随机姓名
-                const lastName = ["张", "李", "王", "赵", "刘", "陈", "杨", "黄", "周", "吴"];
-                const firstName = ["三", "四", "五", "六", "七", "八", "九", "十", "晓华", "小明", "小红", "小丽"];
-                const name = lastName[Math.floor(Math.random() * lastName.length)] + 
-                             firstName[Math.floor(Math.random() * firstName.length)];
-                
-                // 随机性别
-                const gender = Math.random() > 0.5 ? "男" : "女";
-                
-                // 随机日期（2024-05-01 至 2024-05-15）
-                const start = new Date(2024, 4, 1);
-                const end = new Date(2024, 4, 15);
-                const randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-                const submitTime = randomDate.getFullYear() + "-" + 
-                                  String(randomDate.getMonth() + 1).padStart(2, '0') + "-" + 
-                                  String(randomDate.getDate()).padStart(2, '0') + " " + 
-                                  String(Math.floor(Math.random() * 24)).padStart(2, '0') + ":" + 
-                                  String(Math.floor(Math.random() * 60)).padStart(2, '0') + ":" + 
-                                  String(Math.floor(Math.random() * 60)).padStart(2, '0');
-                
-                // 随机状态
-                const status = statusList[Math.floor(Math.random() * statusList.length)];
-                const interview = interviewList[Math.floor(Math.random() * interviewList.length)];
-                const batch = batchList[Math.floor(Math.random() * batchList.length)];
-                
-                // 生成材料列表
-                const materials = [];
-                const fileTypes = ["pdf", "jpg", "png"];
-                const materialNames = ["报名表", "身份证复印件", "学历证明", "推荐信", "成绩单"];
-                
-                // 随机生成2-4个材料
-                const materialCount = Math.floor(Math.random() * 3) + 2;
-                for (let j = 0; j < materialCount; j++) {
-                    const fileType = fileTypes[Math.floor(Math.random() * fileTypes.length)];
-                    const materialName = materialNames[Math.floor(Math.random() * materialNames.length)];
-                    const size = (Math.random() * 2 + 1).toFixed(1) + "MB";
-                    
-                    materials.push({
-                        name: `${materialName}.${fileType}`,
-                        size: size,
-                        uploadTime: submitTime
-                    });
-                }
-                
-                data.push({
-                    id: i,
-                    examId: examIdPrefix + String(i).padStart(3, '0'),
-                    name: name,
-                    gender: gender,
-                    major: className,
-                    submitTime: submitTime,
-                    status: status,
-                    interview: interview,
-                    batch: batch,
-                    materials: materials,
-                    projectType: projectType
-                });
-            }
-            
-            return data;
-        }
+        let tabs = [];
+        let activeTabId = null;
+        let currentRole = "系统管理员";
+        let currentUserName = "正方";
 
-        // 状态样式映射
-        const statusStyleMap = {
-            "pending": { class: "bg-warning text-white", text: "待审核" },
-            "first-pass": { class: "bg-success text-white", text: "初审通过" },
-            "second-pass": { class: "bg-primary text-white", text: "复审通过" },
-            "modify": { class: "bg-danger text-white", text: "退回修改" },
-            "reject": { class: "bg-dark text-white", text: "不通过" }
-        };
+        // DOM元素
+        const menuItems = document.querySelectorAll('.menu-item');
+        const submenuItems = document.querySelectorAll('.submenu-item');
+        const tabsHeader = document.getElementById('tabsHeader');
+        const mainIframe = document.getElementById('mainIframe');
+        const welcomeTip = document.getElementById('welcomeTip');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const roleBtn = document.getElementById('roleBtn');
+        const roleDropdown = document.getElementById('roleDropdown');
+        const currentRoleEl = document.getElementById('currentRole');
+        const roleOptions = document.querySelectorAll('.role-option');
+        const welcomeUserName = document.getElementById('welcomeUserName');
+        const welcomeRole = document.getElementById('welcomeRole');
 
-        // 面试资格样式映射
-        const interviewStyleMap = {
-            "yes": { class: "bg-success text-white", text: "已确认" },
-            "no": { class: "bg-secondary", text: "未确认" }
-        };
-        
-        // 班级人数配置
-        const classStudentCount = {
-            "研究生招生": {
-                "计算机科学与技术": 12,
-                "电子信息工程": 78,
-                "软件工程": 65
-            },
-            "专升本招生": {
-                "计算机应用技术": 45,
-                "电子商务": 38,
-                "机械设计制造": 52
-            }
-        };
+        // 初始化欢迎信息
+        welcomeUserName.textContent = currentUserName;
+        welcomeRole.textContent = currentRole;
 
-        // 页面加载完成后初始化
-        $(document).ready(function() {
-            // 初始化默认数据（计算机科学与技术，研究生招生，12人）
-            applicantData = generateStudentData("计算机科学与技术", "研究生招生", 12);
-            
-            // 初始化数据表格（启用分页）
-            const table = $('#applicantTable').DataTable({
-                data: applicantData,
-                columns: [
-                    { 
-                        data: null, 
-                        render: function(data, type, row) {
-                            return `<input type="checkbox" class="form-check-input row-checkbox" data-id="${row.id}">`;
-                        },
-                        orderable: false
-                    },
-                    { data: "examId", title: "准考证号" },
-                    { data: "name", title: "考生姓名" },
-                    { data: "gender", title: "性别" },
-                    { data: "major", title: "报考专业" },
-                    { data: "submitTime", title: "提交时间" },
-                    { 
-                        data: "status", 
-                        title: "审核状态",
-                        render: function(data) {
-                            const style = statusStyleMap[data];
-                            return `<span class="status-badge ${style.class}">${style.text}</span>`;
-                        }
-                    },
-                    { 
-                        data: "interview", 
-                        title: "面试资格",
-                        render: function(data) {
-                            const style = interviewStyleMap[data];
-                            return `<span class="status-badge ${style.class}">${style.text}</span>`;
-                        }
-                    },
-                    { data: "batch", title: "批次" },
-                    { 
-                        data: null, 
-                        title: "操作",
-                        render: function(data, type, row) {
-                            return `
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary view-material" data-id="${row.id}" title="查看材料">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-outline-success download-material" data-id="${row.id}" data-name="${row.name}" title="下载材料">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                    <button class="btn btn-outline-info audit-operation" data-id="${row.id}" data-name="${row.name}" data-examid="${row.examId}" title="审核操作">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
-                            `;
-                        },
-                        orderable: false
-                    }
-                ],
-                // 分页配置
-                paging: true,
-                pageLength: 8,
-                lengthChange: true,
-                lengthMenu: [[8, 15, 20, -1], [8, 15, 20, "全部"]],
-                searching: true,
-                info: true,
-                ordering: true,
-                responsive: true,
-                language: {
-                    "sProcessing": "处理中...",
-                    "sLengthMenu": "显示 _MENU_ 条结果",
-                    "sZeroRecords": "没有匹配结果",
-                    "sInfo": "显示第 _START_ 至 _END_ 条结果，共 _TOTAL_ 条",
-                    "sInfoEmpty": "显示第 0 至 0 条结果，共 0 条",
-                    "sInfoFiltered": "(由 _MAX_ 条结果过滤)",
-                    "sInfoPostFix": "",
-                    "sSearch": "搜索:",
-                    "sUrl": "",
-                    "sEmptyTable": "表中数据为空",
-                    "sLoadingRecords": "载入中...",
-                    "sInfoThousands": ",",
-                    "oPaginate": {
-                        "sFirst": "首页",
-                        "sPrevious": "上页",
-                        "sNext": "下页",
-                        "sLast": "末页"
-                    },
-                    "oAria": {
-                        "sSortAscending": ": 以升序排列此列",
-                        "sSortDescending": ": 以降序排列此列"
-                    }
-                }
-            });
-
-            // 计算并更新统计数据
-            function updateStats() {
-                // 总人数
-                const total = applicantData.length;
-                // 待审核人数
-                const pending = applicantData.filter(item => item.status === 'pending').length;
-                // 已通过人数（初审+复审）
-                const passed = applicantData.filter(item => item.status === 'first-pass' || item.status === 'second-pass').length;
-                // 已提交人数（全部都算已提交）
-                const submitted = total;
-
-                // 更新左侧统计卡片
-                $('#total-count').text(total);
-                $('#submitted-count').text(submitted);
-                $('#pending-count').text(pending);
-                $('#passed-count').text(passed);
-                // 更新班级人数
-                $(`.tree-node.active .badge`).text(`${total}人`);
-                // 更新审核提示中的待审核人数
-                $('#tip-pending-count').text(pending);
-            }
-
-            // 初始化统计数据
-            updateStats();
-            
-            // 更新表格数据
-            function updateTableData(newData) {
-                // 清空表格
-                table.clear();
-                // 添加新数据
-                table.rows.add(newData);
-                // 重新绘制表格
-                table.draw();
-                // 更新统计数据
-                updateStats();
-                // 重置选中状态
-                $('#selectAll, #tableSelectAll').prop('checked', false);
-                updateSelectedCount();
-            }
-
-            // 全选/取消全选（表格头部）
-            $('#tableSelectAll').on('change', function() {
-                $('.row-checkbox').prop('checked', this.checked);
-                updateSelectedCount();
-            });
-
-            // 顶部全选按钮
-            $('#selectAll').on('change', function() {
-                $('.row-checkbox, #tableSelectAll').prop('checked', this.checked);
-                updateSelectedCount();
-            });
-
-            // 单个复选框变化
-            $(document).on('change', '.row-checkbox', function() {
-                updateSelectedCount();
-                // 同步全选框状态
-                const allChecked = $('.row-checkbox').length === $('.row-checkbox:checked').length;
-                $('#selectAll, #tableSelectAll').prop('checked', allChecked);
-            });
-
-            // 更新选中人数
-            function updateSelectedCount() {
-                const count = $('.row-checkbox:checked').length;
-                $('.ms-2.text-secondary').text(`(已选: ${count} 人)`);
-                $('#selectedCount').text(count);
-            }
-            
-            // 项目展开/收起
-            $(document).on('click', '.tree-node[data-project]', function(e) {
-                // 阻止事件冒泡
-                e.stopPropagation();
-                
-                const project = $(this).data('project');
-                const $toggleIcon = $(this).find('.project-toggle');
-                const listId = project === '研究生招生' ? '#graduate-class-list' : '#college-class-list';
+        // 初始化一级菜单展开/收起
+        menuItems.forEach(menu => {
+            menu.addEventListener('click', function() {
+                const menuId = this.id;
+                const submenuId = 'sub' + menuId;
+                const submenu = document.getElementById(submenuId);
+                const arrow = this.querySelector('.menu-arrow');
                 
                 // 切换展开/收起状态
-                $toggleIcon.toggleClass('open');
-                $(listId).toggleClass('show');
+                submenu.classList.toggle('show');
+                arrow.classList.toggle('expanded');
                 
-                // 如果是第一次点击专升本招生，更新班级列表显示
-                if (project === '专升本招生' && !$(listId).hasClass('show')) {
-                    showToast('已收起专升本招生班级列表');
-                } else if (project === '专升本招生' && $(listId).hasClass('show')) {
-                    showToast('已展开专升本招生班级列表');
-                }
+                // 高亮当前一级菜单
+                menuItems.forEach(m => m.classList.remove('active'));
+                this.classList.add('active');
             });
+        });
 
-            // 树形节点点击事件（班级切换）
-            $(document).on('click', '.tree-node[data-class]', function(e) {
-                // 阻止事件冒泡到父节点
-                e.stopPropagation();
+        // 初始化二级菜单点击事件
+        submenuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation(); // 阻止事件冒泡到一级菜单
                 
-                const className = $(this).data('class');
-                const projectType = $(this).data('project-type');
-                const studentCount = classStudentCount[projectType][className];
+                const url = this.getAttribute('data-url');
+                const title = this.getAttribute('data-title');
+                addOrActivateTab(url, title);
                 
-                // 更新当前选中状态
-                $('.tree-node').removeClass('active');
-                $(this).addClass('active');
-                
-                // 更新统计卡片标题
-                $('#stats-title').text(`${className} - 统计`);
-                
-                // 更新当前选择
-                currentClass = className;
-                currentProjectType = projectType;
-                
-                // 生成新数据
-                applicantData = generateStudentData(className, projectType, studentCount);
-                
-                // 更新表格
-                updateTableData(applicantData);
-                
-                // 显示提示
-                showToast(`已切换至【${projectType} - ${className}】数据，共${studentCount}人`);
+                // 高亮当前二级菜单，取消其他二级菜单高亮
+                submenuItems.forEach(si => si.classList.remove('active'));
+                this.classList.add('active');
             });
+        });
 
-            // 查看材料详情
-            $(document).on('click', '.view-material', function() {
-                const studentId = $(this).data('id');
-                // 查找对应考生数据
-                const student = applicantData.find(item => item.id == studentId);
-                
-                if (student) {
-                    // 填充基本信息
-                    $('#viewStudentId').val(studentId);
-                    $('#viewExamId').text(student.examId);
-                    $('#viewName').text(student.name);
-                    $('#viewGender').text(student.gender);
-                    $('#viewMajor').text(student.major);
-                    $('#viewSubmitTime').text(student.submitTime);
-                    $('#viewBatch').text(student.batch);
-                    
-                    // 填充状态和面试资格（带样式）
-                    const statusStyle = statusStyleMap[student.status];
-                    $('#viewStatus').html(`<span class="status-badge ${statusStyle.class}">${statusStyle.text}</span>`);
-                    
-                    const interviewStyle = interviewStyleMap[student.interview];
-                    $('#viewInterview').html(`<span class="status-badge ${interviewStyle.class}">${interviewStyle.text}</span>`);
-                    
-                    // 填充材料列表
-                    let materialHtml = '';
-                    if (student.materials && student.materials.length > 0) {
-                        student.materials.forEach((material, index) => {
-                            // 判断文件类型
-                            const fileExt = material.name.split('.').pop().toLowerCase();
-                            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExt);
-                            const fileIcon = isImage ? 'fa-file-image-o' : (fileExt === 'pdf' ? 'fa-file-pdf-o' : 'fa-file-o');
-                            const iconColor = isImage ? 'text-primary' : (fileExt === 'pdf' ? 'text-danger' : 'text-secondary');
-                            
-                            materialHtml += `
-                                <div class="material-item">
-                                    <div>
-                                        <i class="fas ${fileIcon} me-2 ${iconColor}"></i>
-                                        <span>${material.name}</span>
-                                        <span class="ms-2 text-secondary">(${material.size})</span>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        ${isImage ? 
-                                            `<button class="btn btn-sm btn-outline-primary view-image" data-file="${material.name}" data-type="${fileExt}">
-                                                <i class="fas fa-eye me-1"></i>预览
-                                            </button>` : 
-                                            `<button class="btn btn-sm btn-outline-primary view-file" data-file="${material.name}">
-                                                <i class="fas fa-eye me-1"></i>预览
-                                            </button>`
-                                        }
-                                        <button class="btn btn-sm btn-outline-success download-file" data-file="${material.name}" data-student="${student.name}">
-                                            <i class="fas fa-download me-1"></i>下载
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        materialHtml = '<div class="text-center text-secondary">该考生暂无上传材料</div>';
-                    }
-                    $('#materialList').html(materialHtml);
-                    
-                    // 打开查看模态框
-                    const viewModal = new bootstrap.Modal(document.getElementById('viewMaterialModal'));
-                    viewModal.show();
-                }
-            });
-            
-            // 图片预览
-            $(document).on('click', '.view-image', function() {
-                const fileName = $(this).data('file');
-                const fileType = $(this).data('type');
-                
-                // 设置预览图片（使用示例图片）
-                let imageSrc = '';
-                if (fileName.includes('身份证')) {
-                    imageSrc = 'https://picsum.photos/id/1/800/600'; // 身份证示例图
-                } else if (fileName.includes('学历')) {
-                    imageSrc = 'https://picsum.photos/id/20/800/600'; // 学历证明示例图
-                } else {
-                    imageSrc = `https://picsum.photos/id/${Math.floor(Math.random() * 100)}/800/600`; // 随机示例图
-                }
-                
-                // 更新预览模态框内容
-                $('#previewImageSrc').attr('src', imageSrc);
-                $('#previewFileName').text(fileName);
-                
-                // 打开图片预览模态框
-                const imageModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
-                imageModal.show();
-                
-                // 绑定下载按钮事件
-                $('#downloadPreviewImage').off('click').on('click', function() {
-                    $('#downloadProgress').fadeIn();
-                    $('#downloadText').text(`正在下载 ${fileName}...`);
-                    
-                    setTimeout(() => {
-                        $('#downloadText').text(`已完成 ${fileName} 下载`);
-                        setTimeout(() => {
-                            $('#downloadProgress').fadeOut();
-                        }, 1500);
-                        showToast(`${fileName} 下载完成`);
-                    }, 1000);
-                });
-            });
+        // 角色切换功能
+        roleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            roleDropdown.classList.toggle('show');
+        });
 
-            // 预览文件（非图片）
-            $(document).on('click', '.view-file', function() {
-                const fileName = $(this).data('file');
-                showToast(`正在预览文件：${fileName}`, 'info');
-                // 实际项目中可打开新窗口或嵌入PDF预览组件
+        roleOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                currentRole = this.getAttribute('data-role');
+                currentRoleEl.textContent = currentRole;
+                welcomeRole.textContent = currentRole;
+                roleDropdown.classList.remove('show');
+                
+                // 角色切换提示
+                alert(`✅ 已成功切换为【${currentRole}】角色！\n系统将根据角色权限调整功能可见性。`);
+                // 实际项目中可在这里添加权限控制逻辑
+                // window.location.reload();
             });
+        });
 
-            // 下载单个材料文件（模拟）
-            $(document).on('click', '.download-file', function() {
-                const fileName = $(this).data('file');
-                const studentName = $(this).data('student');
-                
-                $('#downloadProgress').fadeIn();
-                $('#downloadText').text(`正在下载 ${studentName} 的 ${fileName}...`);
-                
-                setTimeout(() => {
-                    $('#downloadText').text(`已完成 ${fileName} 下载`);
-                    setTimeout(() => {
-                        $('#downloadProgress').fadeOut();
-                    }, 1500);
-                    showToast(`${fileName} 下载完成`);
-                }, 1000);
-            });
+        // 点击页面其他区域关闭角色下拉菜单
+        document.addEventListener('click', function() {
+            roleDropdown.classList.remove('show');
+        });
 
-            // 下载全部材料
-            $('#downloadAllMaterialBtn').on('click', function() {
-                const studentId = $('#viewStudentId').val();
-                const student = applicantData.find(item => item.id == studentId);
-                
-                $('#downloadProgress').fadeIn();
-                $('#downloadText').text(`正在打包 ${student.name} 的全部材料...`);
-                
-                setTimeout(() => {
-                    $('#downloadText').text(`已完成 ${student.name} 全部材料打包下载`);
-                    setTimeout(() => {
-                        $('#downloadProgress').fadeOut();
-                    }, 1500);
-                    showToast(`${student.name} 的全部材料下载完成`);
-                }, 1500);
-            });
-
-            // 单个材料下载
-            $(document).on('click', '.download-material', function() {
-                const studentId = $(this).data('id');
-                const studentName = $(this).data('name');
-                
-                // 显示下载进度
-                $('#downloadProgress').fadeIn();
-                $('#downloadText').text(`正在下载 ${studentName} 的材料...`);
-                
-                // 模拟下载延迟
-                setTimeout(() => {
-                    // 创建下载链接
-                    const link = document.createElement('a');
-                    link.href = `#download/${studentId}`; // 实际项目中替换为真实下载地址
-                    link.download = `${studentName}_报名表及附件.zip`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    // 隐藏进度提示
-                    $('#downloadText').text(`已完成 ${studentName} 材料下载`);
-                    setTimeout(() => {
-                        $('#downloadProgress').fadeOut();
-                    }, 1500);
-                    
-                    showToast(`${studentName} 的材料下载完成`);
-                }, 1000);
-            });
-
-            // 批量下载材料
-            $('#batchDownloadBtn').on('click', function() {
-                const selectedCount = $('.row-checkbox:checked').length;
-                
-                if (selectedCount === 0) {
-                    showToast('请先选择需要下载的考生', 'warning');
-                    return;
-                }
-                
-                // 显示下载进度
-                $('#downloadProgress').fadeIn();
-                $('#downloadText').text(`正在打包 ${selectedCount} 位考生的材料...`);
-                
-                // 模拟批量下载延迟
-                setTimeout(() => {
-                    // 创建下载链接
-                    const link = document.createElement('a');
-                    link.href = '#batch-download'; // 实际项目中替换为真实下载地址
-                    link.download = `批量材料_${new Date().getTime()}.zip`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    // 隐藏进度提示
-                    $('#downloadText').text(`已完成 ${selectedCount} 位考生材料打包下载`);
-                    setTimeout(() => {
-                        $('#downloadProgress').fadeOut();
-                    }, 1500);
-                    
-                    showToast(`已完成 ${selectedCount} 位考生材料批量下载`);
-                }, 2000);
-            });
-
-            // 审核操作
-            $(document).on('click', '.audit-operation', function() {
-                const studentId = $(this).data('id');
-                const studentName = $(this).data('name');
-                const examId = $(this).data('examid');
-                
-                // 设置模态框内容
-                $('#currentStudentId').val(studentId);
-                $('#studentInfo').text(`${studentName} (准考证号：${examId})`);
-                
-                // 打开审核模态框
-                const auditModal = new bootstrap.Modal(document.getElementById('auditModal'));
-                auditModal.show();
-            });
-
-            // 确认审核
-            $('#confirmAuditBtn').on('click', function() {
-                const studentId = $('#currentStudentId').val();
-                const auditStatus = $('#auditStatus').val();
-                const auditComment = $('#auditComment').val();
-                const interviewQualification = $('input[name="interviewQualification"]:checked').val();
-                
-                if (!auditComment && (auditStatus === 'modify' || auditStatus === 'reject')) {
-                    showToast('退回修改或不通过时必须填写审核意见', 'warning');
-                    return;
-                }
-                
-                // 模拟审核提交
-                showToast('审核操作已提交，数据正在更新...');
-                
-                setTimeout(() => {
-                    // 更新表格数据
-                    const rowIndex = table.column(0).data().indexOf(table.column(0).data().filter(function(value, index) {
-                        return table.row(index).data().id == studentId;
-                    })[0]);
-                    
-                    if (rowIndex !== -1) {
-                        // 更新表格数据
-                        table.row(rowIndex).data({
-                            ...table.row(rowIndex).data(),
-                            status: auditStatus,
-                            interview: interviewQualification
-                        }).draw();
-                        
-                        // 更新源数据
-                        const dataIndex = applicantData.findIndex(item => item.id == studentId);
-                        if (dataIndex !== -1) {
-                            applicantData[dataIndex].status = auditStatus;
-                            applicantData[dataIndex].interview = interviewQualification;
-                        }
-                        
-                        // 更新统计数据
-                        updateStats();
-                    }
-                    
-                    // 关闭模态框
-                    const auditModal = bootstrap.Modal.getInstance(document.getElementById('auditModal'));
-                    auditModal.hide();
-                    
-                    showToast('审核操作完成，已更新考生状态');
-                }, 800);
-            });
-
-            // 批量审核操作
-            $('.dropdown-item[data-audit-action]').on('click', function(e) {
-                e.preventDefault();
-                const action = $(this).data('audit-action');
-                const selectedCount = $('.row-checkbox:checked').length;
-                
-                if (selectedCount === 0) {
-                    showToast('请先选择需要审核的考生', 'warning');
-                    return;
-                }
-                
-                // 确认批量操作
-                if (confirm(`确定要将选中的 ${selectedCount} 位考生批量设置为【${statusStyleMap[action].text}】吗？`)) {
-                    showToast(`正在批量更新 ${selectedCount} 位考生的审核状态...`);
-                    
-                    // 模拟批量更新
-                    setTimeout(() => {
-                        // 更新表格中选中行的状态
-                        $('.row-checkbox:checked').each(function() {
-                            const studentId = $(this).data('id');
-                            const rowIndex = table.column(0).data().indexOf(table.column(0).data().filter(function(value, index) {
-                                return table.row(index).data().id == studentId;
-                            })[0]);
-                            
-                            if (rowIndex !== -1) {
-                                // 更新表格数据
-                                table.row(rowIndex).data({
-                                    ...table.row(rowIndex).data(),
-                                    status: action
-                                }).draw();
-                                
-                                // 更新源数据
-                                const dataIndex = applicantData.findIndex(item => item.id == studentId);
-                                if (dataIndex !== -1) {
-                                    applicantData[dataIndex].status = action;
-                                }
-                            }
-                        });
-                        
-                        // 更新统计数据
-                        updateStats();
-                        
-                        showToast(`已完成 ${selectedCount} 位考生的批量审核操作`);
-                    }, 1000);
-                }
-            });
-
-            // 批量设置批次
-            $('.dropdown-item[data-batch]').on('click', function(e) {
-                e.preventDefault();
-                const batch = $(this).data('batch');
-                const selectedCount = $('.row-checkbox:checked').length;
-                
-                if (selectedCount === 0) {
-                    showToast('请先选择需要设置批次的考生', 'warning');
-                    return;
-                }
-                
-                if (confirm(`确定要将选中的 ${selectedCount} 位考生批量设置为【${batch}】吗？`)) {
-                    showToast(`正在批量更新 ${selectedCount} 位考生的批次信息...`);
-                    
-                    setTimeout(() => {
-                        // 更新表格中选中行的批次
-                        $('.row-checkbox:checked').each(function() {
-                            const studentId = $(this).data('id');
-                            const rowIndex = table.column(0).data().indexOf(table.column(0).data().filter(function(value, index) {
-                                return table.row(index).data().id == studentId;
-                            })[0]);
-                            
-                            if (rowIndex !== -1) {
-                                // 更新表格数据
-                                table.row(rowIndex).data({
-                                    ...table.row(rowIndex).data(),
-                                    batch: batch
-                                }).draw();
-                                
-                                // 更新源数据
-                                const dataIndex = applicantData.findIndex(item => item.id == studentId);
-                                if (dataIndex !== -1) {
-                                    applicantData[dataIndex].batch = batch;
-                                }
-                            }
-                        });
-                        
-                        showToast(`已完成 ${selectedCount} 位考生的批次设置`);
-                    }, 800);
-                }
-            });
-
-            // 批量调整报考项目
-            $('.dropdown-item[data-project-change]').on('click', function(e) {
-                e.preventDefault();
-                const project = $(this).data('project-change');
-                const selectedCount = $('.row-checkbox:checked').length;
-                
-                if (selectedCount === 0) {
-                    showToast('请先选择需要调整报考项目的考生', 'warning');
-                    return;
-                }
-                
-                if (confirm(`确定要将选中的 ${selectedCount} 位考生批量调整为【${project}】吗？`)) {
-                    showToast(`正在批量更新 ${selectedCount} 位考生的报考项目...`);
-                    
-                    setTimeout(() => {
-                        // 更新表格中选中行的报考项目
-                        $('.row-checkbox:checked').each(function() {
-                            const studentId = $(this).data('id');
-                            const rowIndex = table.column(0).data().indexOf(table.column(0).data().filter(function(value, index) {
-                                return table.row(index).data().id == studentId;
-                            })[0]);
-                            
-                            if (rowIndex !== -1) {
-                                // 更新表格数据
-                                table.row(rowIndex).data({
-                                    ...table.row(rowIndex).data(),
-                                    projectType: project
-                                }).draw();
-                                
-                                // 更新源数据
-                                const dataIndex = applicantData.findIndex(item => item.id == studentId);
-                                if (dataIndex !== -1) {
-                                    applicantData[dataIndex].projectType = project;
-                                }
-                            }
-                        });
-                        
-                        showToast(`已完成 ${selectedCount} 位考生的报考项目调整`);
-                    }, 800);
-                }
-            });
-
-            // 搜索功能
-            $('#searchBtn').on('click', function() {
-                const searchText = $('#searchInput').val().toLowerCase();
-                const status = $('#statusSelect').val();
-                const batch = $('#batchSelect').val();
-                const interview = $('#interviewSelect').val();
-                
-                // 构建筛选条件
-                table.search('').columns().search('').draw();
-                
-                if (searchText) {
-                    table.search(searchText).draw();
-                }
-                
-                // 扩展状态筛选
-                if (status) {
-                    table.column(6).search(status).draw();
-                }
-                
-                showToast('搜索条件已应用');
-            });
-
-            // 高级筛选应用
-            $('#applyFilterBtn').on('click', function() {
-                // 获取筛选条件
-                const startDate = $('#startDate').val();
-                const endDate = $('#endDate').val();
-                const minScore = $('#minScore').val();
-                const maxScore = $('#maxScore').val();
-                const education = $('#educationSelect').val();
-                const recommendation = $('#recommendationSelect').val();
-                
-                // 模拟应用筛选
-                $('#filterModal').modal('hide');
-                showToast('高级筛选条件已应用');
-            });
-
-            // 发送消息
-            $('#sendMessageBtn').on('click', function() {
-                const selectedCount = $('.row-checkbox:checked').length;
-                
-                if (selectedCount === 0) {
-                    showToast('请先选择需要发送消息的考生', 'warning');
-                    return;
-                }
-                
-                const emailSend = $('#emailSend').is(':checked');
-                const smsSend = $('#smsSend').is(':checked');
-                
-                if (!emailSend && !smsSend) {
-                    showToast('请至少选择一种发送方式', 'warning');
-                    return;
-                }
-                
-                // 模拟发送消息
-                $('#messageModal').modal('hide');
-                showToast(`正在向 ${selectedCount} 位考生发送消息...`);
-                
-                setTimeout(() => {
-                    showToast(`已成功向 ${selectedCount} 位考生发送消息（邮件：${emailSend?'是':'否'}，短信：${smsSend?'是':'否'}）`);
-                }, 1000);
-            });
-
-            // 提示框函数
-            function showToast(message, type = 'success') {
-                // 创建toast元素
-                const toastHtml = `
-                    <div class="toast align-items-center text-white bg-${type === 'warning' ? 'warning' : type === 'info' ? 'info' : 'success'} border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="d-flex">
-                            <div class="toast-body">
-                                ${message}
-                            </div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                    </div>
-                `;
-                
-                // 添加到页面
-                $('body').append(toastHtml);
-                
-                // 显示toast
-                const toast = new bootstrap.Toast($('.toast:last'));
-                toast.show();
-                
-                // 自动移除
-                setTimeout(() => {
-                    $('.toast:last').remove();
-                }, 3000);
+        // 退出登录事件
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('🚪 确定要退出登录吗？')) {
+                alert('👋 已成功退出登录，感谢使用研究生管理系统！');
+                // window.location.href = 'login.html';
             }
         });
+
+        /**
+         * 添加或激活页签
+         * @param {string} url - 页面URL
+         * @param {string} title - 页签标题
+         */
+        function addOrActivateTab(url, title) {
+            // 检查是否已存在该页签
+            const existingTab = tabs.find(tab => tab.url === url);
+            
+            if (existingTab) {
+                // 激活已有页签
+                activateTab(existingTab.id);
+            } else {
+                // 创建新页签
+                const tabId = 'tab_' + Date.now();
+                const newTab = {
+                    id: tabId,
+                    url: url,
+                    title: title
+                };
+                tabs.push(newTab);
+                
+                // 创建页签DOM
+                const tabElement = document.createElement('div');
+                tabElement.className = 'tab-item';
+                tabElement.id = tabId;
+                tabElement.innerHTML = `
+                    ${title}
+                    <span class="tab-close" data-id="${tabId}">×</span>
+                `;
+                tabsHeader.appendChild(tabElement);
+                
+                // 绑定页签点击事件
+                tabElement.addEventListener('click', function() {
+                    activateTab(tabId);
+                });
+                
+                // 绑定关闭按钮事件
+                tabElement.querySelector('.tab-close').addEventListener('click', function(e) {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    closeTab(tabId);
+                });
+                
+                // 激活新页签
+                activateTab(tabId);
+            }
+            
+            // 隐藏欢迎界面，显示iframe
+            welcomeTip.style.display = 'none';
+            mainIframe.style.display = 'block';
+        }
+
+        /**
+         * 激活指定页签
+         * @param {string} tabId - 页签ID
+         */
+        function activateTab(tabId) {
+            // 更新激活状态
+            tabs.forEach(tab => {
+                const tabElement = document.getElementById(tab.id);
+                if (tab.id === tabId) {
+                    tabElement.classList.add('active');
+                    mainIframe.src = tab.url;
+                    activeTabId = tabId;
+                    
+                    // 高亮对应的二级菜单
+                    submenuItems.forEach(si => {
+                        if (si.getAttribute('data-url') === tab.url) {
+                            si.classList.add('active');
+                            // 展开对应的一级菜单
+                            const menuItem = si.closest('.submenu').previousElementSibling;
+                            menuItem.classList.add('active');
+                            menuItem.querySelector('.menu-arrow').classList.add('expanded');
+                            si.closest('.submenu').classList.add('show');
+                        } else {
+                            si.classList.remove('active');
+                        }
+                    });
+                } else {
+                    tabElement.classList.remove('active');
+                }
+            });
+        }
+
+        /**
+         * 关闭指定页签
+         * @param {string} tabId - 页签ID
+         */
+        function closeTab(tabId) {
+            // 如果关闭的是激活的页签，需要激活其他页签
+            const isActiveTab = tabId === activeTabId;
+            
+            // 从数组中移除
+            tabs = tabs.filter(tab => tab.id !== tabId);
+            
+            // 移除DOM元素
+            const tabElement = document.getElementById(tabId);
+            tabElement.remove();
+            
+            // 如果关闭的是激活页签，激活第一个存在的页签
+            if (isActiveTab && tabs.length > 0) {
+                activateTab(tabs[0].id);
+            } else if (tabs.length === 0) {
+                // 没有页签时显示欢迎界面
+                mainIframe.style.display = 'none';
+                welcomeTip.style.display = 'flex';
+                // 取消所有菜单高亮
+                menuItems.forEach(mi => {
+                    mi.classList.remove('active');
+                    const arrow = mi.querySelector('.menu-arrow');
+                    if (arrow) arrow.classList.remove('expanded');
+                });
+                submenuItems.forEach(si => si.classList.remove('active'));
+                document.querySelectorAll('.submenu').forEach(sm => sm.classList.remove('show'));
+                activeTabId = null;
+            }
+        }
     </script>
 </body>
 </html>
