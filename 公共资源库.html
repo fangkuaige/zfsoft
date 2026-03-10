@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公共资源库 - 未通过考生信息管理</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome图标 -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 引入SheetJS用于导出Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- 配置Tailwind自定义主题 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#6B7280',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            light: '#F2F3F5',
+            dark: '#1D2129'
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .table-shadow {
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+      }
+      .table-row-hover {
+        transition: all 0.2s ease-in-out;
+      }
+      .table-row-hover:hover {
+        background-color: #F9FAFB;
+        transform: none;
+        box-shadow: inset 0 0 0 1px rgba(22, 93, 255, 0.1);
+      }
+      .badge-pill {
+        border-radius: 9999px;
+        font-size: 11px;
+        padding: 2px 8px;
+        line-height: 1.4;
+      }
+      /* 自定义下拉框样式 */
+      .custom-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath d='M8 11.5l-6-6 1.5-1.5L8 8.5l4.5-4.5L14 5.5l-6 6z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 12px;
+      }
+      /* 搜索框焦点样式 */
+      .search-input:focus {
+        box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.2);
+      }
+    }
+  </style>
+  <style>
+    /* 基础样式 */
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #F7F8FA;
+    }
+    /* 加载动画 */
+    .loader {
+      border-top-color: #165DFF;
+      animation: spinner 0.8s linear infinite;
+    }
+    @keyframes spinner {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* 平滑滚动 */
+    html {
+      scroll-behavior: smooth;
+    }
+    /* 统一表格单元格对齐 */
+    .table-cell {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+    /* 分页激活状态 */
+    .page-btn.active {
+      background-color: #165DFF;
+      color: white;
+      border-color: #165DFF;
+    }
+    /* 分页禁用状态 */
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    /* 导出按钮动画 */
+    .export-btn {
+      transition: all 0.2s ease;
+    }
+    .export-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(22, 93, 255, 0.2);
+    }
+    /* 筛选按钮加载状态 */
+    .filter-btn.loading {
+      pointer-events: none;
+      opacity: 0.8;
+    }
+    .filter-btn.loading .fa-filter {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- 顶部导航栏 -->
+  <!-- <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-database text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold text-dark">公共资源库</h1>
+        <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">考生信息</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="hidden md:flex items-center space-x-1 text-secondary">
+          <i class="fa fa-user-o"></i>
+          <span>当前项目：研究生招生系统</span>
+        </div>
+      </div>
+    </div>
+  </header> -->
+
+  <!-- 主要内容区 -->
+  <main class=" px-4 py-6">
+    <!-- 筛选和搜索区域 -->
+    <section class="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="relative">
+          <!-- 优化后的下拉框样式 -->
+          <select class="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:outline-none focus:border-primary custom-select" id="projectSelect">
+            <option value="">所有报考项目</option>
+            <option value="1">计算机科学与技术</option>
+            <option value="2">电子信息</option>
+            <option value="3">软件工程</option>
+            <option value="4">人工智能</option>
+          </select>
+        </div>
+        <div class="relative">
+          <select class="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:outline-none focus:border-primary custom-select" id="reasonSelect">
+            <option value="">所有未通过原因</option>
+            <option value="1">专业不符</option>
+            <option value="2">经验不足</option>
+            <option value="3">学历不达标</option>
+            <option value="4">综合评分不足</option>
+            <option value="5">其他原因</option>
+          </select>
+        </div>
+        <div class="relative">
+          <select class="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:outline-none focus:border-primary custom-select" id="educationSelect">
+            <option value="">所有学历</option>
+            <option value="1">大专</option>
+            <option value="2">本科</option>
+            <option value="3">硕士</option>
+            <option value="4">博士</option>
+          </select>
+        </div>
+        <div class="relative">
+          <!-- 优化后的搜索框 -->
+          <input 
+            type="text" 
+            placeholder="搜索考生姓名/手机号/身份证号" 
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-md focus:outline-none focus:border-primary search-input"
+            id="searchInput"
+          >
+          <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <!-- 搜索清除按钮 -->
+          <button id="clearSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mt-4">
+        <div class="flex items-center space-x-2">
+          <button id="filterBtn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition filter-btn">
+            <i class="fa fa-filter mr-1"></i>筛选
+          </button>
+          <button id="resetBtn" class="px-4 py-2 bg-white text-secondary border border-gray-200 rounded-md hover:bg-gray-50 transition">
+            <i class="fa fa-refresh mr-1"></i>重置
+          </button>
+          <!-- 导出按钮移到重置按钮后面 -->
+          <button id="exportBtn" class="px-4 py-2 bg-success text-white rounded-md hover:bg-success/90 transition export-btn">
+            <i class="fa fa-download mr-1"></i>导出数据
+          </button>
+        </div>
+        <div class="text-sm text-secondary">
+          共 <span class="text-primary font-bold" id="totalCount">8</span> 条考生信息
+        </div>
+      </div>
+    </section>
+
+    <!-- 考生列表区域 -->
+    <section class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
+      <!-- 列表表头 -->
+      <div class="grid grid-cols-12 bg-gray-50 py-4 px-6 text-sm font-medium text-gray-600 border-b border-gray-100">
+        <div class="col-span-1 table-cell">序号</div>
+        <div class="col-span-2 table-cell">考生姓名</div>
+        <div class="col-span-2 hidden md:table-cell md:flex">联系方式</div>
+        <div class="col-span-2 hidden lg:table-cell lg:flex">报考项目</div>
+        <div class="col-span-2 hidden lg:table-cell lg:flex">未通过原因</div>
+        <div class="col-span-2 hidden md:table-cell md:flex">入库时间</div>
+        <div class="col-span-2 table-cell">操作</div>
+      </div>
+
+      <!-- 列表内容 -->
+      <div class="divide-y divide-gray-100" id="studentList">
+        <!-- 考生数据行 1 -->
+        <div class="grid grid-cols-12 py-5 px-6 items-center table-row-hover">
+          <div class="col-span-1 text-gray-500 table-cell">1</div>
+          <div class="col-span-2 table-cell">
+            <div class="flex items-center space-x-2">
+              <img src="https://picsum.photos/32/32?random=1" alt="头像" class="w-8 h-8 rounded-full object-cover border border-gray-100">
+              <span class="font-medium text-gray-800">张三</span>
+              <button class="text-primary hover:text-primary/80 transition-colors view-detail" data-id="1" title="查看详情">
+                <i class="fa fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-600">13800138000</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex text-gray-700">计算机科学与技术</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex">
+            <span class="bg-warning/10 text-warning badge-pill">经验不足</span>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-500 text-sm">2024-03-10</div>
+          <div class="col-span-2 table-cell">
+            <span class="text-gray-100">-</span>
+          </div>
+        </div>
+
+        <!-- 考生数据行 2 -->
+        <div class="grid grid-cols-12 py-5 px-6 items-center table-row-hover">
+          <div class="col-span-1 text-gray-500 table-cell">2</div>
+          <div class="col-span-2 table-cell">
+            <div class="flex items-center space-x-2">
+              <img src="https://picsum.photos/32/32?random=2" alt="头像" class="w-8 h-8 rounded-full object-cover border border-gray-100">
+              <span class="font-medium text-gray-800">李四</span>
+              <button class="text-primary hover:text-primary/80 transition-colors view-detail" data-id="2" title="查看详情">
+                <i class="fa fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-600">13900139000</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex text-gray-700">电子信息</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex">
+            <span class="bg-danger/10 text-danger badge-pill">专业不符</span>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-500 text-sm">2024-03-09</div>
+          <div class="col-span-2 table-cell">
+            <span class="text-gray-100">-</span>
+          </div>
+        </div>
+
+        <!-- 考生数据行 3 -->
+        <div class="grid grid-cols-12 py-5 px-6 items-center table-row-hover">
+          <div class="col-span-1 text-gray-500 table-cell">3</div>
+          <div class="col-span-2 table-cell">
+            <div class="flex items-center space-x-2">
+              <img src="https://picsum.photos/32/32?random=3" alt="头像" class="w-8 h-8 rounded-full object-cover border border-gray-100">
+              <span class="font-medium text-gray-800">王五</span>
+              <button class="text-primary hover:text-primary/80 transition-colors view-detail" data-id="3" title="查看详情">
+                <i class="fa fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-600">13700137000</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex text-gray-700">软件工程</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex">
+            <span class="bg-gray-100 text-gray-600 badge-pill">综合评分不足</span>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-500 text-sm">2024-03-08</div>
+          <div class="col-span-2 table-cell">
+            <span class="text-gray-100">-</span>
+          </div>
+        </div>
+
+        <!-- 考生数据行 4 -->
+        <div class="grid grid-cols-12 py-5 px-6 items-center table-row-hover">
+          <div class="col-span-1 text-gray-500 table-cell">4</div>
+          <div class="col-span-2 table-cell">
+            <div class="flex items-center space-x-2">
+              <img src="https://picsum.photos/32/32?random=4" alt="头像" class="w-8 h-8 rounded-full object-cover border border-gray-100">
+              <span class="font-medium text-gray-800">赵六</span>
+              <button class="text-primary hover:text-primary/80 transition-colors view-detail" data-id="4" title="查看详情">
+                <i class="fa fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-600">13600136000</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex text-gray-700">人工智能</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex">
+            <span class="bg-success/10 text-success badge-pill">学历不达标</span>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-500 text-sm">2024-03-07</div>
+          <div class="col-span-2 table-cell">
+            <span class="text-gray-100">-</span>
+          </div>
+        </div>
+
+        <!-- 考生数据行 5 -->
+        <div class="grid grid-cols-12 py-5 px-6 items-center table-row-hover">
+          <div class="col-span-1 text-gray-500 table-cell">5</div>
+          <div class="col-span-2 table-cell">
+            <div class="flex items-center space-x-2">
+              <img src="https://picsum.photos/32/32?random=5" alt="头像" class="w-8 h-8 rounded-full object-cover border border-gray-100">
+              <span class="font-medium text-gray-800">钱七</span>
+              <button class="text-primary hover:text-primary/80 transition-colors view-detail" data-id="5" title="查看详情">
+                <i class="fa fa-eye text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-600">13500135000</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex text-gray-700">计算机科学与技术</div>
+          <div class="col-span-2 hidden lg:table-cell lg:flex">
+            <span class="bg-gray-100 text-gray-600 badge-pill">其他原因</span>
+          </div>
+          <div class="col-span-2 hidden md:table-cell md:flex text-gray-500 text-sm">2024-03-06</div>
+          <div class="col-span-2 table-cell">
+            <span class="text-gray-100">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 简化后的分页区域 -->
+      <div class="flex items-center justify-between py-4 px-6 border-t border-gray-100 bg-gray-50">
+        <div class="text-sm text-gray-600" id="pageInfo">
+          显示 1-5 条，共 <span class="text-primary font-medium">8</span> 条
+        </div>
+        <div class="flex items-center space-x-1">
+          <button id="prevPage" class="page-btn w-9 h-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:border-primary hover:text-primary disabled:opacity-50 disabled:pointer-events-none" disabled>
+            <i class="fa fa-angle-left"></i>
+          </button>
+          <!-- 只保留当前页码显示 -->
+          <button class="page-btn w-9 h-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:border-primary hover:text-primary active bg-primary text-white" id="currentPageBtn" data-page="1">1</button>
+          <button id="nextPage" class="page-btn w-9 h-9 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:border-primary hover:text-primary">
+            <i class="fa fa-angle-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <!-- <footer class="bg-white border-t border-gray-200 py-6 mt-8">
+    <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
+      <p>© 2024 公共资源库管理系统 - 录取未通过考生信息展示平台</p>
+      <p class="mt-1">本系统仅用于内部项目参考，请勿泄露考生隐私信息</p>
+    </div>
+  </footer> -->
+
+  <!-- 详情弹窗 -->
+  <div id="detailModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-auto">
+      <div class="flex items-center justify-between p-4 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-gray-800">考生基本信息</h2>
+        <button id="closeModal" class="text-gray-500 hover:text-primary">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      <div class="p-6">
+        <div class="flex items-center space-x-4 mb-6">
+          <img id="modalAvatar" src="https://picsum.photos/80/80?random=1" alt="考生头像" class="w-20 h-20 rounded-full object-cover border border-gray-100">
+          <div>
+            <h3 id="modalName" class="text-xl font-bold text-gray-800">张三</h3>
+            <p id="modalProject" class="text-gray-600">报考项目：计算机科学与技术</p>
+            <p id="modalReason" class="text-warning text-sm mt-1">未通过原因：经验不足</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex items-start">
+            <span class="w-24 text-gray-500">姓名：</span>
+            <span id="modalRealName" class="text-gray-700">张三</span>
+          </div>
+          <div class="flex items-start">
+            <span class="w-24 text-gray-500">联系方式：</span>
+            <span id="modalPhone" class="text-gray-700">13800138000</span>
+          </div>
+          <div class="flex items-start">
+            <span class="w-24 text-gray-500">学历：</span>
+            <span id="modalEducation" class="text-gray-700">本科</span>
+          </div>
+          <div class="flex items-start">
+            <span class="w-24 text-gray-500">毕业院校：</span>
+            <span id="modalSchool" class="text-gray-700">XX大学计算机学院</span>
+          </div>
+          <div class="flex items-start">
+            <span class="w-24 text-gray-500">入库时间：</span>
+            <span id="modalCreateTime" class="text-gray-700">2024-03-10</span>
+          </div>
+          <div class="flex items-start">
+            <span class="w-24 text-gray-500">未通过原因：</span>
+            <span id="modalReasonDetail" class="text-gray-700">经验不足</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 border-t border-gray-100 flex justify-end">
+        <button id="modalCloseBtn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition">
+          关闭
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript 交互逻辑 -->
+  <script>
+    // 全局分页变量
+    let currentPage = 1;
+    const pageSize = 5;
+    let totalItems = 8;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    
+    // 原始考生数据
+    const originalStudentData = [
+      { id: 1, name: "张三", phone: "13800138000", project: "计算机科学与技术", reason: "经验不足", reasonType: "warning", education: "本科", school: "XX大学计算机学院", createTime: "2024-03-10", avatar: "https://picsum.photos/32/32?random=1" },
+      { id: 2, name: "李四", phone: "13900139000", project: "电子信息", reason: "专业不符", reasonType: "danger", education: "本科", school: "YY大学电子工程学院", createTime: "2024-03-09", avatar: "https://picsum.photos/32/32?random=2" },
+      { id: 3, name: "王五", phone: "13700137000", project: "软件工程", reason: "综合评分不足", reasonType: "gray", education: "硕士", school: "ZZ大学软件学院", createTime: "2024-03-08", avatar: "https://picsum.photos/32/32?random=3" },
+      { id: 4, name: "赵六", phone: "13600136000", project: "人工智能", reason: "学历不达标", reasonType: "success", education: "大专", school: "AA职业技术学院", createTime: "2024-03-07", avatar: "https://picsum.photos/32/32?random=4" },
+      { id: 5, name: "钱七", phone: "13500135000", project: "计算机科学与技术", reason: "其他原因", reasonType: "gray", education: "本科", school: "BB大学信息学院", createTime: "2024-03-06", avatar: "https://picsum.photos/32/32?random=5" },
+      { id: 6, name: "孙八", phone: "13400134000", project: "电子信息", reason: "经验不足", reasonType: "warning", education: "硕士", school: "CC大学通信工程学院", createTime: "2024-03-05", avatar: "https://picsum.photos/32/32?random=6" },
+      { id: 7, name: "周九", phone: "13300133000", project: "软件工程", reason: "专业不符", reasonType: "danger", education: "本科", school: "DD大学计算机学院", createTime: "2024-03-04", avatar: "https://picsum.photos/32/32?random=7" },
+      { id: 8, name: "吴十", phone: "13200132000", project: "人工智能", reason: "学历不达标", reasonType: "success", education: "大专", school: "EE职业技术学院", createTime: "2024-03-03", avatar: "https://picsum.photos/32/32?random=8" }
+    ];
+    
+    // 当前筛选后的数据
+    let studentData = [...originalStudentData];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // 元素获取
+      const detailModal = document.getElementById('detailModal');
+      const closeModal = document.getElementById('closeModal');
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
+      const filterBtn = document.getElementById('filterBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const exportBtn = document.getElementById('exportBtn');
+      const searchInput = document.getElementById('searchInput');
+      const clearSearch = document.getElementById('clearSearch');
+      const projectSelect = document.getElementById('projectSelect');
+      const reasonSelect = document.getElementById('reasonSelect');
+      const educationSelect = document.getElementById('educationSelect');
+      const currentPageBtn = document.getElementById('currentPageBtn');
+      
+      // 查看详情按钮事件
+      document.querySelectorAll('.view-detail').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const studentId = parseInt(e.currentTarget.dataset.id);
+          showStudentDetail(studentId);
+          detailModal.classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+
+      // 关闭弹窗函数
+      function closeModalFunc() {
+        detailModal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+      }
+
+      closeModal.addEventListener('click', closeModalFunc);
+      modalCloseBtn.addEventListener('click', closeModalFunc);
+      detailModal.addEventListener('click', (e) => {
+        if (e.target === detailModal) closeModalFunc();
+      });
+
+      // 导航栏滚动效果
+      window.addEventListener('scroll', function() {
+        const header = document.querySelector('header');
+        if (window.scrollY > 10) {
+          header.classList.add('shadow');
+        } else {
+          header.classList.remove('shadow');
+        }
+      });
+
+      // 模拟加载状态
+      const tableRows = document.querySelectorAll('.table-row-hover');
+      tableRows.forEach(row => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(4px)';
+        setTimeout(() => {
+          row.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+          row.style.opacity = '1';
+          row.style.transform = 'translateY(0)';
+        }, Math.random() * 200);
+      });
+
+      // 初始化分页
+      initPagination();
+      
+      // 当前页码按钮点击事件（防止误点）
+      currentPageBtn.addEventListener('click', function() {
+        const page = parseInt(this.dataset.page);
+        changePage(page);
+      });
+
+      // 上一页/下一页点击事件
+      document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+          changePage(currentPage - 1);
+        }
+      });
+
+      document.getElementById('nextPage').addEventListener('click', () => {
+        if (currentPage < Math.ceil(studentData.length / pageSize)) {
+          changePage(currentPage + 1);
+        }
+      });
+
+      // ===== 优化的查询功能 =====
+      // 搜索框输入事件
+      searchInput.addEventListener('input', function() {
+        const searchValue = this.value.trim().toLowerCase();
+        // 显示/隐藏清除按钮
+        clearSearch.classList.toggle('hidden', !searchValue);
+        // 实时筛选
+        filterData();
+      });
+
+      // 清除搜索按钮事件
+      clearSearch.addEventListener('click', function() {
+        searchInput.value = '';
+        this.classList.add('hidden');
+        filterData();
+      });
+
+      // 下拉框变化事件
+      projectSelect.addEventListener('change', filterData);
+      reasonSelect.addEventListener('change', filterData);
+      educationSelect.addEventListener('change', filterData);
+
+      // 筛选按钮事件
+      filterBtn.addEventListener('click', function() {
+        // 添加加载状态
+        this.classList.add('loading');
+        // 模拟筛选延迟
+        setTimeout(() => {
+          filterData();
+          this.classList.remove('loading');
+          // 提示筛选完成
+          alert(`筛选完成，共找到 ${studentData.length} 条符合条件的数据`);
+        }, 500);
+      });
+
+      // 重置按钮事件
+      resetBtn.addEventListener('click', function() {
+        // 重置所有筛选条件
+        searchInput.value = '';
+        clearSearch.classList.add('hidden');
+        projectSelect.value = '';
+        reasonSelect.value = '';
+        educationSelect.value = '';
+        // 恢复原始数据
+        studentData = [...originalStudentData];
+        totalItems = studentData.length;
+        // 更新总数显示
+        document.getElementById('totalCount').textContent = totalItems;
+        // 重置分页
+        currentPage = 1;
+        initPagination();
+        renderStudentList(1);
+      });
+
+      // ===== 导出Excel功能 =====
+      exportBtn.addEventListener('click', function() {
+        // 准备导出数据
+        const exportData = studentData.map(item => ({
+          '序号': item.id,
+          '考生姓名': item.name,
+          '联系方式': item.phone,
+          '报考项目': item.project,
+          '未通过原因': item.reason,
+          '学历': item.education,
+          '毕业院校': item.school,
+          '入库时间': item.createTime
+        }));
+
+        // 创建工作簿和工作表
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        // 设置列宽
+        const wscols = [
+          {wch: 6},  // 序号
+          {wch: 10}, // 考生姓名
+          {wch: 15}, // 联系方式
+          {wch: 18}, // 报考项目
+          {wch: 12}, // 未通过原因
+          {wch: 8},  // 学历
+          {wch: 20}, // 毕业院校
+          {wch: 12}  // 入库时间
+        ];
+        ws['!cols'] = wscols;
+
+        // 将工作表添加到工作簿
+        XLSX.utils.book_append_sheet(wb, ws, "未通过考生信息");
+
+        // 生成并下载Excel文件
+        const fileName = `未通过考生信息_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        // 导出成功提示
+        this.innerHTML = '<i class="fa fa-check mr-1"></i>导出成功';
+        setTimeout(() => {
+          this.innerHTML = '<i class="fa fa-download mr-1"></i>导出数据';
+        }, 2000);
+      });
+    });
+
+    // 筛选数据函数
+    function filterData() {
+      const searchValue = document.getElementById('searchInput').value.trim().toLowerCase();
+      const projectValue = document.getElementById('projectSelect').value;
+      const reasonValue = document.getElementById('reasonSelect').value;
+      const educationValue = document.getElementById('educationSelect').value;
+
+      // 项目名称映射
+      const projectMap = {
+        '': '',
+        '1': '计算机科学与技术',
+        '2': '电子信息',
+        '3': '软件工程',
+        '4': '人工智能'
+      };
+      
+      // 原因映射
+      const reasonMap = {
+        '': '',
+        '1': '专业不符',
+        '2': '经验不足',
+        '3': '学历不达标',
+        '4': '综合评分不足',
+        '5': '其他原因'
+      };
+      
+      // 学历映射
+      const educationMap = {
+        '': '',
+        '1': '大专',
+        '2': '本科',
+        '3': '硕士',
+        '4': '博士'
+      };
+
+      // 筛选逻辑
+      studentData = originalStudentData.filter(item => {
+        // 搜索条件
+        const matchSearch = !searchValue || 
+                            item.name.toLowerCase().includes(searchValue) || 
+                            item.phone.includes(searchValue);
+        
+        // 项目条件
+        const matchProject = !projectValue || item.project === projectMap[projectValue];
+        
+        // 原因条件
+        const matchReason = !reasonValue || item.reason === reasonMap[reasonValue];
+        
+        // 学历条件
+        const matchEducation = !educationValue || item.education === educationMap[educationValue];
+        
+        return matchSearch && matchProject && matchReason && matchEducation;
+      });
+
+      // 更新总数
+      totalItems = studentData.length;
+      document.getElementById('totalCount').textContent = totalItems;
+      
+      // 重置分页并重新渲染
+      currentPage = 1;
+      initPagination();
+      renderStudentList(1);
+    }
+
+    // 初始化分页状态
+    function initPagination() {
+      updatePageUI();
+      updatePageInfo();
+    }
+
+    // 切换页码
+    function changePage(page) {
+      currentPage = page;
+      updatePageUI();
+      updatePageInfo();
+      renderStudentList(page);
+      document.getElementById('studentList').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 更新分页按钮UI状态
+    function updatePageUI() {
+      const totalPages = Math.ceil(studentData.length / pageSize);
+      const currentPageBtn = document.getElementById('currentPageBtn');
+      
+      // 更新当前页码显示
+      currentPageBtn.textContent = currentPage;
+      currentPageBtn.dataset.page = currentPage;
+      
+      // 重置当前页码按钮样式
+      currentPageBtn.classList.remove('active', 'bg-primary', 'text-white');
+      currentPageBtn.classList.add('border-gray-200', 'text-gray-600');
+      
+      // 激活当前页码
+      currentPageBtn.classList.add('active', 'bg-primary', 'text-white');
+      currentPageBtn.classList.remove('border-gray-200', 'text-gray-600');
+
+      // 控制上一页/下一页按钮禁用状态
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+      
+      if (currentPage === totalPages || totalPages === 0) {
+        nextBtn.classList.add('text-gray-500');
+        nextBtn.classList.remove('text-gray-600', 'hover:border-primary', 'hover:text-primary');
+      } else {
+        nextBtn.classList.remove('text-gray-500');
+        nextBtn.classList.add('text-gray-600', 'hover:border-primary', 'hover:text-primary');
+      }
+    }
+
+    // 更新分页信息文本
+    function updatePageInfo() {
+      const totalPages = Math.ceil(studentData.length / pageSize);
+      const start = studentData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+      const end = Math.min(currentPage * pageSize, studentData.length);
+      document.getElementById('pageInfo').innerHTML = `显示 ${start}-${end} 条，共 <span class="text-primary font-medium">${studentData.length}</span> 条`;
+    }
+
+    // 渲染考生列表
+    function renderStudentList(page) {
+      const listContainer = document.getElementById('studentList');
+      const startIdx = (page - 1) * pageSize;
+      const endIdx = Math.min(startIdx + pageSize, studentData.length);
+      const pageData = studentData.slice(startIdx, endIdx);
+      
+      // 清空列表
+      listContainer.innerHTML = '';
+      
+      // 无数据提示
+      if (pageData.length === 0) {
+        listContainer.innerHTML = `
+          <div class="py-12 text-center">
+            <i class="fa fa-search text-gray-300 text-4xl mb-2"></i>
+            <p class="text-gray-500">暂无符合条件的考生信息</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 渲染当前页数据
+      pageData.forEach((student, index) => {
+        const rowNumber = startIdx + index + 1;
+        const reasonClass = student.reasonType === 'warning' ? 'bg-warning/10 text-warning' : 
+                           student.reasonType === 'danger' ? 'bg-danger/10 text-danger' :
+                           student.reasonType === 'success' ? 'bg-success/10 text-success' :
+                           'bg-gray-100 text-gray-600';
+        
+        const rowHtml = `
+          <div class="grid grid-cols-12 py-5 px-6 items-center table-row-hover">
+            <div class="col-span-1 text-gray-500 table-cell">${rowNumber}</div>
+            <div class="col-span-2 table-cell">
+              <div class="flex items-center space-x-2">
+                <img src="${student.avatar}" alt="头像" class="w-8 h-8 rounded-full object-cover border border-gray-100">
+                <span class="font-medium text-gray-800">${student.name}</span>
+                <button class="text-primary hover:text-primary/80 transition-colors view-detail" data-id="${student.id}" title="查看详情">
+                  <i class="fa fa-eye text-xs"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-span-2 hidden md:table-cell md:flex text-gray-600">${student.phone}</div>
+            <div class="col-span-2 hidden lg:table-cell lg:flex text-gray-700">${student.project}</div>
+            <div class="col-span-2 hidden lg:table-cell lg:flex">
+              <span class="${reasonClass} badge-pill">${student.reason}</span>
+            </div>
+            <div class="col-span-2 hidden md:table-cell md:flex text-gray-500 text-sm">${student.createTime}</div>
+            <div class="col-span-2 table-cell">
+              <span class="text-gray-100">-</span>
+            </div>
+          </div>
+        `;
+        
+        listContainer.innerHTML += rowHtml;
+      });
+      
+      // 重新绑定查看详情事件
+      document.querySelectorAll('.view-detail').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const studentId = parseInt(e.currentTarget.dataset.id);
+          showStudentDetail(studentId);
+          document.getElementById('detailModal').classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+      
+      // 加载动画
+      const newRows = document.querySelectorAll('.table-row-hover');
+      newRows.forEach(row => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(4px)';
+        setTimeout(() => {
+          row.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+          row.style.opacity = '1';
+          row.style.transform = 'translateY(0)';
+        }, Math.random() * 200);
+      });
+    }
+
+    // 显示考生详情
+    function showStudentDetail(studentId) {
+      const student = studentData.find(item => item.id === studentId) || (studentData.length > 0 ? studentData[0] : originalStudentData[0]);
+      
+      document.getElementById('modalAvatar').src = student.avatar.replace('32/32', '80/80');
+      document.getElementById('modalName').textContent = student.name;
+      document.getElementById('modalProject').textContent = `报考项目：${student.project}`;
+      document.getElementById('modalReason').textContent = `未通过原因：${student.reason}`;
+      document.getElementById('modalRealName').textContent = student.name;
+      document.getElementById('modalPhone').textContent = student.phone;
+      document.getElementById('modalEducation').textContent = student.education;
+      document.getElementById('modalSchool').textContent = student.school;
+      document.getElementById('modalCreateTime').textContent = student.createTime;
+      document.getElementById('modalReasonDetail').textContent = student.reason;
+      
+      // 更新未通过原因文字颜色
+      const reasonElement = document.getElementById('modalReason');
+      reasonElement.className = '';
+      if (student.reasonType === 'warning') {
+        reasonElement.classList.add('text-warning', 'text-sm', 'mt-1');
+      } else if (student.reasonType === 'danger') {
+        reasonElement.classList.add('text-danger', 'text-sm', 'mt-1');
+      } else if (student.reasonType === 'success') {
+        reasonElement.classList.add('text-success', 'text-sm', 'mt-1');
+      } else {
+        reasonElement.classList.add('text-gray-600', 'text-sm', 'mt-1');
+      }
+    }
+  </script>
+</body>
+</html>
