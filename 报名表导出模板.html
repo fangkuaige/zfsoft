@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生招生 · 模板关联（全屏/实时预览）</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f4f6fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e293b;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+            /* max-width: 1600px; */
+            background: white;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 主内容区：左右分栏（全屏，无头部） */
+        .main-content {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            padding: 1.2rem 1.5rem 1.5rem 1.5rem;
+            gap: 1.5rem;
+            background: #ffffff;
+        }
+
+        /* 左侧招生项目列表 (30%) */
+        .form-list-panel {
+            flex: 0 0 30%;
+            background: #f9fbfd;
+            border-radius: 24px;
+            border: 1px solid #eef2f6;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+        }
+
+        .list-header {
+            padding: 1.2rem 1.2rem 0.8rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e6edf4;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .list-header h3 {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #1e2b3c;
+        }
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            box-shadow: 0 4px 6px -2px rgba(79, 70, 229, 0.3);
+            border: 1px solid #4f46e5;
+        }
+        .btn-primary:hover { background: #4338ca; }
+
+        .list-search {
+            padding: 0.8rem 1.2rem;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #dbe4ed;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            background: white;
+        }
+        .search-input:focus {
+            outline: 2px solid #a5b4fc;
+            border-color: transparent;
+        }
+
+        .form-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem 1rem 1rem 1rem;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 18px;
+            padding: 1rem 1rem 1rem 1.2rem;
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #e6edf4;
+            transition: all 0.15s;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .form-card:hover {
+            background: #f5f7ff;
+            border-color: #cbd5e1;
+        }
+        .form-card.selected {
+            background: #eef2ff;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+        .form-info {
+            flex: 1;
+            pointer-events: none;
+        }
+        .form-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            color: #0f1825;
+        }
+        .template-indicator {
+            font-size: 0.75rem;
+            background: #e4e7eb;
+            display: inline-block;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            color: #2d3a4b;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .delete-form {
+            background: transparent;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 0.3rem 0.5rem;
+            border-radius: 30px;
+            transition: all 0.1s;
+            pointer-events: auto;
+        }
+        .delete-form:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* 右侧配置面板 (70%) */
+        .config-panel {
+            flex: 1;
+            background: #f9fbfd;
+            border-radius: 24px;
+            border: 1px solid #eef2f6;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 1.5rem 1.5rem 1.5rem 1.5rem;
+            gap: 1.5rem;
+        }
+
+        .config-section {
+            background: white;
+            border-radius: 20px;
+            padding: 1.4rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            border: 1px solid #edf2f7;
+        }
+
+        .form-row {
+            margin-bottom: 1.3rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .form-row label {
+            font-weight: 500;
+            min-width: 100px;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+        .form-row input, .form-row select {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.7rem 1rem;
+            border: 1px solid #dbe4ed;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            background: white;
+        }
+        .form-row input:focus, .form-row select:focus {
+            outline: 2px solid #cbd5e1;
+            border-color: #4f46e5;
+        }
+
+        /* 模板详情展示区（只读） */
+        .template-detail-card {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            margin: 1rem 0 0.5rem 0;
+            border-left: 4px solid #4f46e5;
+        }
+        .template-detail-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            color: #0f1825;
+        }
+        .template-detail-meta {
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 0.75rem;
+        }
+        .template-fields-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem 1.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+        }
+        .field-tag {
+            background: #e6edf4;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.8rem;
+            flex-wrap: wrap;
+        }
+        .btn-save {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 0.7rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            flex: 1 1 auto;
+            min-width: 140px;
+        }
+        .btn-secondary {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+            padding: 0.7rem 2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* 预览区域：具体表单内容（无下拉框，仅跟随模板） */
+        .preview-section {
+            background: white;
+            border-radius: 20px;
+            padding: 1.4rem 1.5rem;
+            border: 1px solid #edf2f7;
+        }
+        .preview-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+        }
+        .preview-header span {
+            font-weight: 500;
+        }
+        .preview-form {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .preview-field-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .preview-field-row label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+        .preview-field-row input, .preview-field-row select {
+            padding: 0.7rem 1rem;
+            border: 1px solid #d1d9e6;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            background: white;
+        }
+        .preview-field-row input:disabled, .preview-field-row select:disabled {
+            background: #f1f5f9;
+            color: #475569;
+            border-color: #d1d9e6;
+        }
+        .info-note {
+            margin-top: 0.5rem;
+            color: #5f6c80;
+            font-size: 0.8rem;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 720px) {
+            .main-content {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .form-list-panel {
+                flex: none;
+                max-height: 38vh;
+            }
+            .config-panel {
+                max-height: 58vh;
+            }
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .form-row label {
+                min-width: auto;
+            }
+            .form-row input, .form-row select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- 头部已完全移除，全屏内容 -->
+    <div class="main-content">
+        <!-- 左侧招生项目列表 -->
+        <div class="form-list-panel">
+            <div class="list-header">
+                <h3>招生项目列表</h3>
+                <button class="btn-primary" id="addNewFormBtn">新增项目</button>
+            </div>
+            <div class="list-search">
+                <input type="text" class="search-input" placeholder="搜索项目名称..." id="searchInput" autocomplete="off">
+            </div>
+            <div class="form-items" id="formListContainer">
+                <!-- 动态渲染 -->
+            </div>
+        </div>
+
+        <!-- 右侧关联配置 + 实时预览（跟随所选模板） -->
+        <div class="config-panel">
+            <div class="config-section">
+                <div style="font-weight: 600; margin-bottom: 1.2rem; font-size: 1.1rem;">项目信息 & 模板指定</div>
+                <div class="form-row">
+                    <label>项目名称</label>
+                    <input type="text" id="formNameInput" placeholder="例如：2024年硕士研究生复试" autocomplete="off">
+                </div>
+                <div class="form-row">
+                    <label>选择导出模板</label>
+                    <select id="templateSelect">
+                        <!-- 动态加载模板选项 -->
+                    </select>
+                </div>
+
+                <!-- 当前选中模板的完整信息展示（只读） -->
+                <div id="selectedTemplateDetail" class="template-detail-card">
+                    <!-- 动态填充模板名称 + 字段 -->
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-save" id="saveFormBtn">保存项目</button>
+                    <button class="btn-secondary" id="cancelEditBtn">取消</button>
+                </div>
+            </div>
+
+            <!-- 预览区域：具体表单内容，根据所选模板类型实时切换（无独立下拉） -->
+            <div class="preview-section">
+                <div class="preview-header">
+                    <span>报名表表单预览（基于所选模板类型）</span>
+                </div>
+                <div id="previewFormContainer" class="preview-form">
+                    <!-- 动态生成具体表单字段 -->
+                </div>
+                <div class="info-note">展示当前模板对应报名表类型的实际表单样式（示例数据）</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 研究生招生相关类型定义 (用于预览具体表单) ----------
+        const TYPE_LIST = [
+            { id: 'type1', name: '硕士统考', previewFields: ['姓名', '身份证号', '报考专业', '初试成绩'] },
+            { id: 'type2', name: '博士申请', previewFields: ['姓名', '硕士学校', '科研经历', '论文发表'] },
+            { id: 'type3', name: '推免生', previewFields: ['姓名', '本科院校', '排名', '夏令营情况'] },
+            { id: 'type4', name: '复试', previewFields: ['姓名', '外语水平', '面试成绩', '综合能力'] }
+        ];
+
+        // ---------- 已经维护的报名表模板 (研究生招生相关) ----------
+        let templates = [
+            { id: 't1', name: '硕士复试模板', typeId: 'type1', fields: [{ fieldName: 'name', label: '姓名' }, { fieldName: 'idcard', label: '身份证号' }, { fieldName: 'major', label: '报考专业' }, { fieldName: 'score', label: '初试成绩' }] },
+            { id: 't2', name: '博士申请模板', typeId: 'type2', fields: [{ fieldName: 'name', label: '姓名' }, { fieldName: 'mschool', label: '硕士学校' }, { fieldName: 'research', label: '科研经历' }, { fieldName: 'publications', label: '论文发表' }] },
+            { id: 't3', name: '推免生模板', typeId: 'type3', fields: [{ fieldName: 'name', label: '姓名' }, { fieldName: 'undergrad', label: '本科院校' }, { fieldName: 'rank', label: '排名' }, { fieldName: 'summercamp', label: '夏令营情况' }] },
+            { id: 't4', name: '复试综合模板', typeId: 'type4', fields: [{ fieldName: 'name', label: '姓名' }, { fieldName: 'language', label: '外语水平' }, { fieldName: 'interview', label: '面试成绩' }, { fieldName: 'ability', label: '综合能力' }] }
+        ];
+
+        // ---------- 研究生招生项目数据 (可增删改查) ----------
+        let registrationForms = [
+            { id: 'f1', name: '2024年硕士研究生复试', templateId: 't1' },
+            { id: 'f2', name: '2025年博士研究生申请', templateId: 't2' },
+            { id: 'f3', name: '2024年优秀大学生夏令营', templateId: 't3' }
+        ];
+
+        // 当前选中的项目ID (null表示新增)
+        let currentFormId = null;
+
+        // ---------- DOM 元素 ----------
+        const formListDiv = document.getElementById('formListContainer');
+        const formNameInput = document.getElementById('formNameInput');
+        const templateSelect = document.getElementById('templateSelect');
+        const selectedTemplateDetail = document.getElementById('selectedTemplateDetail');
+        const previewFormContainer = document.getElementById('previewFormContainer');
+        const searchInput = document.getElementById('searchInput');
+
+        // 按钮
+        const addNewBtn = document.getElementById('addNewFormBtn');
+        const saveBtn = document.getElementById('saveFormBtn');
+        const cancelBtn = document.getElementById('cancelEditBtn');
+
+        // ---------- 辅助函数 ----------
+        // 渲染模板下拉框
+        function renderTemplateSelect(selectedId = '') {
+            let html = '<option value="">—— 请选择模板 ——</option>';
+            templates.forEach(t => {
+                const selected = (t.id === selectedId) ? 'selected' : '';
+                html += `<option value="${t.id}" ${selected}>${escapeHtml(t.name)}</option>`;
+            });
+            templateSelect.innerHTML = html;
+        }
+
+        // 根据模板ID获取模板对象
+        function getTemplateById(tid) {
+            return templates.find(t => t.id === tid) || null;
+        }
+
+        // 展示选中模板的详细信息 (名称、字段)
+        function renderTemplateDetail(templateId) {
+            const template = getTemplateById(templateId);
+            if (!template) {
+                selectedTemplateDetail.innerHTML = `<div style="color: #64748b; text-align: center; padding: 1rem;">⬅️ 请从上方选择一个模板</div>`;
+                return;
+            }
+            const typeName = TYPE_LIST.find(ty => ty.id === template.typeId)?.name || '未知类型';
+            let fieldsHtml = '';
+            template.fields.forEach(f => {
+                fieldsHtml += `<span class="field-tag">${escapeHtml(f.label)} (${escapeHtml(f.fieldName)})</span>`;
+            });
+            selectedTemplateDetail.innerHTML = `
+                <div class="template-detail-name">${escapeHtml(template.name)}</div>
+                <div class="template-detail-meta">类型：${escapeHtml(typeName)}  |  字段数：${template.fields.length}</div>
+                <div class="template-fields-list">${fieldsHtml || '<span class="field-tag">无字段</span>'}</div>
+            `;
+        }
+
+        // 更新预览区域：根据模板类型展示具体表单内容
+        function updatePreviewByTemplate(templateId) {
+            const template = getTemplateById(templateId);
+            if (!template) {
+                previewFormContainer.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 2rem;">请先选择一个导出模板</div>';
+                return;
+            }
+            const type = TYPE_LIST.find(t => t.id === template.typeId);
+            if (!type) {
+                previewFormContainer.innerHTML = '<div style="color: #94a3b8; text-align: center;">模板类型未知</div>';
+                return;
+            }
+            const fields = type.previewFields; // 使用该类型对应的预览字段
+            let html = '';
+            fields.forEach(f => {
+                const fieldId = `preview_${f.replace(/\s+/g, '')}`;
+                // 生成示例值
+                let example = '示例';
+                if (f.includes('姓名')) example = '张三';
+                else if (f.includes('身份证')) example = '110101199001011234';
+                else if (f.includes('成绩')) example = '385';
+                else if (f.includes('硕士学校')) example = 'XX大学';
+                else if (f.includes('科研')) example = '参与国家级项目';
+                else if (f.includes('论文')) example = 'SCI一篇';
+                else if (f.includes('本科院校')) example = 'XX大学';
+                else if (f.includes('排名')) example = '5/120';
+                else if (f.includes('夏令营')) example = '优秀营员';
+                else if (f.includes('外语')) example = 'CET-6';
+                else if (f.includes('面试')) example = '88';
+                else if (f.includes('综合')) example = '良好';
+                html += `
+                    <div class="preview-field-row">
+                        <label for="${fieldId}">${escapeHtml(f)}</label>
+                        <input type="text" id="${fieldId}" placeholder="请输入${escapeHtml(f)}" value="${escapeHtml(example)}" disabled>
+                    </div>
+                `;
+            });
+            if (fields.length === 0) {
+                html = '<div style="color: #94a3b8; text-align: center;">该类型无预览字段</div>';
+            }
+            previewFormContainer.innerHTML = html;
+        }
+
+        // 渲染左侧项目列表
+        function renderFormList() {
+            const keyword = searchInput.value.toLowerCase();
+            let filtered = registrationForms;
+            if (keyword.trim() !== '') {
+                filtered = registrationForms.filter(f => f.name.toLowerCase().includes(keyword));
+            }
+
+            if (filtered.length === 0) {
+                formListDiv.innerHTML = `<div style="text-align: center; padding: 2rem; color: #94a3b8;">暂无招生项目</div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(f => {
+                const template = getTemplateById(f.templateId);
+                const templateName = template ? template.name : '未关联模板';
+                const selectedClass = (currentFormId === f.id) ? 'selected' : '';
+                html += `
+                    <div class="form-card ${selectedClass}" data-form-id="${f.id}">
+                        <div class="form-info">
+                            <div class="form-name">${escapeHtml(f.name)}</div>
+                            <span class="template-indicator">${escapeHtml(templateName)}</span>
+                        </div>
+                        <button class="delete-form" data-id="${f.id}" title="删除项目">删除</button>
+                    </div>
+                `;
+            });
+            formListDiv.innerHTML = html;
+        }
+
+        // 转义
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/[&<>"]/g, function(m) {
+                if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; if(m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        // 清空右侧表单 (新增项目)
+        function resetFormPanel() {
+            formNameInput.value = '';
+            renderTemplateSelect('');
+            renderTemplateDetail(null);
+            // 预览清空
+            previewFormContainer.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 2rem;">请先选择一个导出模板</div>';
+            currentFormId = null;
+            renderFormList(); // 移除高亮
+        }
+
+        // 加载指定项目到右侧
+        function loadFormToPanel(form) {
+            formNameInput.value = form.name || '';
+            renderTemplateSelect(form.templateId || '');
+            renderTemplateDetail(form.templateId);
+            // 根据当前模板更新预览
+            updatePreviewByTemplate(form.templateId);
+            currentFormId = form.id;
+            renderFormList(); // 刷新高亮
+        }
+
+        // 保存当前项目
+        function saveForm() {
+            const name = formNameInput.value.trim();
+            if (!name) {
+                alert('请填写项目名称');
+                return;
+            }
+            const templateId = templateSelect.value || null;
+
+            if (currentFormId) {
+                // 更新
+                const index = registrationForms.findIndex(f => f.id === currentFormId);
+                if (index !== -1) {
+                    registrationForms[index] = { ...registrationForms[index], name, templateId };
+                } else {
+                    alert('项目不存在，可能已被删除');
+                    resetFormPanel();
+                }
+            } else {
+                // 新增
+                const newId = 'form_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                registrationForms.push({ id: newId, name, templateId });
+                currentFormId = newId;
+            }
+
+            // 重新渲染列表，并保持当前选中
+            renderFormList();
+            // 刷新右侧（可能模板详情变化）
+            const savedForm = registrationForms.find(f => f.id === currentFormId);
+            if (savedForm) loadFormToPanel(savedForm);
+        }
+
+        // 删除项目
+        function deleteFormById(formId) {
+            if (!confirm('确认删除该项目吗？')) return;
+            registrationForms = registrationForms.filter(f => f.id !== formId);
+            if (currentFormId === formId) {
+                // 如果删除的是当前编辑的，重置
+                resetFormPanel();
+            } else {
+                renderFormList();
+            }
+        }
+
+        // ---------- 事件绑定 ----------
+        // 左侧列表点击 (编辑 / 删除)
+        formListDiv.addEventListener('click', (e) => {
+            const card = e.target.closest('.form-card');
+            const deleteBtn = e.target.closest('.delete-form');
+
+            if (deleteBtn) {
+                e.stopPropagation();
+                const id = deleteBtn.getAttribute('data-id');
+                if (id) deleteFormById(id);
+                return;
+            }
+
+            if (card) {
+                const id = card.getAttribute('data-form-id');
+                const form = registrationForms.find(f => f.id === id);
+                if (form) loadFormToPanel(form);
+            }
+        });
+
+        // 新增项目按钮
+        addNewBtn.addEventListener('click', () => {
+            resetFormPanel();
+        });
+
+        // 保存按钮
+        saveBtn.addEventListener('click', saveForm);
+
+        // 取消按钮
+        cancelBtn.addEventListener('click', () => {
+            if (currentFormId) {
+                const form = registrationForms.find(f => f.id === currentFormId);
+                if (form) loadFormToPanel(form);
+                else resetFormPanel();
+            } else {
+                resetFormPanel();
+            }
+        });
+
+        // 模板选择变化 -> 更新下方模板详情 + 预览
+        templateSelect.addEventListener('change', (e) => {
+            const tid = e.target.value;
+            renderTemplateDetail(tid);
+            updatePreviewByTemplate(tid);
+        });
+
+        // 搜索防抖
+        let searchTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                renderFormList();
+            }, 200);
+        });
+
+        // ---------- 初始化 ----------
+        function init() {
+            // 初始化模板下拉框 (默认无选中)
+            renderTemplateSelect('');
+            // 默认预览为空
+            previewFormContainer.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 2rem;">请先选择一个导出模板</div>';
+            // 默认选中第一个项目（如果有）
+            if (registrationForms.length > 0) {
+                loadFormToPanel(registrationForms[0]);
+            } else {
+                resetFormPanel();
+            }
+            renderFormList();
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>

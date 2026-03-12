@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>MBA面试评审 · 一体化工作台</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f2f7fd;  /* 单一背景，全屏平铺 */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 自定义滚动条 (细线) */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #d9e2ec; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #2b5f8a; border-radius: 10px; }
+
+        .dashboard {
+            flex: 1;
+            padding: 20px 24px 30px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            gap: 0;  /* 用border-bottom制造分隔，不用gap */
+            max-width: 100%;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 每个功能区块：去掉卡片背景、阴影、圆角，只用底部细线分隔 */
+        .section {
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(45, 85, 125, 0.15);
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        /* 区块标题样式（保留，但无背景） */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .section-header h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #103450;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-header h2 i {
+            color: #1d6295;
+            background: rgba(30, 100, 150, 0.1);
+            padding: 6px 12px;
+            border-radius: 40px;
+        }
+        .header-note {
+            background: rgba(30, 100, 150, 0.08);
+            padding: 6px 20px;
+            border-radius: 40px;
+            color: #1f4b73;
+            font-size: 0.9rem;
+        }
+
+        /* 批次列表 */
+        .batch-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .batch-card {
+            background: white;
+            border-radius: 20px;
+            padding: 16px 22px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 30, 60, 0.04);
+            border: 1px solid rgba(70, 130, 180, 0.15);
+            transition: all 0.1s;
+        }
+        .batch-card.active-batch {
+            border-left: 6px solid #1f6eaf;
+            background: #f2f9ff;
+        }
+        .batch-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: center;
+        }
+        .batch-info span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #1e3a5f;
+            font-weight: 500;
+        }
+        .batch-status {
+            background: #e1ecf9;
+            color: #175d9c;
+            padding: 5px 15px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .batch-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 按钮样式 (保留原样) */
+        .btn-sm {
+            padding: 8px 18px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+            background: white;
+            color: #1e4a7a;
+            border: 1px solid #b9cee8;
+        }
+        .btn-sm:hover { background: #e3efff; }
+        .btn-primary {
+            background: #1e4a7a;
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,60,130,0.2);
+        }
+        .btn-primary:hover { background: #123a5e; }
+        .btn-outline {
+            background: white;
+            border: 1px solid #a0bedb;
+            color: #1e4a7a;
+        }
+
+        /* 搜索条 */
+        .search-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            background: #e9f2fc;
+            border-radius: 60px;
+            padding: 8px 16px 8px 24px;
+            margin-bottom: 24px;
+        }
+        .search-input-wrap {
+            flex: 3 1 260px;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 60px;
+            border: 1px solid #cbd9ec;
+            padding: 0 8px 0 18px;
+        }
+        .search-input-wrap i { color: #5f7d9e; }
+        .search-input-wrap input {
+            border: none;
+            padding: 12px 8px;
+            width: 100%;
+            outline: none;
+            background: transparent;
+            font-size: 0.95rem;
+        }
+
+        /* 统计数字卡片 (保留浅背景，但无外阴影) */
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 32px;
+            background: #ffffffd6;
+            border-radius: 28px;
+            padding: 18px 28px;
+            margin-bottom: 16px;
+            align-items: center;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .stat-cell {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-cell .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #52718e;
+        }
+        .stat-cell .number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #113355;
+            line-height: 1.2;
+        }
+
+        .distrib-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: #f4faff;
+            padding: 16px 20px;
+            border-radius: 48px;
+            margin: 16px 0;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .distrib-tag {
+            background: white;
+            border-radius: 40px;
+            padding: 6px 20px;
+            font-weight: 500;
+            border: 1px solid #c7daf0;
+            color: #1f4465;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .chart-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 12px 12px 8px;
+            border: 1px solid #e2edff;
+        }
+        .chart-container { height: 160px; width: 100%; }
+
+        /* 考生标签页 */
+        .candidate-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0 18px;
+        }
+        .candidate-tab {
+            padding: 8px 20px;
+            border-radius: 40px;
+            background: #edf4fd;
+            font-weight: 500;
+            color: #1d3e62;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.1s;
+        }
+        .candidate-tab.active-tab {
+            background: #1e4a7a;
+            color: white;
+            box-shadow: 0 2px 8px #abc0dd;
+        }
+
+        .material-panel {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 20px;
+            margin: 10px 0 20px;
+            border: 1px solid #e2edff;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .score-area {
+            background: #f2f8ff;
+            border-radius: 40px;
+            padding: 18px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+            border: 1px solid #dae6f5;
+        }
+
+        /* 模态框 (保持不变) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 30, 50, 0.5);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            border-radius: 48px;
+            padding: 30px 28px;
+            box-shadow: 0 40px 70px rgba(0,20,50,0.5);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 20px; right: 24px;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: #5f7d9f;
+        }
+        .modal-close:hover { color: #1e3f60; }
+
+        .file-list {
+            margin-top: 16px;
+        }
+        .file-item {
+            padding: 10px 16px;
+            background: #f4f9ff;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border: 1px solid #c7daf0;
+        }
+        .file-item i { color: #d54e4e; width: 24px; }
+        .file-item span { flex:1; color: #1d3f5e; }
+        .file-item:hover { background: #e3ecf7; }
+
+        /* 轻提示 */
+        .toast-msg {
+            visibility: hidden;
+            min-width: 200px;
+            background: #1d3f5e;
+            color: white;
+            text-align: center;
+            border-radius: 60px;
+            padding: 12px 24px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 500;
+            box-shadow: 0 15px 25px -8px #0b2540;
+            z-index: 1100;
+            opacity: 0;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .toast-msg.show { visibility: visible; opacity: 1; }
+
+        @media (max-width: 700px) {
+            .dashboard { padding: 12px; }
+            .chart-grid { grid-template-columns: 1fr; }
+            .batch-card { flex-direction: column; align-items: start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- 头部标题已完全移除，直接从第一个区块开始 -->
+
+    <!-- 评审批次列表区块 (section) -->
+    <div class="section">
+        <div class="section-header">
+            <h2><i class="fas fa-list-ul"></i> 当前评审批次</h2>
+            <!-- <span class="header-note"><i class="far fa-calendar-alt"></i> 2025-04-07 实时</span> -->
+        </div>
+        <div class="batch-grid" id="batchListContainer"></div>
+    </div>
+
+    <!-- 评审统计信息区块 -->
+    <div class="section">
+        <div class="section-header">
+            <h2><i class="fas fa-chart-pie"></i> 评审统计信息</h2>
+            <span class="header-note"><i class="fas fa-info-circle"></i> 综合材料+面试表现打分</span>
+        </div>
+        <!-- 搜索+评审入口 (查询正常使用) -->
+        <div class="search-bar">
+            <div class="search-input-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="面试申请号 / 姓名" id="searchInput" value="ZS2025043">
+                <button class="btn-sm" id="searchBtn" style="border: none; background: transparent; color:#1e4a7a;"><i class="fas fa-arrow-right"></i></button>
+            </div>
+            <button class="btn-primary" id="reviewFromSearchBtn"><i class="fas fa-user-check"></i> 进行评审</button>
+            <button class="btn-outline btn-sm" id="submitAllBtn"><i class="fas fa-upload"></i> 提交考生数据</button>
+        </div>
+
+        <!-- 动态统计区 -->
+        <div id="statisticArea"></div>
+        <div class="chart-grid" id="chartsGrid">
+            <div class="chart-card"><p style="margin-left:6px;"><i class="fas fa-chart-bar"></i> 指标柱状图</p><div class="chart-container"><canvas id="barChart"></canvas></div></div>
+            <div class="chart-card"><p style="margin-left:6px;"><i class="fas fa-chart-line"></i> 分数分布曲线</p><div class="chart-container"><canvas id="lineChart"></canvas></div></div>
+        </div>
+    </div>
+
+    <!-- 考生材料评审区块 -->
+    <div class="section">
+        <div class="section-header">
+            <h2><i class="fas fa-folder-open"></i> 考生材料评审 · <span id="currentBatchNameSpan">全日制MBA第二批</span></h2>
+            <span class="header-note"><i class="fas fa-edit"></i> 可打分保存并提交</span>
+        </div>
+        <!-- 考生tabs -->
+        <div class="candidate-tabs" id="candidateTabsContainer"></div>
+        <!-- 考生详情 -->
+        <div class="material-panel" id="candidateDetailPanel"></div>
+        <!-- 打分区域 -->
+        <div class="score-area" id="scorePanel"></div>
+    </div>
+
+    <!-- 模态框 (用于查看材料下载路径) -->
+    <div id="infoModal" class="modal" onclick="if(event.target === this) closeModal()">
+        <div class="modal-card">
+            <i class="fas fa-times modal-close" onclick="closeModal()"></i>
+            <div id="modalContent" style="font-size:1rem; line-height:1.6; color:#1f3f5f;"></div>
+        </div>
+    </div>
+
+    <!-- 轻提示toast -->
+    <div id="toast" class="toast-msg">提示</div>
+</div>
+
+<script>
+    (function() {
+        // 数据模型 (与上一版相同)
+        const batchData = [
+            { id: 'b1', name: '全日制MBA', round: '第二批', date: '2025-04-15', status: '待评审', statusClass: '',
+              candidates: [
+                { id: 'c1', name: '张明扬', appId: 'ZS2025043', education: '复旦大学 金融学本科 (GPA 3.6)', work: '5年投行分析师', material: '学历证书、荣誉证书、2封推荐信、个人陈述', score: 86 },
+                { id: 'c2', name: '李心怡', appId: 'ZS2025051', education: '南京大学 经济学硕士', work: '4年咨询公司高级顾问', material: '学位证、CFA二级、项目报告3份', score: 79 },
+                { id: 'c3', name: '王启航', appId: 'ZS2025067', education: '浙江大学 计算机本科', work: '3年AI产品经理', material: '专利、创业计划书、推荐信', score: 91 }
+              ] },
+            { id: 'b2', name: '在职EMBA', round: '第一批', date: '2025-04-02', status: '已评审', statusClass: 'status-green',
+              candidates: [
+                { id: 'd1', name: '陈雅丽', appId: 'ZS2025088', education: '上海交大 工商管理本科 (GPA 3.8)', work: '4年互联网运营经理带8人团队', material: '绩效评定、雅思7.5、项目案例集', score: 91 },
+                { id: 'd2', name: '刘东伟', appId: 'ZS2025093', education: '北大 光华MBA预修', work: '8年销售总监', material: '荣誉证书、团队奖、推荐信3封', score: 84 }
+              ] },
+            { id: 'b3', name: '国际MBA', round: '第一批', date: '2025-04-20', status: '待评审', statusClass: '',
+              candidates: [
+                { id: 'e1', name: '王峻', appId: 'ZS2025112', education: '清华硕士 计算机', work: '3年AI产品总监', material: '学历学位、专利证明、创业计划书', score: 79 },
+                { id: 'e2', name: '欧阳雪', appId: 'ZS2025125', education: '香港大学 金融本科', work: '2年外资投行', material: 'GMAT 750、推荐信2封、论文', score: 88 }
+              ] }
+        ];
+
+        let currentBatchId = 'b1';
+        let currentCandidateId = 'c1';
+
+        let barChart, lineChart;
+
+        function showToast(msg, duration = 2000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        window.openModal = (content) => {
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('infoModal').style.display = 'flex';
+        };
+        window.closeModal = () => {
+            document.getElementById('infoModal').style.display = 'none';
+        };
+
+        // 渲染批次列表
+        function renderBatches() {
+            const container = document.getElementById('batchListContainer');
+            container.innerHTML = batchData.map(batch => {
+                const isActive = batch.id === currentBatchId;
+                let statusStyle = batch.status === '已评审' ? 'background:#deedd9; color:#1f704a;' : 'background:#e1ecf9; color:#175d9c;';
+                return `
+                <div class="batch-card ${isActive ? 'active-batch' : ''}" data-batch-id="${batch.id}">
+                    <div class="batch-info">
+                        <span><i class="fas fa-graduation-cap"></i> ${batch.name}</span>
+                        <span><i class="fas fa-layer-group"></i> ${batch.round} (${batch.date})</span>
+                        <span class="batch-status" style="${statusStyle}"><i class="fas fa-${batch.status === '已评审' ? 'check-double' : 'hourglass-half'}"></i> ${batch.status}</span>
+                    </div>
+                    <div class="batch-actions">
+                        <button class="btn-sm review-batch-btn" data-batch-id="${batch.id}"><i class="fas fa-pen"></i> 评审</button>
+                        <button class="btn-sm print-batch-btn" data-batch-id="${batch.id}"><i class="fas fa-print"></i> 打印总表</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.querySelectorAll('.review-batch-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const batchId = btn.dataset.batchId;
+                    if (batchId) {
+                        currentBatchId = batchId;
+                        renderBatches();
+                        const batch = batchData.find(b => b.id === currentBatchId);
+                        if (batch && batch.candidates.length) {
+                            currentCandidateId = batch.candidates[0].id;
+                        } else {
+                            currentCandidateId = null;
+                        }
+                        updateCandidateSection();
+                        updateStatisticAndCharts();
+                        showToast(`已切换到批次: ${batch.name} ${batch.round}`);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.print-batch-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showToast('⏬ 正在下载中... (打印总表)');
+                });
+            });
+        }
+
+        // 材料下载弹窗
+        function showMaterialDownload(candidate) {
+            const files = [
+                { name: '个人陈述.pdf', path: '/材料/个人陈述_张明扬.pdf' },
+                { name: '学历学位证.pdf', path: '/材料/学历学位证.pdf' },
+                { name: '推荐信合集.pdf', path: '/材料/推荐信.pdf' },
+                { name: '荣誉证书.jpg', path: '/材料/荣誉证书.jpg' }
+            ];
+            let fileListHtml = '<div class="file-list"><h4><i class="fas fa-download"></i> 材料下载路径（点击模拟下载）</h4>';
+            files.forEach(f => {
+                fileListHtml += `<div class="file-item" onclick="showToast('开始下载: ${f.name} (模拟)');">
+                    <i class="fas fa-file-pdf"></i><span>${f.name}</span><i class="fas fa-cloud-download-alt" style="color:#1e4a7a;"></i>
+                </div>`;
+            });
+            fileListHtml += '<p style="margin-top:12px; font-size:0.9rem;">* 实际路径已隐藏，点击条目模拟下载</p></div>';
+            openModal(fileListHtml);
+        }
+
+        // 更新考生区域
+        function updateCandidateSection() {
+            const batch = batchData.find(b => b.id === currentBatchId);
+            if (!batch) return;
+            document.getElementById('currentBatchNameSpan').innerText = `${batch.name}${batch.round}`;
+
+            const tabsContainer = document.getElementById('candidateTabsContainer');
+            tabsContainer.innerHTML = batch.candidates.map(c => `
+                <span class="candidate-tab ${c.id === currentCandidateId ? 'active-tab' : ''}" data-candidate-id="${c.id}">${c.name} (${c.appId})</span>
+            `).join('');
+
+            document.querySelectorAll('.candidate-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const cid = tab.dataset.candidateId;
+                    if (cid) {
+                        currentCandidateId = cid;
+                        updateCandidateSection();
+                    }
+                });
+            });
+
+            const candidate = batch.candidates.find(c => c.id === currentCandidateId) || batch.candidates[0];
+            if (!candidate) return;
+            if (!batch.candidates.find(c => c.id === currentCandidateId)) {
+                currentCandidateId = batch.candidates[0].id;
+                return updateCandidateSection();
+            }
+
+            const detailPanel = document.getElementById('candidateDetailPanel');
+            detailPanel.innerHTML = `
+                <div class="flex-row">
+                    <div style="flex:2">
+                        <p><i class="fas fa-user-graduate" style="color:#1f5f8a;"></i> <strong>${candidate.name} (${candidate.appId})</strong></p>
+                        <p><i class="fas fa-university"></i> 教育：${candidate.education}</p>
+                        <p><i class="fas fa-briefcase"></i> 工作：${candidate.work}</p>
+                    </div>
+                    <div style="flex:1; background:#f0f7ff; border-radius:24px; padding:16px;">
+                        <p><i class="fas fa-paperclip"></i> <strong>考生材料</strong></p>
+                        <p style="font-size:0.9rem;">📄 ${candidate.material}</p>
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <button class="btn-sm" id="viewMaterialBtn"><i class="fas fa-eye"></i> 查看材料</button>
+                            <button class="btn-sm" id="viewAppFormBtn"><i class="fas fa-file-alt"></i> 报名表</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('viewMaterialBtn')?.addEventListener('click', () => {
+                showMaterialDownload(candidate);
+            });
+
+            document.getElementById('viewAppFormBtn')?.addEventListener('click', () => {
+                showToast('⏬ 正在下载中... (报名表)');
+            });
+
+            const scorePanel = document.getElementById('scorePanel');
+            scorePanel.innerHTML = `
+                <label><i class="fas fa-star"></i> 面试得分:</label>
+                <input type="number" id="candidateScore" value="${candidate.score}" min="0" max="100" step="0.5" style="width:100px; padding:10px 16px; border-radius:40px; border:1px solid #b0cde0;">
+                <button class="btn-sm btn-outline" id="saveScoreBtn"><i class="fas fa-save"></i> 保存打分信息</button>
+                <button class="btn-sm btn-primary" id="submitScoreBtn"><i class="fas fa-check-circle"></i> 提交打分信息</button>
+                <span style="color:#36648b;"><i class="far fa-clock"></i> 草稿将保存</span>
+            `;
+
+            document.getElementById('saveScoreBtn')?.addEventListener('click', () => {
+                const newScore = parseFloat(document.getElementById('candidateScore').value);
+                if (!isNaN(newScore)) { candidate.score = newScore; }
+                showToast(`得分已保存 (${candidate.name} : ${candidate.score} 分)`);
+                updateStatisticAndCharts();
+            });
+
+            document.getElementById('submitScoreBtn')?.addEventListener('click', () => {
+                const newScore = parseFloat(document.getElementById('candidateScore').value);
+                if (!isNaN(newScore)) { candidate.score = newScore; }
+                showToast(`✅ 考生 ${candidate.name} 最终得分 ${candidate.score} 已提交`);
+            });
+        }
+
+        // 更新统计图表
+        function updateStatisticAndCharts() {
+            const batch = batchData.find(b => b.id === currentBatchId);
+            if (!batch) return;
+            const scores = batch.candidates.map(c => c.score);
+            const avg = (scores.reduce((a,b) => a+b,0) / scores.length).toFixed(1);
+            const max = Math.max(...scores);
+            const min = Math.min(...scores);
+            const count = scores.length;
+
+            const excellent = scores.filter(s => s >= 90).length;
+            const good = scores.filter(s => s >= 75 && s < 90).length;
+            const medium = scores.filter(s => s >= 60 && s < 75).length;
+            const poor = scores.filter(s => s < 60).length;
+
+            document.getElementById('statisticArea').innerHTML = `
+                <div class="stats-row">
+                    <div class="stat-cell"><span class="label">已评审考生</span><span class="number">${count}</span></div>
+                    <div class="stat-cell"><span class="label">平均分</span><span class="number">${avg}</span></div>
+                    <div class="stat-cell"><span class="label">最高分</span><span class="number">${max}</span></div>
+                    <div class="stat-cell"><span class="label">最低分</span><span class="number">${min}</span></div>
+                </div>
+                <div class="distrib-tags">
+                    <span class="distrib-tag"><i class="far fa-star"></i> 优秀: ${excellent}</span>
+                    <span class="distrib-tag"><i class="far fa-smile"></i> 良好: ${good}</span>
+                    <span class="distrib-tag"><i class="far fa-meh"></i> 中等: ${medium}</span>
+                    <span class="distrib-tag"><i class="far fa-frown"></i> 待提升: ${poor}</span>
+                </div>
+            `;
+
+            if (barChart) barChart.destroy();
+            if (lineChart) lineChart.destroy();
+
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['材料维度', '面试表达', '逻辑思维', '管理潜力'],
+                    datasets: [{
+                        label: '平均得分',
+                        data: [avg*0.9, avg*1.02, avg*0.95, avg*1.05].map(v => Math.min(100, Math.max(0, v.toFixed(1)))),
+                        backgroundColor: ['#1f5a8a', '#3579a8', '#5297c7', '#7db5da']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const seg0 = scores.filter(s => s<60).length;
+            const seg1 = scores.filter(s => s>=60 && s<70).length;
+            const seg2 = scores.filter(s => s>=70 && s<80).length;
+            const seg3 = scores.filter(s => s>=80 && s<90).length;
+            const seg4 = scores.filter(s => s>=90).length;
+
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['<60', '60-69', '70-79', '80-89', '90-100'],
+                    datasets: [{
+                        label: '人数',
+                        data: [seg0, seg1, seg2, seg3, seg4],
+                        borderColor: '#c9453a',
+                        backgroundColor: 'rgba(201,69,58,0.05)',
+                        tension: 0.2,
+                        fill: true,
+                        pointBackgroundColor: '#b13e35'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // 绑定全局操作
+        function bindGlobalActions() {
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+                const batch = batchData.find(b => b.id === currentBatchId);
+                if (!batch) return;
+                const found = batch.candidates.find(c => c.name.toLowerCase().includes(keyword) || c.appId.toLowerCase().includes(keyword));
+                if (found) {
+                    currentCandidateId = found.id;
+                    updateCandidateSection();
+                    showToast(`找到考生: ${found.name}`);
+                } else {
+                    showToast('未找到匹配考生', 1500);
+                }
+            });
+
+            document.getElementById('reviewFromSearchBtn').addEventListener('click', () => {
+                const batch = batchData.find(b => b.id === currentBatchId);
+                const candidate = batch?.candidates.find(c => c.id === currentCandidateId);
+                if (candidate) {
+                    showToast(`开始评审 ${candidate.name}，请参照材料`);
+                } else {
+                    showToast('请先选择考生');
+                }
+            });
+
+            document.getElementById('submitAllBtn').addEventListener('click', () => {
+                showToast('已提交当前批次所有考生数据 (模拟)', 2000);
+            });
+        }
+
+        window.showToast = showToast; // 供文件列表调用
+
+        function init() {
+            renderBatches();
+            currentBatchId = 'b1';
+            currentCandidateId = batchData[0].candidates[0].id;
+            updateCandidateSection();
+            updateStatisticAndCharts();
+            bindGlobalActions();
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>

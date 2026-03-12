@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生打印模板管理 · 最终版</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 基础样式保持不变，仅调整二维码相关样式，新增新建模板模态框 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            background-color: #f2f4f8;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: #eef0f3;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 12px 20px;
+            border-bottom: 1px solid #d0d7de;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            gap: 12px;
+        }
+        .toolbar-left {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f6f8fa;
+            border: 1px solid #d9dee4;
+            border-radius: 30px;
+            padding: 6px 16px;
+            min-width: 220px;
+        }
+        .search-box i {
+            color: #6e7781;
+            font-size: 0.9rem;
+            margin-right: 8px;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .filter-select {
+            padding: 6px 24px 6px 12px;
+            border-radius: 30px;
+            border: 1px solid #d9dee4;
+            background: #f6f8fa;
+            font-size: 0.9rem;
+            color: #24292f;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 8"><path fill="%23333" d="M6 8L0 0h12z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .toolbar-right {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .btn {
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: 1px solid #d0d7de;
+            background: white;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #24292f;
+        }
+        .btn-primary {
+            background: #1f883d;
+            border-color: #1a7f37;
+            color: white;
+        }
+        .btn i {
+            font-size: 0.9rem;
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            gap: 1px;
+            background: #d9dee4;
+        }
+
+        .left-panel {
+            width: 280px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-right: 1px solid #d0d7de;
+            flex-shrink: 0;
+        }
+
+        .template-section {
+            padding: 16px 12px;
+            border-bottom: 1px solid #e9ecf0;
+            max-height: 34%;
+            display: flex;
+            flex-direction: column;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #1f2328;
+        }
+        .section-header i {
+            color: #6e7781;
+            font-size: 0.9rem;
+        }
+        .template-search {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .template-search i {
+            position: absolute;
+            left: 10px;
+            top: 8px;
+            color: #6e7781;
+            font-size: 0.8rem;
+        }
+        .template-search input {
+            width: 100%;
+            padding: 8px 8px 8px 32px;
+            border: 1px solid #d9dee4;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: #f6f8fa;
+        }
+        .template-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .template-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 8px;
+            border-radius: 8px;
+            background: #f9fafc;
+            margin-bottom: 6px;
+            border: 1px solid transparent;
+            transition: 0.1s;
+            cursor: pointer;
+        }
+        .template-item.active {
+            background: #e6f4ff;
+            border-color: #1b7fcb;
+        }
+        .template-info {
+            flex: 1;
+        }
+        .template-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .template-info h4 .status-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            background: #e6e9ef;
+            color: #24292f;
+        }
+        .template-info h4 .status-badge.enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+        .template-info h4 .status-badge.disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .template-info p {
+            font-size: 0.7rem;
+            color: #57606a;
+        }
+        .template-actions i {
+            margin: 0 3px;
+            color: #6e7781;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .template-actions i:hover {
+            color: #1f883d;
+        }
+
+        .component-section {
+            padding: 16px 12px;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            overflow-y: auto;
+            margin-top: 10px;
+            padding-right: 4px;
+        }
+        .comp-item {
+            background: #f6f8fa;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 10px 4px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #24292f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: grab;
+            user-select: none;
+            transition: opacity 0.2s;
+        }
+        .comp-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #e9ecef;
+        }
+        .comp-item:active {
+            cursor: grabbing;
+        }
+        .comp-item i {
+            font-size: 1.2rem;
+            color: #1f883d;
+        }
+        .comp-item span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .comp-item.disabled i {
+            color: #6c757d;
+        }
+
+        .canvas-panel {
+            flex: 1;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 300px;
+        }
+        .canvas-header {
+            padding: 12px 20px;
+            background: white;
+            border-bottom: 1px solid #d0d7de;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        .business-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .business-selector label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #24292f;
+        }
+        .business-selector select {
+            padding: 5px 20px 5px 8px;
+            border-radius: 20px;
+            border: 1px solid #d0d7de;
+            background: white;
+        }
+        .preview-user {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .preview-user i {
+            color: #6e7781;
+        }
+        .canvas-area {
+            flex: 1;
+            overflow: auto;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            background: #e1e4e9;
+            position: relative;
+        }
+        .canvas-page {
+            background: white;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 30px 25px;
+            margin: 0 auto;
+            min-height: 500px;
+            position: relative;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        /* 水印文字 - 正方软件 */
+        .canvas-page::after {
+            content: "正方软件";
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(0,0,0,0.06);
+            pointer-events: none;
+            transform: rotate(-15deg);
+            z-index: 5;
+            white-space: nowrap;
+        }
+
+        /* 自定义文字块（替换二维码） */
+        .mock-text-logo {
+            font-weight: bold;
+            color: #1f883d;
+            background: #e9f5ec;
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            border: 1px solid #a3d0b1;
+            font-size: 0.9rem;
+        }
+
+        /* 画布内元素 */
+        .canvas-header-element {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #aaa;
+            padding-bottom: 15px;
+            cursor: pointer;
+        }
+        .mock-logo {
+            width: 50px;
+            height: 50px;
+            background: #1f883d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 20px;
+        }
+        .mock-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1f2328;
+        }
+        .student-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: #f6f8fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .info-field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+        .info-field.selected {
+            outline: 2px solid #1f883d;
+            background: #eaf6ec;
+        }
+        .info-field .label {
+            font-weight: 500;
+            color: #57606a;
+        }
+        .info-field .value {
+            font-weight: 600;
+            color: #1f2328;
+        }
+        .mock-table {
+            margin: 20px 0;
+            border: 1px solid #d9dee4;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .mock-table.selected {
+            outline: 2px solid #1f883d;
+        }
+        .mock-table .table-row {
+            display: flex;
+            border-bottom: 1px solid #d9dee4;
+        }
+        .mock-table .table-row:last-child {
+            border-bottom: none;
+        }
+        .mock-table .table-cell {
+            flex: 1;
+            padding: 8px 12px;
+            border-right: 1px solid #d9dee4;
+            background: white;
+        }
+        .mock-table .table-cell:last-child {
+            border-right: none;
+        }
+        .table-header .table-cell {
+            background: #f2f4f7;
+            font-weight: 600;
+        }
+        .footer-row {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed #aaa;
+            padding-top: 15px;
+            cursor: pointer;
+        }
+        .footer-row.selected {
+            outline: 2px solid #1f883d;
+            background: #f0f9f0;
+        }
+        /* 不再使用.mock-qr，改为.mock-text-logo */
+        .mock-qr {
+            display: none; /* 隐藏旧的二维码样式 */
+        }
+
+        .right-panel {
+            width: 300px;
+            background: white;
+            border-left: 1px solid #d0d7de;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .property-section {
+            padding: 18px 16px;
+            border-bottom: 1px solid #e9ecf0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .property-group {
+            margin-bottom: 20px;
+        }
+        .property-group h4 {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            color: #1f2328;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .property-row {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .property-row label {
+            font-size: 0.8rem;
+            color: #57606a;
+        }
+        .property-row input, .property-row select {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #d9dee4;
+            background: #f9fafc;
+            font-size: 0.85rem;
+        }
+        .color-row {
+            display: flex;
+            gap: 8px;
+        }
+        .condition-row {
+            background: #f2f4f7;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            border-left: 3px solid #1f883d;
+        }
+        .history-list {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e0e4e9;
+            font-size: 0.8rem;
+        }
+        .history-item .tag {
+            background: #e6e9ef;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+        .history-item i {
+            cursor: pointer;
+            color: #1f883d;
+        }
+
+        /* 轻量toast提示 */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast-message {
+            background: #323232;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideIn 0.2s, fadeOut 0.2s 2.8s forwards;
+            pointer-events: auto;
+            max-width: 300px;
+        }
+        .toast-message i {
+            color: #4caf50;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        /* 模态框通用样式 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 24px;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px; right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6e7781;
+        }
+        .modal-close:hover { color: #000; }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-right: 30px;
+        }
+        .preview-content {
+            background: white;
+            padding: 30px;
+            border: 1px solid #e0e4e9;
+            border-radius: 12px;
+        }
+        /* 新建模板模态框专用 */
+        .new-template-input {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 20px 0;
+            border: 1px solid #d0d7de;
+            border-radius: 30px;
+            font-size: 1rem;
+            outline: none;
+        }
+        .new-template-input:focus {
+            border-color: #1f883d;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 900px) {
+            .main {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            .left-panel, .right-panel, .canvas-panel {
+                width: 100% !important;
+                max-height: none;
+                border-right: none;
+                border-left: none;
+            }
+            .left-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .template-section, .component-section {
+                flex: 1;
+                min-width: 240px;
+                max-height: none;
+            }
+            .canvas-area {
+                padding: 15px;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- 顶部工具栏 -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearch" placeholder="搜索模板名称、描述...">
+            </div>
+            <select class="filter-select" id="businessFilter">
+                <option value="全部">全部业务类型</option>
+                <option value="成绩单">成绩单</option>
+                <option value="学籍表">学籍表</option>
+                <option value="开题报告">开题报告</option>
+                <option value="答辩记录">答辩记录</option>
+                <option value="奖助申请表">奖助申请表</option>
+            </select>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn btn-primary" id="newTemplateBtn"><i class="fas fa-plus"></i> 新建模板</button>
+            <button class="btn" id="copyTemplateBtn"><i class="fas fa-copy"></i> 复制</button>
+            <button class="btn" id="deleteTemplateBtn"><i class="fas fa-trash-alt"></i> 删除</button>
+            <button class="btn" id="toggleStatusBtn"><i class="fas fa-toggle-on"></i> 启用/禁用</button>
+            <button class="btn" id="previewModalBtn"><i class="fas fa-eye"></i> 预览</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+            <div class="template-section">
+                <div class="section-header">
+                    <span><i class="far fa-file-alt" style="margin-right: 6px;"></i>模板列表</span>
+                    <i class="fas fa-ellipsis-h" title="更多操作"></i>
+                </div>
+                <div class="template-search">
+                    <i class="fas fa-filter"></i>
+                    <input type="text" id="templateListSearch" placeholder="在当前列表中筛选...">
+                </div>
+                <ul class="template-list" id="templateListContainer">
+                    <!-- 动态生成 -->
+                </ul>
+            </div>
+
+            <div class="component-section">
+                <div class="section-header">
+                    <span><i class="fas fa-puzzle-piece" style="margin-right: 6px;"></i>组件工具箱</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="component-grid" id="componentGrid">
+                    <div class="comp-item" draggable="true" data-component="textbox"><i class="fas fa-font"></i><span>文本框</span></div>
+                    <div class="comp-item" draggable="true" data-component="richtext"><i class="fas fa-paragraph"></i><span>富文本</span></div>
+                    <div class="comp-item" draggable="true" data-component="image"><i class="fas fa-image"></i><span>图片</span></div>
+                    <div class="comp-item" draggable="true" data-component="line"><i class="fas fa-minus"></i><span>线条</span></div>
+                    <div class="comp-item" draggable="true" data-component="rect"><i class="fas fa-square"></i><span>矩形</span></div>
+                    <div class="comp-item" draggable="true" data-component="textlogo"><i class="fas fa-tag"></i><span>正方软件文字</span></div> <!-- 替换二维码组件 -->
+                    <div class="comp-item" draggable="true" data-component="name"><i class="fas fa-user-graduate"></i><span>姓名</span></div>
+                    <div class="comp-item" draggable="true" data-component="studentid"><i class="fas fa-id-card"></i><span>学号</span></div>
+                    <div class="comp-item" draggable="true" data-component="college"><i class="fas fa-building-columns"></i><span>学院</span></div>
+                    <div class="comp-item" draggable="true" data-component="major"><i class="fas fa-book"></i><span>专业</span></div>
+                    <div class="comp-item" draggable="true" data-component="score"><i class="fas fa-star"></i><span>成绩</span></div>
+                    <div class="comp-item" draggable="true" data-component="courseTable"><i class="fas fa-table"></i><span>课程列表</span></div>
+                    <div class="comp-item" draggable="true" data-component="research"><i class="fas fa-flask"></i><span>科研项目</span></div>
+                    <div class="comp-item" draggable="true" data-component="gpa"><i class="fas fa-chart-line"></i><span>绩点</span></div>
+                    <div class="comp-item" draggable="true" data-component="photo"><i class="fas fa-image-portrait"></i><span>照片</span></div>
+                    <div class="comp-item" draggable="true" data-component="dynamicSet"><i class="fas fa-list-check"></i><span>动态数据集</span></div>
+                </div>
+                <div style="margin-top: 12px; font-size:0.8rem; color:#6e7781; padding:4px;">
+                    <i class="fas fa-arrow-left"></i> 拖拽组件至画布
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间画布区 -->
+        <div class="canvas-panel">
+            <div class="canvas-header">
+                <div class="business-selector">
+                    <label>业务类型：</label>
+                    <select id="businessTypeSelect">
+                        <option value="成绩单">成绩单</option>
+                        <option value="学籍表">学籍表</option>
+                        <option value="开题报告">开题报告</option>
+                        <option value="答辩记录">答辩记录</option>
+                    </select>
+                </div>
+                <div class="preview-user">
+                    <i class="fas fa-user"></i>
+                    <select id="previewUserSelect">
+                        <option value="张三">张三 (硕士)</option>
+                        <option value="李四">李四 (博士)</option>
+                        <option value="王五">王五 (硕士)</option>
+                    </select>
+                    <span style="font-size:0.8rem; color:#57606a;">测试数据</span>
+                </div>
+                <button class="btn" id="saveTemplateBtn" style="margin-left:auto;"><i class="fas fa-save"></i> 保存模板</button>
+            </div>
+            <div class="canvas-area" id="canvasArea" dropzone="move" @dragover.prevent @drop.prevent="handleDrop">
+                <div class="canvas-page" id="canvasPage">
+                    <!-- 动态内容将通过js填充，初始化内容中二维码已替换为文字 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧属性面板 -->
+        <div class="right-panel">
+            <div class="property-section" id="propertyPanel">
+                <div style="margin-bottom: 8px; font-weight: 600; color:#1f2328;" id="propertyTitle"><i class="fas fa-sliders-h"></i> 属性配置 (未选中)</div>
+                <div class="property-group">
+                    <h4><i class="fas fa-database"></i> 数据绑定</h4>
+                    <div class="property-row">
+                        <label>绑定字段</label>
+                        <select id="bindFieldSelect" disabled>
+                            <option>student.name (姓名)</option>
+                            <option>student.id (学号)</option>
+                            <option>student.college (学院)</option>
+                            <option>transcript.gpa (绩点)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h4><i class="fas fa-paint-brush"></i> 样式</h4>
+                    <div class="property-row">
+                        <label>字体</label>
+                        <select id="fontFamilySelect" disabled>
+                            <option value="黑体">黑体</option>
+                            <option value="宋体">宋体</option>
+                            <option value="楷体">楷体</option>
+                            <option value="微软雅黑">微软雅黑</option>
+                        </select>
+                    </div>
+                    <div class="property-row">
+                        <label>字号</label>
+                        <input type="number" id="fontSizeInput" value="16" min="8" max="72" disabled>
+                    </div>
+                    <div class="color-row">
+                        <div style="flex:1"><label>颜色</label><input type="color" id="colorInput" value="#1f2328" disabled></div>
+                        <div style="flex:1"><label>背景</label><input type="color" id="bgColorInput" value="#ffffff" disabled></div>
+                    </div>
+                    <div class="property-row">
+                        <label>对齐</label>
+                        <select id="alignSelect" disabled>
+                            <option value="left">左对齐</option>
+                            <option value="center">居中</option>
+                            <option value="right">右对齐</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h4><i class="fas fa-gear"></i> 高级</h4>
+                    <div class="property-row">
+                        <label>格式化</label>
+                        <select id="formatSelect" disabled>
+                            <option>无</option>
+                            <option>YYYY-MM-DD</option>
+                            <option>YYYY年MM月DD日</option>
+                            <option>保留两位小数</option>
+                        </select>
+                    </div>
+                    <div class="property-row">
+                        <label>条件显示</label>
+                        <div class="condition-row">
+                            <i class="fas fa-eye-slash" style="margin-right:5px;"></i>仅当“论文状态=已发表”时显示
+                        </div>
+                        <button class="btn" style="width:100%; margin-top:5px; border-radius:6px;" id="addConditionBtn" disabled>+ 添加条件</button>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <h4><i class="fas fa-history"></i> 版本历史</h4>
+                    <div class="history-list" id="historyList">
+                        <div class="history-item" data-version="v2.1">
+                            <span>v2.1 · 2026-03-11</span>
+                            <span class="tag">当前</span>
+                            <i class="fas fa-undo" title="回滚"></i>
+                        </div>
+                        <div class="history-item" data-version="v2.0">
+                            <span>v2.0 · 2026-03-10</span>
+                            <span class="tag">秘书小王</span>
+                            <i class="fas fa-undo" title="回滚"></i>
+                        </div>
+                        <div class="history-item" data-version="v1.9">
+                            <span>v1.9 · 2026-03-08</span>
+                            <span class="tag">秘书小李</span>
+                            <i class="fas fa-undo" title="回滚"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal-content">
+            <span class="modal-close" id="closePreviewModal">&times;</span>
+            <div class="modal-title">模板预览</div>
+            <div class="preview-content" id="previewContent"></div>
+        </div>
+    </div>
+
+    <!-- 新建模板模态框（页面内弹窗） -->
+    <div class="modal-overlay" id="newTemplateModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="modal-close" id="closeNewModal">&times;</span>
+            <div class="modal-title">新建模板</div>
+            <input type="text" id="newTemplateName" class="new-template-input" placeholder="请输入模板名称" autocomplete="off">
+            <div class="modal-actions">
+                <button class="btn" id="cancelNewBtn">取消</button>
+                <button class="btn btn-primary" id="confirmNewBtn">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 轻量toast容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 模拟数据 ----------
+        let templates = [
+            { id: 't1', name: '研究生成绩单(2024)', type: '成绩单', desc: '成绩单', lastMod: '10分钟前', status: '启用' },
+            { id: 't2', name: '学籍信息登记表', type: '学籍表', desc: '学籍表', lastMod: '昨天', status: '启用' },
+            { id: 't3', name: '博士学位论文评阅书', type: '答辩记录', desc: '答辩记录', lastMod: '3天前', status: '启用' },
+            { id: 't4', name: '研究生奖助申请表', type: '奖助申请表', desc: '奖助申请', lastMod: '12月5日', status: '禁用' },
+        ];
+        let currentTemplateId = 't1'; 
+        let currentSelectedField = null;
+
+        // 不同模板对应的画布内容（已将二维码替换为正方软件文字）
+        const templateContents = {
+            t1: `
+                <div class="canvas-header-element" data-field="logo">
+                    <div class="mock-logo"><i class="fas fa-university"></i></div>
+                    <div class="mock-title">研究生成绩单(2024)</div>
+                </div>
+                <div class="student-info" id="studentInfoBlock">
+                    <div class="info-field" data-field="name" id="fieldName"><span class="label">姓名：</span><span class="value">张三</span></div>
+                    <div class="info-field" data-field="studentId"><span class="label">学号：</span><span class="value">202311001</span></div>
+                    <div class="info-field" data-field="college"><span class="label">学院：</span><span class="value">信息学院</span></div>
+                    <div class="info-field" data-field="major"><span class="label">专业：</span><span class="value">计算机技术</span></div>
+                </div>
+                <div class="mock-table" data-field="courseTable">
+                    <div class="table-row table-header"><div class="table-cell">课程名称</div><div class="table-cell">学分</div><div class="table-cell">成绩</div></div>
+                    <div class="table-row"><div class="table-cell">高级算法</div><div class="table-cell">3.0</div><div class="table-cell">92</div></div>
+                    <div class="table-row"><div class="table-cell">机器学习</div><div class="table-cell">2.5</div><div class="table-cell">88</div></div>
+                    <div class="table-row"><div class="table-cell">自然语言处理</div><div class="table-cell">2.0</div><div class="table-cell">95</div></div>
+                </div>
+                <div class="footer-row" data-field="footer">
+                    <div class="mock-text-logo">正方软件</div>
+                    <div class="info-field"><span class="label">打印日期：</span><span class="value">2026-03-12</span></div>
+                </div>
+            `,
+            t2: `
+                <div class="canvas-header-element" data-field="logo"><div class="mock-logo"><i class="fas fa-user-graduate"></i></div><div class="mock-title">学籍信息登记表</div></div>
+                <div class="student-info"><div class="info-field" data-field="name"><span class="label">姓名：</span><span class="value">李四</span></div><div class="info-field" data-field="studentId"><span class="label">学号：</span><span class="value">202211002</span></div><div class="info-field" data-field="college"><span class="label">学院：</span><span class="value">机械学院</span></div><div class="info-field" data-field="major"><span class="label">专业：</span><span class="value">机械工程</span></div></div>
+                <div style="margin:20px 0; padding:10px; background:#f0f0f0;">入学日期：2022-09-01</div>
+                <div class="footer-row"><span>导师：王教授</span><span>学制：3年</span></div>
+            `,
+            t3: `
+                <div class="canvas-header-element"><div class="mock-logo"><i class="fas fa-scroll"></i></div><div class="mock-title">博士学位论文评阅书</div></div>
+                <div><strong>论文题目：</strong>基于深度学习的知识图谱研究</div><div><strong>博士生：</strong>李四</div><div><strong>导师：</strong>赵教授</div>
+                <div style="margin-top:20px;"><strong>评阅意见：</strong>......</div>
+            `,
+            t4: `
+                <div class="canvas-header-element"><div class="mock-logo"><i class="fas fa-hand-holding-heart"></i></div><div class="mock-title">研究生奖助申请表</div></div>
+                <div><strong>姓名：</strong>王五</div><div><strong>申请类型：</strong>国家奖学金</div><div><strong>科研表现：</strong>发表SCI论文2篇</div>
+            `
+        };
+
+        // 组件类型到实际HTML的映射 (拖拽时生成对应表单控件，已将二维码改为文字)
+        const componentMap = {
+            textbox: '<div class="info-field" style="background:#f9f9f9;"><span class="label">文本框：</span><span class="value">示例文本</span></div>',
+            richtext: '<div style="background:#f0f7ff; padding:8px; border-radius:6px;"><i class="fas fa-align-left"></i> 富文本内容区域</div>',
+            image: '<div style="display:flex; gap:8px; align-items:center;"><i class="fas fa-image" style="font-size:24px;"></i><span>图片占位</span></div>',
+            line: '<hr style="border:1px dashed #aaa; margin:10px 0;">',
+            rect: '<div style="width:100%; height:40px; border:2px solid #1f883d; border-radius:4px; margin:5px 0;"></div>',
+            textlogo: '<div class="mock-text-logo">正方软件</div>',  // 替换二维码
+            name: '<div class="info-field"><span class="label">姓名：</span><span class="value">张三</span></div>',
+            studentid: '<div class="info-field"><span class="label">学号：</span><span class="value">202311001</span></div>',
+            college: '<div class="info-field"><span class="label">学院：</span><span class="value">信息学院</span></div>',
+            major: '<div class="info-field"><span class="label">专业：</span><span class="value">计算机技术</span></div>',
+            score: '<div class="info-field"><span class="label">成绩：</span><span class="value">92</span></div>',
+            courseTable: '<div class="mock-table"><div class="table-row table-header"><div class="table-cell">课程</div><div class="table-cell">学分</div><div class="table-cell">成绩</div></div><div class="table-row"><div class="table-cell">示例课</div><div class="table-cell">2</div><div class="table-cell">85</div></div></div>',
+            research: '<div><strong>科研项目：</strong>国家自然科学基金</div>',
+            gpa: '<div class="info-field"><span class="label">绩点：</span><span class="value">3.8</span></div>',
+            photo: '<div style="display:flex; align-items:center; gap:8px;"><i class="fas fa-camera-retro"></i> 学生照片</div>',
+            dynamicSet: '<div style="border:1px solid #ccc; padding:8px;"><i class="fas fa-list"></i> 动态数据集占位</div>'
+        };
+
+        // DOM 元素
+        const templateListContainer = document.getElementById('templateListContainer');
+        const globalSearch = document.getElementById('globalSearch');
+        const businessFilter = document.getElementById('businessFilter');
+        const templateListSearch = document.getElementById('templateListSearch');
+        const newTemplateBtn = document.getElementById('newTemplateBtn');
+        const copyTemplateBtn = document.getElementById('copyTemplateBtn');
+        const deleteTemplateBtn = document.getElementById('deleteTemplateBtn');
+        const toggleStatusBtn = document.getElementById('toggleStatusBtn');
+        const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+        const previewModalBtn = document.getElementById('previewModalBtn');
+        const closePreviewModal = document.getElementById('closePreviewModal');
+        const previewModal = document.getElementById('previewModal');
+        const previewContent = document.getElementById('previewContent');
+        const canvasPage = document.getElementById('canvasPage');
+        const businessTypeSelect = document.getElementById('businessTypeSelect');
+        const previewUserSelect = document.getElementById('previewUserSelect');
+        const propertyTitle = document.getElementById('propertyTitle');
+        const bindFieldSelect = document.getElementById('bindFieldSelect');
+        const fontFamilySelect = document.getElementById('fontFamilySelect');
+        const fontSizeInput = document.getElementById('fontSizeInput');
+        const colorInput = document.getElementById('colorInput');
+        const bgColorInput = document.getElementById('bgColorInput');
+        const alignSelect = document.getElementById('alignSelect');
+        const formatSelect = document.getElementById('formatSelect');
+        const addConditionBtn = document.getElementById('addConditionBtn');
+        const historyItems = document.querySelectorAll('.history-item i.fa-undo');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // 新建模板模态框相关
+        const newTemplateModal = document.getElementById('newTemplateModal');
+        const closeNewModal = document.getElementById('closeNewModal');
+        const cancelNewBtn = document.getElementById('cancelNewBtn');
+        const confirmNewBtn = document.getElementById('confirmNewBtn');
+        const newTemplateNameInput = document.getElementById('newTemplateName');
+
+        // ---------- 轻量toast ----------
+        function showToast(message, icon = 'fa-check-circle') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // ---------- 辅助函数 ----------
+        function renderTemplateList(filterText = '', filterType = '全部') {
+            let filtered = templates.filter(t => {
+                const matchText = t.name.includes(filterText) || t.desc.includes(filterText);
+                const matchType = filterType === '全部' || t.type === filterType;
+                return matchText && matchType;
+            });
+            let html = '';
+            filtered.forEach(t => {
+                const activeClass = t.id === currentTemplateId ? 'active' : '';
+                const statusClass = t.status === '启用' ? 'enabled' : 'disabled';
+                html += `<li class="template-item ${activeClass}" data-id="${t.id}">
+                    <div class="template-info">
+                        <h4>${t.name} <span class="status-badge ${statusClass}">${t.status}</span></h4>
+                        <p>${t.desc} · 最后修改: ${t.lastMod}</p>
+                    </div>
+                    <div class="template-actions">
+                        <i class="fas fa-edit" data-action="edit" data-id="${t.id}" title="编辑"></i>
+                        <i class="fas fa-eye" data-action="preview" data-id="${t.id}" title="预览"></i>
+                        <i class="fas fa-copy" data-action="copy" data-id="${t.id}" title="复制"></i>
+                    </div>
+                </li>`;
+            });
+            templateListContainer.innerHTML = html;
+
+            document.querySelectorAll('.template-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('fa-edit') || e.target.classList.contains('fa-eye') || e.target.classList.contains('fa-copy')) return;
+                    const id = this.dataset.id;
+                    setCurrentTemplate(id);
+                });
+            });
+
+            document.querySelectorAll('.template-actions i').forEach(icon => {
+                icon.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const action = this.dataset.action;
+                    const id = this.dataset.id;
+                    if (action === 'edit') {
+                        showToast(`编辑模板 ${id}`, 'fa-edit');
+                    } else if (action === 'preview') {
+                        const content = templateContents[id] || '<p>无内容</p>';
+                        showPreview(content);
+                    } else if (action === 'copy') {
+                        copyTemplateById(id);
+                    }
+                });
+            });
+        }
+
+        function setCurrentTemplate(id) {
+            currentTemplateId = id;
+            renderTemplateList(globalSearch.value, businessFilter.value);
+            if (templateContents[id]) {
+                canvasPage.innerHTML = templateContents[id];
+                bindCanvasClick();
+                const template = templates.find(t => t.id === id);
+                if (template) businessTypeSelect.value = template.type;
+            }
+            clearSelected();
+        }
+
+        function copyTemplateById(id) {
+            const template = templates.find(t => t.id === id);
+            if (template) {
+                const newId = 't' + Date.now();
+                const newName = template.name + ' (副本)';
+                templates.push({
+                    id: newId,
+                    name: newName,
+                    type: template.type,
+                    desc: template.desc,
+                    lastMod: '刚刚',
+                    status: '启用'
+                });
+                templateContents[newId] = templateContents[id] || '<p>新模板内容</p>';
+                renderTemplateList(globalSearch.value, businessFilter.value);
+                showToast(`已复制模板：${newName}`, 'fa-copy');
+            }
+        }
+
+        function bindCanvasClick() {
+            document.querySelectorAll('.canvas-page [data-field], .canvas-page .info-field, .canvas-page .mock-table, .canvas-page .footer-row, .canvas-page .canvas-header-element, .canvas-page .mock-text-logo').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    let field = el.dataset.field || el.id || 'unknown';
+                    selectCanvasField(field, el);
+                });
+            });
+        }
+
+        function selectCanvasField(fieldKey, el) {
+            document.querySelectorAll('.canvas-page .selected').forEach(el => el.classList.remove('selected'));
+            if (el) {
+                el.classList.add('selected');
+                currentSelectedField = fieldKey;
+                propertyTitle.innerHTML = `<i class="fas fa-sliders-h"></i> 属性配置 (${fieldKey})`;
+                bindFieldSelect.disabled = false;
+                fontFamilySelect.disabled = false;
+                fontSizeInput.disabled = false;
+                colorInput.disabled = false;
+                bgColorInput.disabled = false;
+                alignSelect.disabled = false;
+                formatSelect.disabled = false;
+                addConditionBtn.disabled = false;
+            } else {
+                clearSelected();
+            }
+        }
+
+        function clearSelected() {
+            document.querySelectorAll('.canvas-page .selected').forEach(el => el.classList.remove('selected'));
+            currentSelectedField = null;
+            propertyTitle.innerHTML = `<i class="fas fa-sliders-h"></i> 属性配置 (未选中)`;
+            bindFieldSelect.disabled = true;
+            fontFamilySelect.disabled = true;
+            fontSizeInput.disabled = true;
+            colorInput.disabled = true;
+            bgColorInput.disabled = true;
+            alignSelect.disabled = true;
+            formatSelect.disabled = true;
+            addConditionBtn.disabled = true;
+        }
+
+        function showPreview(content) {
+            previewContent.innerHTML = content;
+            previewModal.style.display = 'flex';
+        }
+
+        // 关闭预览弹窗
+        closePreviewModal.addEventListener('click', () => {
+            previewModal.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === previewModal) {
+                previewModal.style.display = 'none';
+            }
+        });
+
+        // ---------- 新建模板模态框逻辑 ----------
+        function openNewTemplateModal() {
+            newTemplateNameInput.value = '';
+            newTemplateModal.style.display = 'flex';
+        }
+
+        function closeNewTemplateModal() {
+            newTemplateModal.style.display = 'none';
+        }
+
+        function createNewTemplate() {
+            const newName = newTemplateNameInput.value.trim();
+            if (!newName) {
+                showToast('模板名称不能为空', 'fa-exclamation-triangle');
+                return;
+            }
+            const newId = 't' + Date.now();
+            templates.push({
+                id: newId,
+                name: newName,
+                type: '成绩单',
+                desc: '成绩单',
+                lastMod: '刚刚',
+                status: '启用'
+            });
+            templateContents[newId] = '<div class="mock-title">新模板</div><p>点击编辑内容</p>';
+            renderTemplateList(globalSearch.value, businessFilter.value);
+            setCurrentTemplate(newId);
+            showToast(`模板“${newName}”已创建`, 'fa-plus-circle');
+            closeNewTemplateModal();
+        }
+
+        newTemplateBtn.addEventListener('click', openNewTemplateModal);
+        closeNewModal.addEventListener('click', closeNewTemplateModal);
+        cancelNewBtn.addEventListener('click', closeNewTemplateModal);
+        confirmNewBtn.addEventListener('click', createNewTemplate);
+        // 点击模态框背景关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === newTemplateModal) {
+                closeNewTemplateModal();
+            }
+        });
+        // 回车键创建
+        newTemplateNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                createNewTemplate();
+            }
+        });
+
+        // ---------- 拖拽实现 (生成对应控件) ----------
+        const componentItems = document.querySelectorAll('.comp-item');
+        const canvasArea = document.getElementById('canvasArea');
+
+        componentItems.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                if (item.classList.contains('disabled')) {
+                    e.preventDefault();
+                    return;
+                }
+                e.dataTransfer.setData('text/plain', item.dataset.component);
+            });
+        });
+
+        canvasArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        canvasArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const componentType = e.dataTransfer.getData('text/plain');
+            if (!componentType) return;
+            // 检查组件是否被禁用（这里模拟图片禁用）
+            if (componentType === 'image') {
+                showToast('图片组件当前不可用', 'fa-ban');
+                return;
+            }
+            const html = componentMap[componentType] || '<div>未知组件</div>';
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html;
+            const newElement = wrapper.firstChild;
+            const fieldId = 'drag-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+            newElement.setAttribute('data-field', fieldId);
+            newElement.classList.add('draggable-item');
+            newElement.style.margin = '8px 0';
+            newElement.style.cursor = 'pointer';
+            newElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectCanvasField(fieldId, newElement);
+            });
+            canvasPage.appendChild(newElement);
+            showToast(`已添加 ${componentType} 组件`, 'fa-check');
+        });
+
+        // 模拟组件禁用示例：给图片组件加上disabled类
+        const imageComp = document.querySelector('.comp-item[data-component="image"]');
+        if (imageComp) {
+            imageComp.classList.add('disabled');
+            imageComp.setAttribute('draggable', 'false');
+            imageComp.title = '该组件已禁用';
+        }
+
+        // 预览按钮
+        previewModalBtn.addEventListener('click', () => {
+            const currentContent = canvasPage.innerHTML;
+            showPreview(currentContent);
+        });
+
+        // 顶部其他按钮
+        copyTemplateBtn.addEventListener('click', () => {
+            if (currentTemplateId) {
+                copyTemplateById(currentTemplateId);
+            } else {
+                showToast('请先选中一个模板', 'fa-exclamation-triangle');
+            }
+        });
+
+        deleteTemplateBtn.addEventListener('click', () => {
+            if (currentTemplateId && confirm('确认删除选中的模板吗？')) {
+                const templateName = templates.find(t => t.id === currentTemplateId)?.name;
+                templates = templates.filter(t => t.id !== currentTemplateId);
+                delete templateContents[currentTemplateId];
+                if (templates.length > 0) {
+                    setCurrentTemplate(templates[0].id);
+                } else {
+                    currentTemplateId = null;
+                    canvasPage.innerHTML = '<div style="padding:20px; text-align:center;">请创建新模板</div>';
+                    renderTemplateList(globalSearch.value, businessFilter.value);
+                }
+                renderTemplateList(globalSearch.value, businessFilter.value);
+                showToast(`模板“${templateName}”已删除`, 'fa-trash-alt');
+            }
+        });
+
+        toggleStatusBtn.addEventListener('click', () => {
+            if (currentTemplateId) {
+                const template = templates.find(t => t.id === currentTemplateId);
+                if (template) {
+                    template.status = template.status === '启用' ? '禁用' : '启用';
+                    showToast(`模板已${template.status}`, 'fa-toggle-on');
+                    renderTemplateList(globalSearch.value, businessFilter.value);
+                }
+            } else {
+                showToast('请先选中一个模板', 'fa-exclamation-triangle');
+            }
+        });
+
+        saveTemplateBtn.addEventListener('click', () => {
+            showToast('模板保存成功（模拟）', 'fa-save');
+        });
+
+        // 搜索与筛选
+        function applyFilter() {
+            renderTemplateList(globalSearch.value, businessFilter.value);
+        }
+        globalSearch.addEventListener('input', applyFilter);
+        businessFilter.addEventListener('change', applyFilter);
+        templateListSearch.addEventListener('input', function(e) {
+            globalSearch.value = e.target.value;
+            applyFilter();
+        });
+
+        // 预览用户切换
+        previewUserSelect.addEventListener('change', function(e) {
+            const nameSpan = document.querySelector('.info-field[data-field="name"] .value');
+            if (nameSpan) nameSpan.innerText = e.target.value;
+        });
+
+        // 样式更新
+        function updateStyleForSelected() {
+            if (!currentSelectedField) return;
+            const selectedEl = document.querySelector('.canvas-page .selected');
+            if (!selectedEl) return;
+            const font = fontFamilySelect.value;
+            const size = fontSizeInput.value + 'px';
+            const color = colorInput.value;
+            const bg = bgColorInput.value;
+            const align = alignSelect.value;
+            selectedEl.style.fontFamily = font;
+            selectedEl.style.fontSize = size;
+            selectedEl.style.color = color;
+            selectedEl.style.backgroundColor = bg;
+            selectedEl.style.textAlign = align;
+        }
+        fontFamilySelect.addEventListener('change', updateStyleForSelected);
+        fontSizeInput.addEventListener('input', updateStyleForSelected);
+        colorInput.addEventListener('input', updateStyleForSelected);
+        bgColorInput.addEventListener('input', updateStyleForSelected);
+        alignSelect.addEventListener('change', updateStyleForSelected);
+
+        // 版本历史回滚
+        historyItems.forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const version = e.target.closest('.history-item').dataset.version;
+                showToast(`回滚到版本 ${version} (模拟)`, 'fa-undo');
+            });
+        });
+
+        // 初始化
+        renderTemplateList();
+        setCurrentTemplate('t1');
+        bindCanvasClick();
+
+        setTimeout(() => {
+            const firstNameField = document.querySelector('.info-field[data-field="name"]');
+            if (firstNameField) selectCanvasField('name', firstNameField);
+        }, 100);
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>zfsoft智能助理 · 研究生管理问答</title>
+    <!-- Font Awesome 6 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body, html {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(145deg, #f0f5fa 0%, #e9f0f7 100%);
+            color: #1a2b41;
+        }
+
+        /* 全屏弹性容器 */
+        .ai-chat-container {
+            height: 100vh;
+            width: 100%;
+            padding: 1.2rem 1.8rem 0.8rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(2px);
+        }
+
+        /* 头部标志 */
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+        .chat-header .ai-icon {
+            background: #1e3f6e;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 6px 12px rgba(24, 58, 110, 0.15);
+        }
+        .chat-header .title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #0c2947;
+        }
+        .chat-header .badge {
+            background: #d4e2f2;
+            border-radius: 60px;
+            padding: 0.2rem 1rem;
+            font-size: 0.8rem;
+            margin-left: 0.8rem;
+            color: #1e4c8a;
+        }
+
+        /* 固定问题卡片区 */
+        .suggestions-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            flex-shrink: 0;
+        }
+        .suggest-btn {
+            background: white;
+            border: 1px solid #cfddee;
+            border-radius: 40px;
+            padding: 0.7rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #1f3b62;
+            box-shadow: 0 4px 8px rgba(0, 20, 50, 0.03);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            backdrop-filter: blur(4px);
+            flex: 0 1 auto;
+        }
+        .suggest-btn i {
+            color: #3271c7;
+            font-size: 1rem;
+        }
+        .suggest-btn:hover {
+            background: #e3edfc;
+            border-color: #7fa3d1;
+            box-shadow: 0 8px 14px rgba(32, 78, 148, 0.1);
+            transform: translateY(-2px);
+        }
+        .suggest-btn:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+        .suggest-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.4);
+        }
+
+        /* 对话消息区域 — 占据剩余大部分高度，可滚动 */
+        .message-area {
+            flex: 1;
+            min-height: 0;  /* flex限制溢出 */
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+            border-radius: 32px 32px 16px 16px;
+            padding: 1.8rem 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02), 0 10px 20px -10px rgba(0,40,80,0.1);
+            scroll-behavior: smooth;
+        }
+
+        /* 消息气泡通用 */
+        .message {
+            display: flex;
+            align-items: flex-end;
+            max-width: 85%;
+            animation: fadeIn 0.25s ease;
+        }
+        .user-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .ai-message {
+            align-self: flex-start;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin: 0 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .user-avatar {
+            background: #1d4e89;
+            color: white;
+        }
+        .ai-avatar {
+            background: #ffffff;
+            color: #1e3f6e;
+            border: 1px solid #baceec;
+        }
+
+        .bubble {
+            padding: 0.9rem 1.4rem;
+            border-radius: 22px;
+            font-size: 0.98rem;
+            line-height: 1.5;
+            word-break: break-word;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+        }
+        .user-bubble {
+            background: #1d4e89;
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+        .ai-bubble {
+            background: white;
+            color: #1b314b;
+            border: 1px solid #dee9f5;
+            border-bottom-left-radius: 6px;
+        }
+
+        /* 微元素 (chip, badge) 用于回复内样式 */
+        .chip {
+            background: #eef3fc;
+            border-radius: 30px;
+            padding: 0.2rem 0.9rem;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin: 0.2rem 0.1rem;
+            border: 1px solid #c7daf0;
+            color: #1d3e6b;
+        }
+        .badge-value {
+            background: #d9e8ff;
+            border-radius: 40px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-right: 0.3rem;
+            margin-bottom: 0.2rem;
+            border: 1px solid #adc6e6;
+        }
+        .progress-micro {
+            background: #e3eaf3;
+            height: 6px;
+            width: 120px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 0 0.4rem;
+        }
+        .progress-micro-fill {
+            height: 6px;
+            border-radius: 20px;
+            background: #1d4e89;
+            width: 70%; /* 示例 */
+        }
+        .highlight {
+            color: #1d4e89;
+            font-weight: 600;
+        }
+        .loader-dots {
+            display: inline-block;
+        }
+        .loader-dots:after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+            width: 1.5em;
+            display: inline-block;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+
+        /* 消息入场 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 底部输入区 */
+        .input-footer {
+            flex-shrink: 0;
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 50px;
+            padding: 0.4rem 0.4rem 0.4rem 1.2rem;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 8px 18px -8px rgba(0,40,80,0.15);
+        }
+        .input-footer input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0.8rem 0.5rem;
+            font-size: 1rem;
+            outline: none;
+            color: #1b314b;
+        }
+        .input-footer input::placeholder {
+            color: #7d95b5;
+            font-weight: 300;
+        }
+        .input-footer button {
+            background: #1d4e89;
+            border: none;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 6px 12px rgba(23, 65, 126, 0.2);
+            flex-shrink: 0;
+        }
+        .input-footer button:hover {
+            background: #256bb0;
+            transform: scale(1.02);
+        }
+        .input-footer button:active {
+            transform: scale(0.98);
+        }
+        .input-footer button.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            background: #7d95b5;
+        }
+
+        /* 清空按钮 */
+        .clear-btn {
+            background: none;
+            border: 1px dashed #9fb7d3;
+            color: #46658f;
+            border-radius: 30px;
+            padding: 0.2rem 1rem;
+            font-size: 0.75rem;
+            margin-left: auto;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .clear-btn:hover {
+            background: #e1ecfe;
+        }
+        .footer-note {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 0.7rem;
+            color: #5b789e;
+            margin-top: 0.4rem;
+        }
+
+        /* 移动端调整 */
+        @media (max-width: 600px) {
+            .ai-chat-container { padding: 0.8rem 1rem; }
+            .message { max-width: 95%; }
+            .bubble { padding: 0.7rem 1rem; font-size: 0.9rem; }
+            .suggest-btn { padding: 0.5rem 1rem; font-size: 0.8rem; }
+            .chat-header .title { font-size: 1.3rem; }
+            .input-footer { padding: 0.2rem 0.2rem 0.2rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ai-chat-container">
+        <!-- 头部：改为 zfsoft 智能助理 -->
+        <div class="chat-header">
+            <div class="ai-icon"><i class="fas fa-robot"></i></div>
+            <span class="title">zfsoft 智能助理</span>
+            <span class="badge"><i class="far fa-comment-dots"></i> 基于2026春季数据</span>
+            <button class="clear-btn" id="clearChatBtn"><i class="far fa-trash-alt"></i> 清空对话</button>
+        </div>
+
+        <!-- 固定问题快捷按钮 (覆盖所有AI场景) -->
+        <div class="suggestions-panel" id="suggestPanel">
+            <div class="suggest-btn" data-question="招生预测与生源质量">
+                <i class="fas fa-user-graduate"></i> 招生预测与生源质量
+            </div>
+            <div class="suggest-btn" data-question="选课推荐与智能排课">
+                <i class="fas fa-book"></i> 选课推荐与智能排课
+            </div>
+            <div class="suggest-btn" data-question="智能评审与导师助手">
+                <i class="fas fa-file-signature"></i> 智能评审与导师助手
+            </div>
+            <div class="suggest-btn" data-question="资源投放与决策建议">
+                <i class="fas fa-chart-line"></i> 资源投放与决策建议
+            </div>
+            <div class="suggest-btn" data-question="文件识别与信息提取">
+                <i class="fas fa-file-alt"></i> 文件识别与信息提取
+            </div>
+        </div>
+
+        <!-- 对话消息区域 -->
+        <div class="message-area" id="messageArea">
+            <!-- 初始欢迎消息 -->
+            <div class="message ai-message" id="welcomeMsg">
+                <div class="avatar ai-avatar"><i class="fas fa-robot"></i></div>
+                <div class="bubble ai-bubble">
+                    您好！我是 <strong>zfsoft 智能助理</strong>。点击上方问题或直接在下方输入框提问，我可以为您提供招生预测、选课推荐、智能评审、资源决策及文件识别服务。试试看吧 👇
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增的输入对话框 -->
+        <div class="input-footer">
+            <input type="text" id="userInput" placeholder="输入你的问题... 例如“招生预测”或“选课推荐”" autocomplete="off">
+            <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+
+        <!-- 微小状态栏 -->
+        <div class="footer-note">
+            <span><i class="far fa-clock"></i> 实时模拟 · zfsoft 智能决策引擎</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // DOM 元素
+            const messageArea = document.getElementById('messageArea');
+            const suggestBtns = document.querySelectorAll('.suggest-btn');
+            const clearBtn = document.getElementById('clearChatBtn');
+            const userInput = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+
+            // 状态锁
+            let waitingForResponse = false;
+
+            // 预设问答映射 (与之前相同)
+            const answerMap = {
+                '招生预测与生源质量': `🎓 **招生转化预测与生源质量**  
+· 优质生源占比 **68%** (985/211比例42%)，预测整体报到率 **79%**。  
+· 生源质量评估: 清华张同学报到概率 **96%**，南邮李同学 **74%**。  
+· 生源竞争态势: 第一志愿填报率+12%，流失去向主要为华科、浙大。  
+· AI建议: 加大宣传力度，针对双非优质生源设置专项奖学金。  
+<span class="chip">科研产出1.8/人</span> <span class="chip">竞赛国奖占比23%</span>  
+<div class="progress-micro" style="width:140px"><div class="progress-micro-fill" style="width:79%"></div></div> 报到率预测`,
+
+                '选课推荐与智能排课': `📚 **个性化选课推荐 & 智能排课**  
+· 根据你的目标“大厂算法岗”，推荐课程: **高级机器学习** (匹配度92%)、**深度强化学习** (88%)、**AI伦理** (76%)。  
+· 同方向学长学姐常选: 计算机视觉(好评83%)。  
+· 智能排课: 推荐方案A (周二34节，无冲突，教室利用率92%)；热门课程“大模型应用”预测选修95人，建议扩班。  
+· 需求热度: 高级算法78人，知识图谱42人。  
+<span class="badge-value">协同过滤</span> <span class="badge-value">冲突预测</span> <span class="badge-value">扩班建议2门</span>`,
+
+                '智能评审与导师助手': `🧑‍🏫 **智能预评审 & 导师助手**  
+· 待审开题报告8篇，已完成AI预审3篇。  
+· 《基于联邦学习...》预审评分 **82** (创新性B, 格式通过)。  
+· 《知识图谱增强...》预审评分 **91** (创新性A, 语义查重2%)。  
+· 导师助手: 李小明活跃度87% (正常)，王华活跃度下降12% ⚠️ 触发预警；组会汇报优秀: 赵思。  
+· 辅助评审建议: 选题意义8.5，文献综述7.9，技术路线8.2。  
+<span class="chip">AI预审节省12h</span> <span class="badge-value">3位专家评分偏差<5%</span>`,
+
+                '资源投放与决策建议': `📊 **资源优化投放与决策支持**  
+· 招生转化漏斗: 报考1250 → 复试380 → 录取160 → 报到145 (优质生源报到率91%)。  
+· 就业竞争力指数: 选修《算法》《操作系统》者大厂就业占78%；《机器学习》成绩前30%年薪+22%。  
+· 资源优化: 奖学金AI预分配推荐32人；助教岗缺4人 (建议优先贫困生)。  
+· 学业风险预警: 3名学生GPA<2.8，科研停滞，已自动生成预警报告。  
+· AI决策建议: 扩招AI专硕(报考热度+25%)，增加算法课容量。  
+<span class="badge-value">多目标优化</span> <span class="chip">预测准确率89%</span>`,
+
+                '文件识别与信息提取': `📄 **智能文件识别与信息提取**  
+· 最近处理示例:  
+   - 赵同学_简历.pdf → 提取: 论文2篇(SCI 1)，竞赛国奖，GPA 3.8。  
+   - 王同学_推荐信.pdf → 提取: 教授推荐(强)，科研潜质A。  
+   - 李同学_科研成果.pdf → 提取: 专利1项，国际会议论文1篇。  
+· 技术: OCR+NLP，自动填充系统表单，防止造假。  
+· 今日已处理23份文件，平均提取准确率96.5%。  
+<span class="chip">信息结构化</span> <span class="chip">简历评分86</span> <i class="fas fa-check-circle" style="color:#2b9c5c;"></i> 自动填入系统` 
+            };
+
+            // 辅助函数：添加用户消息
+            function addUserMessage(text) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message user-message';
+                messageDiv.innerHTML = `
+                    <div class="avatar user-avatar"><i class="fas fa-user"></i></div>
+                    <div class="bubble user-bubble">${escapeHtml(text)}</div>
+                `;
+                messageArea.appendChild(messageDiv);
+                scrollToBottom();
+            }
+
+            // 添加AI消息（可以包含HTML）
+            function addAIMessage(htmlContent) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ai-message';
+                messageDiv.innerHTML = `
+                    <div class="avatar ai-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="bubble ai-bubble">${htmlContent}</div>
+                `;
+                messageArea.appendChild(messageDiv);
+                scrollToBottom();
+            }
+
+            // 简单的转义，防止XSS
+            function escapeHtml(unsafe) {
+                return unsafe.replace(/[&<>"]/g, function(m) {
+                    if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; if(m === '"') return '&quot;';
+                    return m;
+                });
+            }
+
+            // 添加“正在输入”占位消息
+            function addTypingIndicator() {
+                const indicatorDiv = document.createElement('div');
+                indicatorDiv.className = 'message ai-message typing-indicator';
+                indicatorDiv.id = 'typingIndicator';
+                indicatorDiv.innerHTML = `
+                    <div class="avatar ai-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="bubble ai-bubble"><span class="loader-dots"></span> 正在分析数据</div>
+                `;
+                messageArea.appendChild(indicatorDiv);
+                scrollToBottom();
+                return indicatorDiv;
+            }
+
+            // 移除正在输入
+            function removeTypingIndicator() {
+                const typing = document.getElementById('typingIndicator');
+                if (typing) typing.remove();
+            }
+
+            // 滚动到底部
+            function scrollToBottom() {
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }
+
+            // 清空对话 (保留欢迎消息)
+            function clearConversation() {
+                const messages = messageArea.querySelectorAll('.message');
+                for (let i = messages.length - 1; i >= 0; i--) {
+                    if (messages[i].id !== 'welcomeMsg') {
+                        messages[i].remove();
+                    }
+                }
+                removeTypingIndicator();
+                waitingForResponse = false;
+                enableAllControls(true);
+            }
+
+            // 启用/禁用所有可交互控件 (固定按钮 + 发送按钮 + 输入框)
+            function enableAllControls(enable) {
+                suggestBtns.forEach(btn => {
+                    if (enable) btn.classList.remove('disabled');
+                    else btn.classList.add('disabled');
+                });
+                if (enable) {
+                    sendBtn.classList.remove('disabled');
+                    userInput.disabled = false;
+                } else {
+                    sendBtn.classList.add('disabled');
+                    userInput.disabled = true;
+                }
+            }
+
+            // 根据用户输入匹配最合适的答案 (关键词匹配)
+            function matchAnswerFromInput(inputText) {
+                const lower = inputText.toLowerCase();
+                // 优先级顺序
+                if (lower.includes('招生') || lower.includes('生源') || lower.includes('录取') || lower.includes('转化') || lower.includes('报到')) {
+                    return answerMap['招生预测与生源质量'];
+                }
+                if (lower.includes('选课') || lower.includes('课程') || lower.includes('排课') || lower.includes('推荐') || lower.includes('学分')) {
+                    return answerMap['选课推荐与智能排课'];
+                }
+                if (lower.includes('评审') || lower.includes('导师') || lower.includes('预审') || lower.includes('论文') || lower.includes('开题') || lower.includes('学术')) {
+                    return answerMap['智能评审与导师助手'];
+                }
+                if (lower.includes('资源') || lower.includes('投放') || lower.includes('决策') || lower.includes('就业') || lower.includes('竞争力') || lower.includes('奖学金')) {
+                    return answerMap['资源投放与决策建议'];
+                }
+                if (lower.includes('文件') || lower.includes('识别') || lower.includes('提取') || lower.includes('简历') || lower.includes('ocr') || lower.includes('信息提取')) {
+                    return answerMap['文件识别与信息提取'];
+                }
+                // 默认回复
+                return `您好，您的问题“${escapeHtml(inputText)}”我已收到。目前我主要支持以下场景：<br>🔹 招生预测与生源质量<br>🔹 选课推荐与智能排课<br>🔹 智能评审与导师助手<br>🔹 资源投放与决策建议<br>🔹 文件识别与信息提取<br>您可以点击上方固定问题或尝试更具体的提问。`;
+            }
+
+            // 核心处理：用户发送文本 (来自按钮或输入框)
+            function handleUserQuery(queryText) {
+                if (waitingForResponse) return;
+                if (!queryText || queryText.trim() === '') return;
+
+                const trimmed = queryText.trim();
+                // 添加用户消息
+                addUserMessage(trimmed);
+
+                // 禁用控件，显示输入中
+                waitingForResponse = true;
+                enableAllControls(false);
+
+                addTypingIndicator();
+
+                // 模拟实时回复 (延迟500ms)
+                setTimeout(() => {
+                    removeTypingIndicator();
+
+                    // 生成AI回复内容：如果是固定按钮的准确问题，直接取映射；否则动态匹配
+                    let answerHtml = answerMap[trimmed]; // 可能为undefined
+                    if (!answerHtml) {
+                        answerHtml = matchAnswerFromInput(trimmed);
+                    }
+                    addAIMessage(answerHtml);
+
+                    // 解锁控件
+                    waitingForResponse = false;
+                    enableAllControls(true);
+                }, 600);
+            }
+
+            // 固定按钮点击事件
+            suggestBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const question = btn.getAttribute('data-question');
+                    if (question) {
+                        handleUserQuery(question);
+                    }
+                });
+            });
+
+            // 发送按钮点击事件
+            sendBtn.addEventListener('click', () => {
+                const text = userInput.value.trim();
+                if (text !== '') {
+                    handleUserQuery(text);
+                    userInput.value = ''; // 清空输入框
+                }
+            });
+
+            // 输入框回车事件
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const text = userInput.value.trim();
+                    if (text !== '') {
+                        handleUserQuery(text);
+                        userInput.value = '';
+                    }
+                }
+            });
+
+            // 清空按钮事件
+            clearBtn.addEventListener('click', () => {
+                clearConversation();
+            });
+
+            // 初始滚动到底部
+            window.addEventListener('load', () => {
+                scrollToBottom();
+            });
+
+        })();
+    </script>
+</body>
+</html>

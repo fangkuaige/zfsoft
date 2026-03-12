@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>销售人员线索管理 · 全功能原生</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+        body { background: #f0f2f5; height: 100vh; display: flex; }
+        .crm-container {
+            width: 100vw; height: 100vh; display: flex; flex-direction: column;
+            background: #ffffff; overflow: hidden;
+        }
+        .crm-content {
+            flex: 1; padding: 20px 28px; overflow-y: auto; background: #f8fafc;
+        }
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .header-bar h2 {
+            font-size: 1.8rem; font-weight: 600; color: #1e293b;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .header-bar h2 i { color: #2563eb; }
+        .user-badge {
+            display: flex; align-items: center; gap: 12px; background: white;
+            padding: 8px 16px; border-radius: 40px; border: 1px solid #e9eef2;
+        }
+        .user-badge i { font-size: 1.4rem; color: #2563eb; background: #e6f0ff; padding: 6px; border-radius: 50%; }
+        .user-badge span { font-weight: 500; color: #1e293b; }
+        .user-badge small { color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 20px; }
+
+        /* 查询卡片 */
+        .query-card {
+            background: white; border-radius: 20px; padding: 20px 24px; margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02); border: 1px solid #ecf1f5;
+        }
+        .query-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+        .query-field { display: flex; flex-direction: column; min-width: 150px; flex: 1 0 140px; }
+        .query-field label {
+            font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+            color: #475569; margin-bottom: 4px;
+        }
+        .query-field input, .query-field select {
+            padding: 10px 14px; border: 1px solid #d1d9e2; border-radius: 12px;
+            font-size: 0.95rem; background: white;
+        }
+        .query-field input:focus, .query-field select:focus {
+            border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .query-actions { display: flex; gap: 10px; margin-left: auto; align-items: center; flex-wrap: wrap; }
+
+        /* 高级搜索区域 (默认隐藏) */
+        .advanced-search {
+            display: none; margin-top: 20px; padding-top: 16px;
+            border-top: 1px dashed #cbd5e1; flex-wrap: wrap; gap: 16px;
+        }
+        .advanced-search .query-field { flex: 1 0 160px; }
+
+        .btn {
+            padding: 10px 20px; border-radius: 40px; border: none; font-weight: 500;
+            display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+            transition: 0.15s; background: white; border: 1px solid #d1d9e2; color: #1e293b;
+        }
+        .btn-primary { background: #2563eb; border-color: #2563eb; color: white; box-shadow: 0 4px 8px rgba(37,99,235,0.2); }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-outline:hover { background: #f8fafc; border-color: #94a3b8; }
+        .badge-owner {
+            background: #e6f0ff; color: #1e4f8a; font-size: 0.85rem; padding: 5px 12px;
+            border-radius: 30px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500;
+        }
+        .toolbar {
+            display: flex; justify-content: space-between; align-items: center; margin: 20px 0 18px;
+        }
+        .toolbar-left, .toolbar-right { display: flex; gap: 12px; flex-wrap: wrap; }
+        .table-wrapper {
+            background: white; border-radius: 24px; border: 1px solid #e9edf2;
+            overflow: auto; box-shadow: 0 4px 14px rgba(0,0,0,0.02); margin-bottom: 16px;
+        }
+        table {
+            width: 100%; border-collapse: collapse; min-width: 1300px; white-space: nowrap;
+        }
+        th {
+            text-align: left; padding: 18px 16px; background-color: #fcfdff;
+            font-weight: 600; font-size: 0.85rem; color: #475569; border-bottom: 1px solid #e2e8f0;
+        }
+        td { padding: 16px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; color: #1e293b; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #fafcff; }
+        .checkbox-col { width: 28px; text-align: center; }
+        .status-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; font-weight: 500;
+        }
+        .status-new { background: #dbeafe; color: #1e4f8a; }
+        .status-followup { background: #fef9c3; color: #854d0e; }
+        .status-closed { background: #e2e8f0; color: #334155; }
+        .source-cms {
+            background: #e6f0ff; border-radius: 12px; padding: 2px 8px; font-size: 0.75rem;
+            font-weight: 600; color: #2563eb; margin-left: 6px;
+        }
+        .action-icons {
+            display: flex; gap: 12px; align-items: center; color: #5f6c80;
+        }
+        .action-icons i { cursor: pointer; font-size: 1.1rem; padding: 4px; }
+        .action-icons i:hover { color: #2563eb; transform: scale(1.1); }
+        .quick-menu { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none; position: absolute; background: white; min-width: 140px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-radius: 14px;
+            padding: 6px 0; z-index: 10; border: 1px solid #e9edf2;
+        }
+        .dropdown-content a {
+            display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+            text-decoration: none; color: #1e293b; font-size: 0.9rem;
+        }
+        .dropdown-content a:hover { background: #f1f5f9; }
+        .quick-menu:hover .dropdown-content { display: block; }
+
+        .pagination {
+            display: flex; justify-content: flex-end; gap: 12px; align-items: center; margin-top: 12px;
+        }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-card {
+            background: white; width: 460px; border-radius: 32px; padding: 28px; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+        .modal-card h3 { margin-bottom: 20px; font-weight: 600; }
+        .modal-field { margin-bottom: 16px; }
+        .modal-field label {
+            display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 6px; color: #334155;
+        }
+        .modal-field input, .modal-field select, .modal-field textarea {
+            width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 16px; font-size: 1rem;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+        #fileImport { display: none; }
+        .visit-badge { font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 20px; margin-left: 8px; }
+    </style>
+</head>
+<body>
+<div class="crm-container">
+    <div class="crm-content">
+        <!-- 头部 (无导航) -->
+        <!-- <div class="header-bar">
+            <h2><i class="fas fa-people-arrows"></i> 销售人员线索管理</h2>
+            <div class="user-badge">
+                <i class="fas fa-user-tie"></i>
+                <span>张明 (销售顾问)</span>
+                <small><i class="fas fa-lock"></i> 仅自己负责</small>
+            </div>
+        </div> -->
+
+        <!-- 查询卡片 -->
+        <div class="query-card">
+            <div class="query-row">
+                <div class="query-field">
+                    <label>线索名称</label>
+                    <input type="text" id="searchName" placeholder="输入名称" value="">
+                </div>
+                <div class="query-field">
+                    <label>线索状态</label>
+                    <select id="searchStatus">
+                        <option value="">全部</option>
+                        <option value="新线索">新线索</option>
+                        <option value="跟进中">跟进中</option>
+                        <option value="已关闭">已关闭</option>
+                    </select>
+                </div>
+                <div class="query-field">
+                    <label>推荐人</label>
+                    <input type="text" id="searchReferrer" placeholder="推荐人姓名">
+                </div>
+                <div class="query-field" style="flex:0 1 auto;">
+                    <label>自定义 <i class="fa-regular fa-circle-plus"></i></label>
+                    <button class="btn btn-outline" style="padding:10px 18px;" id="toggleAdvancedBtn"><i class="fa-regular fa-filter"></i> 更多字段</button>
+                </div>
+                <div class="query-actions">
+                    <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+                    <button class="btn btn-outline" id="exportBtn"><i class="fa-solid fa-download"></i> 导出</button>
+                    <button class="btn btn-outline" id="cmsSyncBtn"><i class="fa-brands fa-connectdevelop"></i> 博达CMS溯源</button>
+                </div>
+            </div>
+            <!-- 高级搜索区域 (自定义条件) -->
+            <div class="advanced-search" id="advancedSearch">
+                <div class="query-field">
+                    <label>线索来源</label>
+                    <select id="searchSource">
+                        <option value="">全部</option>
+                        <option value="博达CMS">博达CMS</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="query-field">
+                    <label>创建起始</label>
+                    <input type="date" id="searchStartDate">
+                </div>
+                <div class="query-field">
+                    <label>创建结束</label>
+                    <input type="date" id="searchEndDate">
+                </div>
+            </div>
+            <div style="margin-top: 14px; display: flex; gap: 16px; align-items: center;">
+                <span class="badge-owner"><i class="fa-regular fa-user"></i> 当前负责人: 张明 (只能查看本人线索)</span>
+                <span class="badge-owner"><i class="fa-regular fa-clock"></i> 溯源支持: 推荐人/博达CMS</span>
+            </div>
+        </div>
+
+        <!-- 工具栏 -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="btn btn-primary" id="addSingleBtn"><i class="fa-regular fa-plus"></i> 单个录入</button>
+                <button class="btn btn-outline" id="batchImportBtn"><i class="fa-regular fa-upload"></i> 批量导入</button>
+                <input type="file" id="fileImport" accept=".csv, .txt, .xlsx">
+                <a href="#" id="downloadTemplate" class="btn btn-outline"><i class="fa-regular fa-file-lines"></i> 模板</a>
+            </div>
+            <div class="toolbar-right">
+                <span style="align-self: center; background: #e9eef2; padding:4px 12px; border-radius:40px; font-size:0.85rem;" id="selectedCount">0 选中</span>
+                <button class="btn btn-outline" id="batchTransferBtn"><i class="fa-regular fa-share"></i> 批量转交</button>
+                <button class="btn btn-outline" id="batchEmailBtn"><i class="fa-regular fa-envelope"></i> 批量邮件</button>
+                <button class="btn btn-outline" id="batchCloseBtn"><i class="fa-regular fa-circle-xmark"></i> 批量关闭</button>
+                <button class="btn btn-outline" id="quickBatchBtn"><i class="fa-regular fa-bolt"></i> 快速处理</button>
+            </div>
+        </div>
+
+        <!-- 线索表格 -->
+        <div class="table-wrapper">
+            <table id="leadTable">
+                <thead>
+                    <tr>
+                        <th class="checkbox-col"><input type="checkbox" id="selectAll"></th>
+                        <th>线索名称</th>
+                        <th>公司</th>
+                        <th>推荐人 / 溯源</th>
+                        <th>状态</th>
+                        <th>创建时间</th>
+                        <th>最近拜访</th>
+                        <th>操作 (维护/拜访/快速/溯源)</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- 动态渲染 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 简易分页 (演示) -->
+        <div class="pagination">
+            <span style="color:#64748b;" id="paginationInfo">1-5 条 / 共 8 条</span>
+            <button class="btn btn-outline" id="prevPage" disabled><i class="fa-regular fa-chevron-left"></i> 上一页</button>
+            <button class="btn btn-outline" id="nextPage">下一页 <i class="fa-regular fa-chevron-right"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- 线索编辑/添加模态框 -->
+<div class="modal" id="leadModal">
+    <div class="modal-card">
+        <h3 id="modalTitle">添加线索</h3>
+        <div class="modal-field">
+            <label>线索名称</label>
+            <input type="text" id="leadName" placeholder="例：张三科技">
+        </div>
+        <div class="modal-field">
+            <label>公司</label>
+            <input type="text" id="leadCompany" placeholder="例：云创网络">
+        </div>
+        <div class="modal-field">
+            <label>推荐人</label>
+            <input type="text" id="leadReferrer" placeholder="姓名 (博达CMS自动标记)">
+        </div>
+        <div class="modal-field">
+            <label>状态</label>
+            <select id="leadStatus">
+                <option value="新线索">新线索</option>
+                <option value="跟进中">跟进中</option>
+                <option value="已关闭">已关闭</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="modalCancel">取消</button>
+            <button class="btn btn-primary" id="modalSave">保存线索</button>
+        </div>
+    </div>
+</div>
+
+<!-- 拜访记录模态框 -->
+<div class="modal" id="visitModal">
+    <div class="modal-card">
+        <h3>记录拜访</h3>
+        <div class="modal-field">
+            <label>拜访内容</label>
+            <textarea id="visitContent" rows="3" placeholder="沟通详情..."></textarea>
+        </div>
+        <div class="modal-field">
+            <label>下次跟进</label>
+            <input type="date" id="visitNextDate">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="visitCancel">取消</button>
+            <button class="btn btn-primary" id="visitSave">保存记录</button>
+        </div>
+    </div>
+</div>
+
+<!-- 转交模态框 (批量/单条) -->
+<div class="modal" id="transferModal">
+    <div class="modal-card">
+        <h3>转交线索</h3>
+        <p id="transferLeadIds" style="font-size:0.9rem; color:#475569;"></p>
+        <div class="modal-field">
+            <label>转交给 (销售姓名)</label>
+            <select id="transferOwner">
+                <option value="李芳">李芳</option>
+                <option value="王磊">王磊</option>
+                <option value="赵敏">赵敏</option>
+                <option value="陈晨">陈晨</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="transferCancel">取消</button>
+            <button class="btn btn-primary" id="transferConfirm">确认转交</button>
+        </div>
+    </div>
+</div>
+
+<!-- 溯源信息模态框 -->
+<div class="modal" id="traceModal">
+    <div class="modal-card">
+        <h3>线索溯源</h3>
+        <div id="traceContent">加载中...</div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="traceClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 数据存储 ----------
+        let leadsData = [
+            { id: 'L001', name: '云途科技', company: '云途科技', referrer: '王博 (博达CMS)', status: '新线索', createTime: '2025-02-10', owner: '张明', cmsSource: true, lastVisit: '' },
+            { id: 'L002', name: '智创未来', company: '智创工作室', referrer: '李芳', status: '跟进中', createTime: '2025-02-14', owner: '张明', cmsSource: false, lastVisit: '2025-02-20 电话沟通' },
+            { id: 'L003', name: '数海信息', company: '数海信息集团', referrer: '陈博达(博达推荐)', status: '新线索', createTime: '2025-02-18', owner: '张明', cmsSource: true, lastVisit: '' },
+            { id: 'L004', name: '绿源农业', company: '绿源生态', referrer: '赵岩', status: '已关闭', createTime: '2025-01-22', owner: '张明', cmsSource: false, lastVisit: '' },
+            { id: 'L005', name: '星耀传媒', company: '星耀传媒', referrer: '周瑾 (博达CMS)', status: '跟进中', createTime: '2025-02-20', owner: '张明', cmsSource: true, lastVisit: '2025-02-21 微信沟通' },
+            { id: 'L006', name: '华诚咨询', company: '华诚咨询', referrer: '刘敏', status: '新线索', createTime: '2025-02-21', owner: '张明', cmsSource: false, lastVisit: '' },
+            { id: 'L007', name: '百川电商', company: '百川网络', referrer: '徐汇博达', status: '跟进中', createTime: '2025-02-09', owner: '张明', cmsSource: true, lastVisit: '' },
+            { id: 'L008', name: '非本人线索', company: '其他公司', referrer: '赵六', status: '新线索', createTime: '2025-02-01', owner: '李四', cmsSource: false, lastVisit: '' }
+        ];
+
+        // 过滤出自己负责的线索 (owner === '张明')
+        let myLeads = leadsData.filter(lead => lead.owner === '张明');
+        // 当前展示的数据 (经过搜索)
+        let currentDisplayData = [...myLeads];
+
+        // 分页相关 (简单每页5条)
+        let currentPage = 1;
+        const pageSize = 5;
+
+        // DOM 元素
+        const tbody = document.getElementById('tableBody');
+        const selectAllCheck = document.getElementById('selectAll');
+        const selectedCountSpan = document.getElementById('selectedCount');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchName = document.getElementById('searchName');
+        const searchStatus = document.getElementById('searchStatus');
+        const searchReferrer = document.getElementById('searchReferrer');
+        const searchSource = document.getElementById('searchSource');
+        const searchStartDate = document.getElementById('searchStartDate');
+        const searchEndDate = document.getElementById('searchEndDate');
+        const toggleAdvancedBtn = document.getElementById('toggleAdvancedBtn');
+        const advancedSearch = document.getElementById('advancedSearch');
+        const exportBtn = document.getElementById('exportBtn');
+        const cmsSyncBtn = document.getElementById('cmsSyncBtn');
+        const addSingleBtn = document.getElementById('addSingleBtn');
+        const batchImportBtn = document.getElementById('batchImportBtn');
+        const fileImport = document.getElementById('fileImport');
+        const downloadTemplate = document.getElementById('downloadTemplate');
+        const leadModal = document.getElementById('leadModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalSave = document.getElementById('modalSave');
+        const leadName = document.getElementById('leadName');
+        const leadCompany = document.getElementById('leadCompany');
+        const leadReferrer = document.getElementById('leadReferrer');
+        const leadStatus = document.getElementById('leadStatus');
+        const visitModal = document.getElementById('visitModal');
+        const visitContent = document.getElementById('visitContent');
+        const visitNextDate = document.getElementById('visitNextDate');
+        const visitCancel = document.getElementById('visitCancel');
+        const visitSave = document.getElementById('visitSave');
+        const transferModal = document.getElementById('transferModal');
+        const transferLeadIds = document.getElementById('transferLeadIds');
+        const transferOwner = document.getElementById('transferOwner');
+        const transferCancel = document.getElementById('transferCancel');
+        const transferConfirm = document.getElementById('transferConfirm');
+        const traceModal = document.getElementById('traceModal');
+        const traceContent = document.getElementById('traceContent');
+        const traceClose = document.getElementById('traceClose');
+        const batchTransferBtn = document.getElementById('batchTransferBtn');
+        const batchEmailBtn = document.getElementById('batchEmailBtn');
+        const batchCloseBtn = document.getElementById('batchCloseBtn');
+        const quickBatchBtn = document.getElementById('quickBatchBtn');
+        const prevPage = document.getElementById('prevPage');
+        const nextPage = document.getElementById('nextPage');
+        const paginationInfo = document.getElementById('paginationInfo');
+
+        let editingId = null;          // 当前编辑的线索ID
+        let currentVisitLeadId = null; // 记录拜访的线索ID
+        let transferMode = 'batch';    // 'batch' 或 'single'
+        let transferIds = [];           // 待转交的ID列表
+
+        // ---------- 辅助函数 ----------
+        function generateId() { return 'L' + String(leadsData.length + 100).slice(1,5); }
+
+        // 保存数据后重新过滤并刷新
+        function refreshDataAndRender() {
+            myLeads = leadsData.filter(lead => lead.owner === '张明');
+            applySearchAndPage(); // 应用搜索条件并分页
+        }
+
+        // 应用搜索条件 + 分页
+        function applySearchAndPage() {
+            // 先过滤自己负责
+            let filtered = myLeads.filter(lead => true);
+            // 基本搜索
+            const nameVal = searchName.value.toLowerCase();
+            const statusVal = searchStatus.value;
+            const referrerVal = searchReferrer.value.toLowerCase();
+            const sourceVal = searchSource ? searchSource.value : '';
+            const startDate = searchStartDate ? searchStartDate.value : '';
+            const endDate = searchEndDate ? searchEndDate.value : '';
+
+            filtered = filtered.filter(lead => {
+                if (nameVal && !lead.name.toLowerCase().includes(nameVal)) return false;
+                if (statusVal && lead.status !== statusVal) return false;
+                if (referrerVal && !(lead.referrer && lead.referrer.toLowerCase().includes(referrerVal))) return false;
+                if (sourceVal) {
+                    const isCms = lead.referrer && lead.referrer.toLowerCase().includes('博达');
+                    if (sourceVal === '博达CMS' && !isCms) return false;
+                    if (sourceVal === '其他' && isCms) return false;
+                }
+                if (startDate && lead.createTime < startDate) return false;
+                if (endDate && lead.createTime > endDate) return false;
+                return true;
+            });
+
+            // 分页
+            const total = filtered.length;
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            currentDisplayData = filtered.slice(start, end);
+            renderTable(currentDisplayData);
+
+            // 更新分页信息
+            const totalPages = Math.ceil(total / pageSize);
+            paginationInfo.innerText = `${start+1}-${Math.min(end, total)} 条 / 共 ${total} 条`;
+            prevPage.disabled = currentPage === 1;
+            nextPage.disabled = currentPage === totalPages || total === 0;
+        }
+
+        // 渲染表格
+        function renderTable(data) {
+            let html = '';
+            data.forEach(lead => {
+                const statusClass = lead.status === '新线索' ? 'status-new' : (lead.status === '跟进中' ? 'status-followup' : 'status-closed');
+                const cmsBadge = lead.cmsSource ? '<span class="source-cms"><i class="fa-regular fa-link"></i> 博达CMS</span>' : '';
+                const visitDisplay = lead.lastVisit ? `<span class="visit-badge">${lead.lastVisit.substring(0,10)}</span>` : '';
+                html += `<tr data-id="${lead.id}">
+                    <td class="checkbox-col"><input type="checkbox" class="row-checkbox" value="${lead.id}"></td>
+                    <td><strong>${lead.name}</strong></td>
+                    <td>${lead.company}</td>
+                    <td>${lead.referrer} ${cmsBadge}</td>
+                    <td><span class="status-badge ${statusClass}">${lead.status}</span></td>
+                    <td>${lead.createTime}</td>
+                    <td>${visitDisplay ? lead.lastVisit : '—'}</td>
+                    <td>
+                        <div class="action-icons">
+                            <i class="fa-regular fa-pen-to-square" title="日常维护" data-action="edit" data-id="${lead.id}"></i>
+                            <i class="fa-regular fa-calendar-check" title="记录拜访" data-action="visit" data-id="${lead.id}"></i>
+                            <div class="quick-menu">
+                                <i class="fa-regular fa-bolt" title="快速处理"></i>
+                                <div class="dropdown-content">
+                                    <a href="#" data-action="quickTransfer" data-id="${lead.id}"><i class="fa-regular fa-share"></i>转交</a>
+                                    <a href="#" data-action="quickMail" data-id="${lead.id}"><i class="fa-regular fa-envelope"></i>发送邮件</a>
+                                    <a href="#" data-action="quickClose" data-id="${lead.id}"><i class="fa-regular fa-circle-xmark"></i>关闭</a>
+                                </div>
+                            </div>
+                            <i class="fa-regular fa-diagram-project" title="线索溯源" data-action="trace" data-id="${lead.id}"></i>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+            updateSelectedCount();
+        }
+
+        // 更新选中计数
+        function updateSelectedCount() {
+            const checked = document.querySelectorAll('.row-checkbox:checked').length;
+            selectedCountSpan.innerText = checked + ' 选中';
+            selectAllCheck.checked = checked === document.querySelectorAll('.row-checkbox').length && checked > 0;
+        }
+
+        // 显示toast（模拟简单通知）
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-mock';
+            toast.style.cssText = 'position:fixed; bottom:24px; right:24px; background:#1e293b; color:white; padding:12px 24px; border-radius:50px; font-size:0.9rem; box-shadow:0 8px 20px rgba(0,0,0,0.2); z-index:1100;';
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        // ---------- 事件绑定 ----------
+        // 全选/取消
+        selectAllCheck.addEventListener('change', function() {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = selectAllCheck.checked);
+            updateSelectedCount();
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox')) {
+                const all = document.querySelectorAll('.row-checkbox');
+                const checked = document.querySelectorAll('.row-checkbox:checked');
+                selectAllCheck.checked = all.length === checked.length && checked.length > 0;
+                updateSelectedCount();
+            }
+        });
+
+        // 搜索按钮
+        searchBtn.addEventListener('click', function() {
+            currentPage = 1;
+            applySearchAndPage();
+        });
+
+        // 高级搜索显示/隐藏
+        toggleAdvancedBtn.addEventListener('click', function() {
+            if (advancedSearch.style.display === 'none' || advancedSearch.style.display === '') {
+                advancedSearch.style.display = 'flex';
+            } else {
+                advancedSearch.style.display = 'none';
+            }
+        });
+
+        // 导出CSV
+        exportBtn.addEventListener('click', function() {
+            const dataToExport = currentDisplayData; // 导出当前页或所有？按照需求“导出查询结果”，我们导出当前过滤后的所有结果（即myLeads过滤后）
+            // 重新计算所有过滤结果
+            let filteredAll = myLeads.filter(lead => {
+                // 复用过滤条件
+                const nameVal = searchName.value.toLowerCase();
+                const statusVal = searchStatus.value;
+                const referrerVal = searchReferrer.value.toLowerCase();
+                const sourceVal = searchSource ? searchSource.value : '';
+                if (nameVal && !lead.name.toLowerCase().includes(nameVal)) return false;
+                if (statusVal && lead.status !== statusVal) return false;
+                if (referrerVal && !(lead.referrer && lead.referrer.toLowerCase().includes(referrerVal))) return false;
+                if (sourceVal) {
+                    const isCms = lead.referrer && lead.referrer.toLowerCase().includes('博达');
+                    if (sourceVal === '博达CMS' && !isCms) return false;
+                    if (sourceVal === '其他' && isCms) return false;
+                }
+                return true;
+            });
+            if (filteredAll.length === 0) { showToast('没有数据可导出'); return; }
+            const headers = ['线索名称','公司','推荐人','状态','创建时间','负责人','最近拜访'];
+            const rows = filteredAll.map(l => [l.name, l.company, l.referrer, l.status, l.createTime, l.owner, l.lastVisit || '']);
+            let csv = headers.join(',') + '\n' + rows.map(r => r.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '线索导出.csv';
+            link.click();
+            showToast('导出成功');
+        });
+
+        // 博达CMS对接 (模拟：更新推荐人标记)
+        cmsSyncBtn.addEventListener('click', function() {
+            // 模拟对接：将所有包含“博达”的推荐人标记cmsSource为true
+            leadsData.forEach(l => {
+                if (l.referrer && l.referrer.includes('博达')) l.cmsSource = true;
+            });
+            refreshDataAndRender();
+            showToast('已同步博达CMS推荐人信息');
+        });
+
+        // 单个录入
+        addSingleBtn.addEventListener('click', function() {
+            editingId = null;
+            modalTitle.innerText = '添加线索';
+            leadName.value = ''; leadCompany.value = ''; leadReferrer.value = ''; leadStatus.value = '新线索';
+            leadModal.style.display = 'flex';
+        });
+
+        // 批量导入 - 读取CSV
+        batchImportBtn.addEventListener('click', () => fileImport.click());
+        fileImport.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const text = ev.target.result;
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                const newLeads = [];
+                lines.forEach((line, idx) => {
+                    // 简单按逗号分割，去掉引号
+                    const parts = line.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+                    if (parts.length >= 3) {
+                        const name = parts[0] || `导入客户${idx+1}`;
+                        const company = parts[1] || '未知';
+                        const referrer = parts[2] || '批量导入';
+                        const status = parts[3] && ['新线索','跟进中','已关闭'].includes(parts[3]) ? parts[3] : '新线索';
+                        const cmsSource = referrer.includes('博达');
+                        newLeads.push({
+                            id: generateId() + idx,
+                            name, company, referrer, status,
+                            createTime: new Date().toISOString().slice(0,10),
+                            owner: '张明', cmsSource, lastVisit: ''
+                        });
+                    }
+                });
+                if (newLeads.length > 0) {
+                    leadsData.push(...newLeads);
+                    refreshDataAndRender();
+                    showToast(`成功导入 ${newLeads.length} 条线索`);
+                } else {
+                    showToast('未解析到有效数据，请使用模板格式');
+                }
+                fileImport.value = '';
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+
+        // 下载模板
+        downloadTemplate.addEventListener('click', (e) => {
+            e.preventDefault();
+            const template = '线索名称,公司,推荐人,状态\n"示例客户A","XX科技","李博达(博达)","新线索"';
+            const blob = new Blob(['\uFEFF' + template], {type: 'text/csv'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '导入模板.csv';
+            link.click();
+        });
+
+        // 批量转交
+        batchTransferBtn.addEventListener('click', () => {
+            const checked = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+            if (checked.length === 0) { showToast('至少选择一条线索'); return; }
+            transferMode = 'batch';
+            transferIds = checked;
+            transferLeadIds.innerText = `已选择 ${checked.length} 条线索，将转交给：`;
+            transferModal.style.display = 'flex';
+        });
+
+        // 单条转交 (通过快速菜单)
+        function openTransferSingle(id) {
+            transferMode = 'single';
+            transferIds = [id];
+            transferLeadIds.innerText = `转交线索 ${id}`;
+            transferModal.style.display = 'flex';
+        }
+
+        // 确认转交
+        transferConfirm.addEventListener('click', () => {
+            const newOwner = transferOwner.value;
+            transferIds.forEach(id => {
+                const lead = leadsData.find(l => l.id === id);
+                if (lead && lead.owner === '张明') {
+                    lead.owner = newOwner;
+                }
+            });
+            transferModal.style.display = 'none';
+            refreshDataAndRender();
+            showToast(`已转交 ${transferIds.length} 条线索给 ${newOwner}`);
+        });
+        transferCancel.addEventListener('click', () => transferModal.style.display = 'none');
+
+        // 批量邮件
+        batchEmailBtn.addEventListener('click', () => {
+            const checked = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+            if (checked.length === 0) { showToast('至少选择一条线索'); return; }
+            showToast(`模拟发送邮件给 ${checked.length} 条线索`);
+        });
+
+        // 批量关闭
+        batchCloseBtn.addEventListener('click', () => {
+            const checked = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+            if (checked.length === 0) { showToast('至少选择一条线索'); return; }
+            checked.forEach(id => {
+                const lead = leadsData.find(l => l.id === id);
+                if (lead && lead.owner === '张明') lead.status = '已关闭';
+            });
+            refreshDataAndRender();
+            showToast(`已关闭 ${checked.length} 条线索`);
+        });
+
+        // 快速处理（批量操作占位）
+        quickBatchBtn.addEventListener('click', () => showToast('快速处理：可批量标记、批量转换 (演示)'));
+
+        // 操作按钮委托
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+            const action = target.dataset.action;
+            const id = target.dataset.id;
+            if (!id) return;
+            const lead = leadsData.find(l => l.id === id);
+            if (!lead || lead.owner !== '张明') { showToast('只能操作自己负责的线索'); return; }
+
+            if (action === 'edit') {
+                editingId = id;
+                modalTitle.innerText = '编辑线索';
+                leadName.value = lead.name;
+                leadCompany.value = lead.company;
+                leadReferrer.value = lead.referrer;
+                leadStatus.value = lead.status;
+                leadModal.style.display = 'flex';
+            }
+            else if (action === 'visit') {
+                currentVisitLeadId = id;
+                visitContent.value = '';
+                visitNextDate.value = '';
+                visitModal.style.display = 'flex';
+            }
+            else if (action === 'quickTransfer') {
+                e.preventDefault();
+                openTransferSingle(id);
+            }
+            else if (action === 'quickMail') {
+                e.preventDefault();
+                showToast(`发送邮件给 ${lead.name}`);
+            }
+            else if (action === 'quickClose') {
+                e.preventDefault();
+                lead.status = '已关闭';
+                refreshDataAndRender();
+                showToast('线索已关闭');
+            }
+            else if (action === 'trace') {
+                // 显示溯源信息
+                traceContent.innerHTML = `
+                    <p><strong>线索名称：</strong> ${lead.name}</p>
+                    <p><strong>推荐人：</strong> ${lead.referrer}</p>
+                    <p><strong>博达CMS来源：</strong> ${lead.cmsSource ? '是' : '否'}</p>
+                    <p><strong>创建时间：</strong> ${lead.createTime}</p>
+                    <p><strong>最近拜访：</strong> ${lead.lastVisit || '无'}</p>
+                    <p><small>若需要对接博达CMS查看完整溯源，可点击“博达CMS溯源”按钮同步。</small></p>
+                `;
+                traceModal.style.display = 'flex';
+            }
+        });
+
+        // 保存线索模态
+        modalSave.addEventListener('click', () => {
+            const name = leadName.value.trim();
+            if (!name) { showToast('请输入线索名称'); return; }
+            if (editingId) {
+                const lead = leadsData.find(l => l.id === editingId);
+                if (lead) {
+                    lead.name = name;
+                    lead.company = leadCompany.value;
+                    lead.referrer = leadReferrer.value;
+                    lead.status = leadStatus.value;
+                    lead.cmsSource = lead.referrer.toLowerCase().includes('博达');
+                }
+            } else {
+                const newLead = {
+                    id: generateId(),
+                    name: name,
+                    company: leadCompany.value,
+                    referrer: leadReferrer.value || '手动录入',
+                    status: leadStatus.value,
+                    createTime: new Date().toISOString().slice(0,10),
+                    owner: '张明',
+                    cmsSource: leadReferrer.value.toLowerCase().includes('博达'),
+                    lastVisit: ''
+                };
+                leadsData.push(newLead);
+            }
+            leadModal.style.display = 'none';
+            refreshDataAndRender();
+            showToast(editingId ? '线索已更新' : '线索已添加');
+        });
+        modalCancel.addEventListener('click', () => leadModal.style.display = 'none');
+
+        // 拜访记录保存
+        visitSave.addEventListener('click', () => {
+            if (!currentVisitLeadId) return;
+            const lead = leadsData.find(l => l.id === currentVisitLeadId);
+            if (lead) {
+                const content = visitContent.value.trim() || '电话沟通';
+                const date = visitNextDate.value || new Date().toISOString().slice(0,10);
+                lead.lastVisit = `${date} ${content}`;
+            }
+            visitModal.style.display = 'none';
+            refreshDataAndRender();
+            showToast('拜访记录已保存');
+        });
+        visitCancel.addEventListener('click', () => visitModal.style.display = 'none');
+
+        // 溯源模态关闭
+        traceClose.addEventListener('click', () => traceModal.style.display = 'none');
+
+        // 分页
+        prevPage.addEventListener('click', () => {
+            if (currentPage > 1) { currentPage--; applySearchAndPage(); }
+        });
+        nextPage.addEventListener('click', () => {
+            const total = myLeads.length; // 粗略，实际应基于过滤后总数，但apply里会重新计算
+            const filteredTotal = (() => {
+                let filtered = myLeads.filter(lead => true);
+                // 简化，不重复过滤逻辑，直接在applySearchAndPage里处理
+                return myLeads.length;
+            })();
+            currentPage++; 
+            applySearchAndPage(); // 内部会检查是否超出
+        });
+
+        // 点击模态背景关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === leadModal) leadModal.style.display = 'none';
+            if (e.target === visitModal) visitModal.style.display = 'none';
+            if (e.target === transferModal) transferModal.style.display = 'none';
+            if (e.target === traceModal) traceModal.style.display = 'none';
+        });
+
+        // 初始化
+        refreshDataAndRender();
+    })();
+</script>
+</body>
+</html>

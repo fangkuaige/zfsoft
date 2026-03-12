@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生短信模板 · 移动卡片风格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #1e293b;
+        }
+
+        /* 主容器 */
+        .app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 16px 16px 20px 16px;
+            background: #f5f7fa;
+        }
+
+        /* ===== 工具栏 — 圆角卡片感 ===== */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            margin-bottom: 18px;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: #f0f4fc;
+            border-radius: 30px;
+            padding: 0 18px;
+            border: 1px solid transparent;
+            transition: 0.15s;
+        }
+        .search-box:focus-within {
+            background: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        .search-box i {
+            color: #6b7b8f;
+            margin-right: 8px;
+            font-style: normal;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            padding: 14px 0;
+            width: 100%;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-select {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            padding: 12px 36px 12px 20px;
+            font-size: 0.95rem;
+            color: #1e293b;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234b6583' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .filter-select:hover {
+            border-color: #b1c8e5;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 12px 28px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 6px 14px rgba(59,130,246,0.25);
+            border: 1px solid #2563eb;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: scale(1.01);
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 10px 24px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #334155;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        /* ===== 卡片列表容器 (固定高度) ===== */
+        .cards-container {
+            background: transparent;
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 4px 8px 4px;
+            height: 360px;          /* 固定高度，与之前表格一致 */
+            border-radius: 0;
+        }
+
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* 卡片样式 — 圆角、阴影、移动风格 */
+        .template-card {
+            background: white;
+            border-radius: 24px;
+            padding: 18px 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.02);
+            border: 1px solid #edf2f7;
+            transition: all 0.15s;
+        }
+        .template-card:hover {
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+            border-color: #d0ddee;
+        }
+
+        .card-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .card-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .template-name {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #0f2b45;
+        }
+
+        .type-badge {
+            background: #e6f0fc;
+            color: #1e4d8c;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 40px;
+            border: 1px solid #c7daf0;
+            letter-spacing: 0.3px;
+        }
+
+        .signature {
+            background: #f1f5f9;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #334155;
+            border: 1px solid #dae2ed;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e6f7e6;
+            padding: 5px 16px 5px 12px;
+            border-radius: 40px;
+            border: 1px solid #b2e0b2;
+            color: #1f7b4d;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .status-badge.disabled {
+            background: #f0f3f8;
+            border-color: #d0dbe9;
+            color: #5e6f88;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #2ecc71;
+            border-radius: 10px;
+            border: 1px solid #1f8f4b;
+        }
+        .status-dot.disabled {
+            background: #a1b3c9;
+            border-color: #6e849e;
+        }
+
+        .update-time {
+            color: #5f7d9c;
+            font-size: 0.85rem;
+            background: #f0f5fa;
+            padding: 4px 14px;
+            border-radius: 30px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #3b5f8a;
+            font-size: 0.9rem;
+            padding: 8px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            border: 1px solid #d4e0ec;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .action-btn:hover {
+            background: #f0f7ff;
+            border-color: #8aa9cc;
+        }
+        .action-btn.delete:hover {
+            background: #fff2f2;
+            border-color: #f3b8b8;
+            color: #b33939;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 50px 20px;
+            color: #7b8fa2;
+            background: white;
+            border-radius: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* ===== 分页栏 — 圆角风格 ===== */
+        .pagination-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 8px 8px 8px;
+            background: transparent;
+            font-size: 0.9rem;
+            color: #2b405b;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 8px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .pagination-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 10px 24px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-numbers {
+            display: flex;
+            gap: 6px;
+        }
+        .page-num {
+            background: white;
+            border: 1px solid #cbd5e1;
+            min-width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .page-num.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 6px 12px rgba(59,130,246,0.25);
+        }
+        .page-num:hover:not(.active) {
+            background: #f0f7ff;
+            border-color: #8aa9cc;
+        }
+
+        /* ===== 弹窗 — 圆角卡片 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 30, 50, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 36px;
+            width: 100%;
+            max-width: 750px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 60px rgba(0,20,50,0.3);
+            padding: 28px 30px;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .preview-modal .modal-card {
+            max-width: 600px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e9eef3;
+        }
+        .modal-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0f2b45;
+        }
+        .close-btn {
+            background: #f0f4fa;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4b6783;
+            border: 1px solid #d0ddee;
+        }
+        .close-btn:hover {
+            background: #e2eaf5;
+        }
+
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .form-group {
+            flex: 1 1 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #25415d;
+            font-size: 0.9rem;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 14px 18px;
+            border: 1px solid #d9e4f0;
+            border-radius: 24px;
+            font-size: 0.95rem;
+            background: #ffffff;
+            outline: none;
+            transition: 0.15s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        /* 变量工具箱 */
+        .var-toolbox {
+            background: #f2f8ff;
+            border-radius: 28px;
+            padding: 18px 22px;
+            border: 1px solid #d3e3f8;
+        }
+        .var-toolbox p {
+            margin-bottom: 14px;
+            font-weight: 600;
+            color: #1e3d68;
+        }
+        .var-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .var-btn {
+            background: white;
+            border: 1px solid #c7daf0;
+            border-radius: 40px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            color: #1e4d8c;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .var-btn:hover {
+            background: #e1efff;
+            border-color: #3b82f6;
+        }
+
+        /* 弹窗内预览区 */
+        .inner-preview {
+            background: #f8fcff;
+            border-radius: 28px;
+            padding: 20px;
+            border: 1px solid #d3e3f8;
+        }
+        .var-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .var-item label {
+            min-width: 110px;
+            font-weight: 600;
+            color: #1e3d68;
+        }
+        .var-item input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 30px;
+            border: 1px solid #ccddec;
+            background: white;
+        }
+
+        .preview-block {
+            background: #eef4fc;
+            border-radius: 20px;
+            padding: 18px;
+            margin-top: 16px;
+            white-space: pre-wrap;
+            border-left: 5px solid #3b82f6;
+        }
+
+        .char-hint {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #2f4a6a;
+            margin-top: 10px;
+        }
+        .char-hint.warning {
+            color: #c2410c;
+            font-weight: 600;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 28px;
+            border-top: 1px solid #e2eaf5;
+            padding-top: 20px;
+        }
+
+        /* 预览弹窗内部 */
+        .preview-var-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .preview-var-row label {
+            min-width: 110px;
+            font-weight: 600;
+            color: #1e3d68;
+        }
+        .preview-var-row input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 30px;
+            border: 1px solid #ccddec;
+        }
+        .rendered-preview {
+            background: #ecf3fa;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 16px 0 10px;
+            white-space: pre-wrap;
+            border-left: 5px solid #3b82f6;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .toolbar { padding: 12px; }
+            .template-card { padding: 16px; }
+            .card-row { gap: 10px; }
+            .modal-card { padding: 22px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- 圆角工具栏 -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i>🔍</i>
+            <input type="text" id="searchInput" placeholder="搜索模板...">
+        </div>
+        <div class="filter-group">
+            <select id="typeFilter" class="filter-select">
+                <option value="">全部类型</option>
+                <option value="教学通知">教学通知</option>
+                <option value="学工通知">学工通知</option>
+                <option value="紧急预警">紧急预警</option>
+            </select>
+            <select id="statusFilter" class="filter-select">
+                <option value="">全部状态</option>
+                <option value="true">启用</option>
+                <option value="false">禁用</option>
+            </select>
+        </div>
+        <button class="btn-primary" id="newTemplateBtn">➕ 新建模板</button>
+    </div>
+
+    <!-- 卡片列表容器 (固定高度) -->
+    <div class="cards-container" id="cardsContainer">
+        <div class="cards-list" id="cardsList">
+            <!-- JS 动态渲染卡片 -->
+        </div>
+    </div>
+
+    <!-- 分页栏 (圆角) -->
+    <div class="pagination-bar">
+        <div class="pagination-info" id="paginationInfo"></div>
+        <div class="pagination-controls">
+            <button class="pagination-btn" id="prevPage" disabled>上一页</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button class="pagination-btn" id="nextPage" disabled>下一页</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 新建/编辑模板弹窗 (圆角) ===== -->
+<div class="modal-overlay" id="templateModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2 id="modalTitle">新建短信模板</h2>
+            <button class="close-btn" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>模板名称</label>
+                    <input type="text" id="templateName" placeholder="例如：组会提醒">
+                </div>
+                <div class="form-group">
+                    <label>短信签名</label>
+                    <input type="text" id="templateSignature" value="【研究生院】">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>类型</label>
+                    <select id="templateType">
+                        <option value="教学通知">教学通知</option>
+                        <option value="学工通知">学工通知</option>
+                        <option value="紧急预警">紧急预警</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>状态</label>
+                    <select id="templateStatus">
+                        <option value="true">启用</option>
+                        <option value="false">禁用</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="var-toolbox">
+                <p>📦 插入变量 (点击插入光标位置)</p>
+                <div class="var-buttons">
+                    <button class="var-btn" data-var="{学生姓名}">{学生姓名}</button>
+                    <button class="var-btn" data-var="{导师姓名}">{导师姓名}</button>
+                    <button class="var-btn" data-var="{会议地点}">{会议地点}</button>
+                    <button class="var-btn" data-var="{会议时间}">{会议时间}</button>
+                    <button class="var-btn" data-var="{链接地址}">{链接地址}</button>
+                    <button class="var-btn" data-var="{论文编号}">{论文编号}</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>短信内容 (支持变量占位)</label>
+                <textarea id="templateContent" rows="4" placeholder="例如：{学生姓名}同学，组会于{会议时间}在{会议地点}召开。"></textarea>
+            </div>
+
+            <div class="inner-preview">
+                <div style="margin-bottom: 12px; font-weight:600;">🔧 变量测试赋值（实时预览）</div>
+                <div id="variableInputsContainer"></div>
+                <div id="previewContainer" class="preview-block" style="margin-top:16px;">预览内容将显示在这里</div>
+                <div id="charCounter" class="char-hint">字符数: 0</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" id="cancelModalBtn">取消</button>
+            <button class="btn-primary" id="saveTemplateBtn">保存模板</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 预览模板弹窗 (独立圆角) ===== -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-card preview-modal">
+        <div class="modal-header">
+            <h2 id="previewModalTitle">预览模板</h2>
+            <button class="close-btn" id="closePreviewBtn">&times;</button>
+        </div>
+        <div>
+            <p><strong>模板名称：</strong> <span id="previewName"></span>  <span style="margin-left:20px;"><strong>签名：</strong><span id="previewSig"></span></span></p>
+            <div style="margin: 16px 0 8px; font-weight:600;">原始内容：</div>
+            <div style="background:#f0f5fc; border:1px solid #d3e3f8; border-radius:20px; padding:14px;" id="previewRaw"></div>
+
+            <div style="margin: 22px 0 12px; font-weight:600;">📝 变量赋值（实时渲染）</div>
+            <div id="previewVarInputs"></div>
+
+            <div style="margin: 22px 0 8px; font-weight:600;">最终发送效果：</div>
+            <div class="rendered-preview" id="previewRendered"></div>
+            <div class="char-hint" id="previewCharCounter">字符数: 0</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" id="closePreviewBtn2">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 模拟数据 ----------
+        let templates = [
+            { id: 't1', name: '组会提醒', signature: '【研究生院】', type: '教学通知', status: true, content: '{学生姓名}同学，本周组会于{会议时间}在{会议地点}举行，请准备汇报。', updatedAt: '2026-03-10' },
+            { id: 't2', name: '答辩通知', signature: '【研究生院】', type: '教学通知', status: true, content: '{学生姓名}，你的答辩安排在{会议时间}，地点{会议地点}，导师{导师姓名}。', updatedAt: '2026-03-09' },
+            { id: 't3', name: '奖助发放', signature: '【学工部】', type: '学工通知', status: false, content: '{学生姓名}同学，奖助金已发放，请注意查收，详情查看{链接地址}。', updatedAt: '2026-03-07' },
+            { id: 't4', name: '开题提醒', signature: '【研究生院】', type: '教学通知', status: true, content: '{学生姓名}，开题报告截止时间为{会议时间}，请提交至{链接地址}。', updatedAt: '2026-03-11' },
+            { id: 't5', name: '紧急停课', signature: '【教务处】', type: '紧急预警', status: true, content: '紧急通知：{会议地点}课程因故暂停，请互相转告。', updatedAt: '2026-03-12' },
+            { id: 't6', name: '论文提交', signature: '【研究生院】', type: '教学通知', status: true, content: '{学生姓名}，请于{会议时间}前提交论文至{链接地址}。', updatedAt: '2026-03-13' },
+        ];
+
+        let editingId = null;
+        let currentPage = 1;
+        const pageSize = 4;          // 每页显示4条
+        let filteredTemplates = [];
+
+        // DOM 元素
+        const cardsList = document.getElementById('cardsList');
+        const searchInput = document.getElementById('searchInput');
+        const typeFilter = document.getElementById('typeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+
+        // 新建/编辑弹窗
+        const modal = document.getElementById('templateModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const cancelModalBtn = document.getElementById('cancelModalBtn');
+        const newTemplateBtn = document.getElementById('newTemplateBtn');
+        const saveBtn = document.getElementById('saveTemplateBtn');
+
+        const templateName = document.getElementById('templateName');
+        const templateSignature = document.getElementById('templateSignature');
+        const templateType = document.getElementById('templateType');
+        const templateStatus = document.getElementById('templateStatus');
+        const templateContent = document.getElementById('templateContent');
+
+        const variableInputsContainer = document.getElementById('variableInputsContainer');
+        const previewContainer = document.getElementById('previewContainer');
+        const charCounter = document.getElementById('charCounter');
+
+        // 分页
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+        const pageNumbersDiv = document.getElementById('pageNumbers');
+        const paginationInfo = document.getElementById('paginationInfo');
+
+        // 预览弹窗
+        const previewModal = document.getElementById('previewModal');
+        const previewName = document.getElementById('previewName');
+        const previewSig = document.getElementById('previewSig');
+        const previewRaw = document.getElementById('previewRaw');
+        const previewVarInputs = document.getElementById('previewVarInputs');
+        const previewRendered = document.getElementById('previewRendered');
+        const previewCharCounter = document.getElementById('previewCharCounter');
+        const closePreviewBtn = document.getElementById('closePreviewBtn');
+        const closePreviewBtn2 = document.getElementById('closePreviewBtn2');
+
+        let currentPreviewId = null;
+
+        // ---------- 辅助函数 ----------
+        function formatDate() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function extractVariables(text) {
+            const regex = /\{([^}]+)\}/g;
+            const matches = new Set();
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                matches.add(match[0]);
+            }
+            return Array.from(matches);
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/[&<>"]/g, function(m) {
+                if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; if(m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        function updateFilteredTemplates() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const typeVal = typeFilter.value;
+            const statusVal = statusFilter.value;
+            filteredTemplates = templates.filter(t => {
+                const matchName = t.name.toLowerCase().includes(searchTerm);
+                const matchType = typeVal ? t.type === typeVal : true;
+                const matchStatus = statusVal !== '' ? String(t.status) === statusVal : true;
+                return matchName && matchType && matchStatus;
+            });
+            currentPage = 1;
+        }
+
+        function renderCards() {
+            updateFilteredTemplates();
+            const totalPages = Math.ceil(filteredTemplates.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = filteredTemplates.slice(start, end);
+
+            if (filteredTemplates.length === 0) {
+                cardsList.innerHTML = `<div class="empty-message">✨ 暂无匹配模板，点击“新建模板”创建</div>`;
+            } else {
+                let html = '';
+                pageData.forEach(t => {
+                    const statusClass = t.status ? 'status-badge' : 'status-badge disabled';
+                    const dotClass = t.status ? 'status-dot' : 'status-dot disabled';
+                    const statusText = t.status ? '启用' : '禁用';
+                    html += `
+                        <div class="template-card" data-id="${t.id}">
+                            <div class="card-row">
+                                <span class="template-name">${escapeHtml(t.name)}</span>
+                                <span class="type-badge">${escapeHtml(t.type)}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="signature">${escapeHtml(t.signature)}</span>
+                                <span class="${statusClass}"><span class="${dotClass}"></span>${statusText}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="update-time">${escapeHtml(t.updatedAt)}</span>
+                                <div class="card-actions">
+                                    <button class="action-btn" onclick="editTemplate('${t.id}')">编辑</button>
+                                    <button class="action-btn delete" onclick="deleteTemplate('${t.id}')">删除</button>
+                                    <button class="action-btn" onclick="previewTemplate('${t.id}')">预览</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                cardsList.innerHTML = html;
+            }
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const total = filteredTemplates.length;
+            const totalPages = Math.ceil(total / pageSize) || 1;
+            paginationInfo.innerText = `共 ${total} 条 · 第 ${currentPage} / ${totalPages} 页`;
+
+            let pagesHtml = '';
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible/2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage + 1 < maxVisible) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+            for (let i = startPage; i <= endPage; i++) {
+                pagesHtml += `<span class="page-num ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</span>`;
+            }
+            pageNumbersDiv.innerHTML = pagesHtml;
+
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+
+            document.querySelectorAll('.page-num').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const page = parseInt(e.target.getAttribute('data-page'));
+                    if (page !== currentPage) {
+                        currentPage = page;
+                        renderCards();
+                    }
+                });
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) { currentPage--; renderCards(); }
+        });
+        nextBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredTemplates.length / pageSize);
+            if (currentPage < totalPages) { currentPage++; renderCards(); }
+        });
+
+        // ---------- 预览弹窗 ----------
+        window.previewTemplate = function(id) {
+            const t = templates.find(t => t.id === id);
+            if (!t) return;
+            currentPreviewId = id;
+            previewName.innerText = t.name;
+            previewSig.innerText = t.signature;
+            previewRaw.innerText = t.content;
+
+            const vars = extractVariables(t.content);
+            let varHtml = '';
+            if (vars.length === 0) {
+                varHtml = '<div style="color:#5f748e; padding:8px 0;">无变量，无需赋值</div>';
+            } else {
+                vars.forEach(v => {
+                    const varName = v.slice(1, -1);
+                    varHtml += `<div class="preview-var-row"><label>${escapeHtml(v)}</label><input type="text" class="preview-var-field" data-var="${escapeHtml(v)}" placeholder="输入${varName}" value="示例${varName}"></div>`;
+                });
+            }
+            previewVarInputs.innerHTML = varHtml;
+
+            document.querySelectorAll('.preview-var-field').forEach(inp => {
+                inp.addEventListener('input', updatePreviewModal);
+            });
+
+            updatePreviewModal();
+            previewModal.classList.add('show');
+        };
+
+        function updatePreviewModal() {
+            if (!currentPreviewId) return;
+            const t = templates.find(t => t.id === currentPreviewId);
+            if (!t) return;
+            let raw = t.content;
+            const signature = t.signature;
+            const inputs = document.querySelectorAll('.preview-var-field');
+            inputs.forEach(inp => {
+                const varKey = inp.getAttribute('data-var');
+                const val = inp.value || `{${varKey.slice(1,-1)}}`;
+                raw = raw.split(varKey).join(val);
+            });
+            const full = signature + raw;
+            previewRendered.innerText = full;
+
+            const len = full.length;
+            const excess = len > 70 ? '⚠️ 超过70字，多条计费' : '单条短信';
+            previewCharCounter.innerText = `字符数: ${len} · ${excess}`;
+            previewCharCounter.className = 'char-hint' + (len > 70 ? ' warning' : '');
+        }
+
+        function closePreviewModal() {
+            previewModal.classList.remove('show');
+            currentPreviewId = null;
+        }
+
+        closePreviewBtn.addEventListener('click', closePreviewModal);
+        closePreviewBtn2.addEventListener('click', closePreviewModal);
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) closePreviewModal();
+        });
+
+        // ---------- 新建/编辑弹窗内部预览 ----------
+        function refreshPreviewAndVars() {
+            const content = templateContent.value;
+            const signature = templateSignature.value || '【研究生院】';
+            const vars = extractVariables(content);
+            let varsHtml = '';
+            if (vars.length === 0) {
+                varsHtml = '<div style="color:#5f748e;">无变量</div>';
+            } else {
+                vars.forEach(v => {
+                    const varName = v.slice(1, -1);
+                    varsHtml += `<div class="var-item"><label>${escapeHtml(v)}</label><input type="text" class="var-test-input" data-var="${escapeHtml(v)}" placeholder="输入${varName}" value="示例${varName}"></div>`;
+                });
+            }
+            variableInputsContainer.innerHTML = varsHtml;
+
+            document.querySelectorAll('.var-test-input').forEach(input => {
+                input.addEventListener('input', updateModalPreview);
+            });
+            updateModalPreview();
+        }
+
+        function updateModalPreview() {
+            let content = templateContent.value;
+            const signature = templateSignature.value || '【研究生院】';
+            const varInputs = document.querySelectorAll('.var-test-input');
+            varInputs.forEach(inp => {
+                const varKey = inp.getAttribute('data-var');
+                const val = inp.value || `{${varKey.slice(1,-1)}}`;
+                content = content.split(varKey).join(val);
+            });
+            const fullPreview = signature + content;
+            previewContainer.innerText = fullPreview || '预览内容';
+            const len = fullPreview.length;
+            charCounter.innerText = `字符数: ${len} (${len > 70 ? '多条计费' : '单条'})`;
+            charCounter.className = 'char-hint' + (len > 70 ? ' warning' : '');
+        }
+
+        // 打开编辑弹窗
+        function openModal(editId = null) {
+            editingId = editId;
+            modal.classList.add('show');
+            if (editId) {
+                const t = templates.find(t => t.id === editId);
+                if (t) {
+                    modalTitle.innerText = '编辑模板';
+                    templateName.value = t.name;
+                    templateSignature.value = t.signature;
+                    templateType.value = t.type;
+                    templateStatus.value = String(t.status);
+                    templateContent.value = t.content;
+                }
+            } else {
+                modalTitle.innerText = '新建模板';
+                templateName.value = '';
+                templateSignature.value = '【研究生院】';
+                templateType.value = '教学通知';
+                templateStatus.value = 'true';
+                templateContent.value = '';
+            }
+            refreshPreviewAndVars();
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            editingId = null;
+        }
+
+        function saveTemplate() {
+            const name = templateName.value.trim();
+            const signature = templateSignature.value.trim() || '【研究生院】';
+            const type = templateType.value;
+            const status = templateStatus.value === 'true';
+            const content = templateContent.value.trim();
+            if (!name || !content) {
+                alert('模板名称和内容不能为空');
+                return;
+            }
+            if (editingId) {
+                const index = templates.findIndex(t => t.id === editingId);
+                if (index !== -1) {
+                    templates[index] = { ...templates[index], name, signature, type, status, content, updatedAt: formatDate() };
+                }
+            } else {
+                const newId = 't' + Date.now() + Math.floor(Math.random()*1000);
+                templates.push({ id: newId, name, signature, type, status, content, updatedAt: formatDate() });
+            }
+            renderCards();
+            closeModal();
+        }
+
+        window.deleteTemplate = function(id) {
+            if (confirm('确定删除该模板？')) {
+                templates = templates.filter(t => t.id !== id);
+                renderCards();
+            }
+        };
+
+        window.editTemplate = function(id) {
+            openModal(id);
+        };
+
+        // 事件绑定
+        window.addEventListener('load', () => {
+            renderCards();
+
+            searchInput.addEventListener('input', () => { currentPage = 1; renderCards(); });
+            typeFilter.addEventListener('change', () => { currentPage = 1; renderCards(); });
+            statusFilter.addEventListener('change', () => { currentPage = 1; renderCards(); });
+
+            newTemplateBtn.addEventListener('click', () => openModal());
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelModalBtn.addEventListener('click', closeModal);
+            saveBtn.addEventListener('click', saveTemplate);
+
+            document.querySelectorAll('.var-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const varText = btn.getAttribute('data-var');
+                    const textarea = templateContent;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    textarea.value = textarea.value.substring(0, start) + varText + textarea.value.substring(end);
+                    textarea.focus();
+                    textarea.selectionStart = textarea.selectionEnd = start + varText.length;
+                    refreshPreviewAndVars();
+                });
+            });
+
+            templateContent.addEventListener('input', refreshPreviewAndVars);
+            templateSignature.addEventListener('input', updateModalPreview);
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        });
+    })();
+</script>
+</body>
+</html>

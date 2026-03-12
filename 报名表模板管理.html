@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>高校招生 · 拖拽并排字段</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body, html {
+            height: 100%;
+            width: 100%;
+            background: #f0f4fa;
+            color: #1e2f3e;
+        }
+        .app {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f0f4fa;
+        }
+
+        /* 三列布局 */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 1.2rem 1.2rem 1rem 1.2rem;
+            gap: 1.2rem;
+        }
+
+        /* 左侧控件库 */
+        .control-library {
+            width: 200px;
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem 0.8rem;
+            box-shadow: 0 10px 22px -12px rgba(0,32,64,0.12);
+            border: 1px solid #dee9f2;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            height: fit-content;
+            max-height: 100%;
+            overflow-y: auto;
+        }
+        .library-title {
+            font-weight: 600;
+            color: #1e405e;
+            padding: 0 0.6rem 0.5rem;
+            border-bottom: 1px solid #dae5f0;
+        }
+        .drag-item {
+            background: #f4faff;
+            border: 1px solid #c6daf0;
+            border-radius: 40px;
+            padding: 0.7rem 1.2rem;
+            margin: 0.2rem 0.4rem;
+            font-size: 0.95rem;
+            color: #143856;
+            cursor: grab;
+            user-select: none;
+            transition: 0.1s;
+            text-align: center;
+        }
+        .drag-item:active {
+            cursor: grabbing;
+            background: #e2effa;
+        }
+
+        /* 中间设计区 */
+        .designer-area {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 0;
+            max-width: 55%;
+        }
+
+        /* 模板卡片区 */
+        .template-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #dae5f0;
+        }
+        .template-header h3 {
+            font-weight: 600;
+            color: #1c3c58;
+        }
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .search-box {
+            background: #f0f6fe;
+            border-radius: 40px;
+            padding: 0.2rem 0.2rem 0.2rem 1rem;
+            border: 1px solid #c7d9ed;
+            display: flex;
+            align-items: center;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            padding: 0.4rem 0.5rem;
+            outline: none;
+            width: 130px;
+            font-size: 0.9rem;
+        }
+        .btn-plain {
+            background: white;
+            border: 1px solid #c7d9ed;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            color: #1a3f5c;
+            cursor: pointer;
+        }
+        .btn-plain.primary {
+            background: #1e4c7a;
+            color: white;
+            border-color: #1e4c7a;
+        }
+
+        /* 模板卡片网格 */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.8rem;
+            background: transparent;
+            max-height: 160px;
+            overflow-y: auto;
+            padding: 0.2rem;
+        }
+        .template-card {
+            background: white;
+            border-radius: 26px;
+            padding: 0.8rem 0.8rem 0.5rem;
+            border: 1px solid #e0eaf5;
+            cursor: pointer;
+        }
+        .template-card.active {
+            border-color: #1e4c7a;
+            background: #f1f8ff;
+        }
+        .template-card h4 {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #113552;
+        }
+        .card-actions-text {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .text-btn {
+            background: transparent;
+            border: none;
+            font-size: 0.7rem;
+            color: #2a577b;
+            cursor: pointer;
+            text-decoration: underline dotted;
+            padding: 0.1rem 0.3rem;
+        }
+
+        /* 字段放置区 - 网格布局实现并排显示 */
+        .config-panel {
+            background: white;
+            border-radius: 28px;
+            padding: 1.2rem 1.2rem;
+            border: 1px solid #deeaf6;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        .perm-summary {
+            background: #eaf3fc;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .field-dropzone {
+            background: #f9fcff;
+            border-radius: 24px;
+            padding: 1rem;
+            border: 2px dashed #c5d9f0;
+            min-height: 180px;
+            transition: background 0.1s;
+            margin: 0.5rem 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.8rem;
+            align-items: start;
+        }
+        .field-dropzone.drag-over {
+            background: #e8f0fe;
+            border-color: #1e4c7a;
+        }
+        .field-item {
+            background: white;
+            border-radius: 20px;
+            padding: 0.8rem;
+            border: 1px solid #d4e3f5;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: all 0.1s;
+            cursor: default;
+            min-width: 0;
+        }
+        .field-item:hover {
+            border-color: #8fb4da;
+            background: #fafdff;
+        }
+        .field-item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .field-item-drag-handle {
+            cursor: grab;
+            color: #7f99b6;
+            font-size: 1.1rem;
+            user-select: none;
+            width: 18px;
+            text-align: center;
+        }
+        .field-name-input {
+            flex: 1;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 0.2rem 0.3rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e405e;
+            border-radius: 6px;
+            outline: none;
+            min-width: 0;
+            width: 100%;
+        }
+        .field-name-input:focus {
+            border-color: #1e4c7a;
+            background: white;
+        }
+        .field-type-badge {
+            background: #e4eef9;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            display: inline-block;
+            align-self: flex-start;
+        }
+        .field-item-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.2rem;
+        }
+        .required-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.7rem;
+            color: #b34444;
+            cursor: pointer;
+        }
+        .remove-field {
+            background: transparent;
+            border: none;
+            color: #7f99b6;
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+        }
+        .remove-field:hover {
+            background: #fee2e2;
+            color: #b34444;
+        }
+
+        /* 右侧实时预览区 */
+        .preview-area {
+            flex: 1;
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem 1.2rem;
+            border: 1px solid #deeaf6;
+            overflow-y: auto;
+            /* max-width: 300px; */
+        }
+        .preview-title {
+            font-weight: 600;
+            color: #1c3c58;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid #d2e2f0;
+            padding-bottom: 0.5rem;
+        }
+        .live-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .live-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .live-field label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e405e;
+        }
+        .live-field input, .live-field select {
+            padding: 0.6rem 1rem;
+            border-radius: 40px;
+            border: 1px solid #c1d3e8;
+            background: #f9fcff;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-card {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem 2rem;
+            border-radius: 48px;
+        }
+        .modal-card h4 { font-size: 1.5rem; color: #1f3f5a; margin-bottom: 1.5rem; }
+        .modal-input {
+            width: 100%;
+            padding: 0.8rem 1.3rem;
+            border: 1px solid #c2d5eb;
+            border-radius: 60px;
+            margin-bottom: 1.2rem;
+        }
+        .modal-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }
+        .btn-cancel { background: #ecf3fa; border: none; padding: 0.7rem 2rem; border-radius: 60px; cursor: pointer; }
+        .btn-save { background: #1e4c7a; color: white; border: none; padding: 0.7rem 2rem; border-radius: 60px; cursor: pointer; }
+
+        /* 权限矩阵 */
+        .perm-matrix { border: 1px solid #d6e3f0; border-radius: 24px; overflow: hidden; margin: 1rem 0; }
+        .matrix-row { display: flex; border-bottom: 1px solid #deeaf5; }
+        .matrix-row:last-child { border-bottom: none; }
+        .matrix-role { width: 110px; padding: 1rem; background: #f1f9ff; font-weight: 500; }
+        .matrix-perms { flex: 1; padding: 0.8rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+        .matrix-perms label { display: flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="main-layout">
+        <!-- 左侧控件库 -->
+        <div class="control-library">
+            <div class="library-title">字段控件 (拖拽)</div>
+            <div class="drag-item" draggable="true" data-type="文本">文本字段</div>
+            <div class="drag-item" draggable="true" data-type="数字">数字字段</div>
+            <div class="drag-item" draggable="true" data-type="下拉">下拉选项</div>
+            <div class="drag-item" draggable="true" data-type="日期">日期字段</div>
+        </div>
+
+        <!-- 中间设计区 -->
+        <div class="designer-area">
+            <div class="template-header">
+                <h3>报名表模板</h3>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="搜索...">
+                    </div>
+                    <button class="btn-plain primary" id="newTemplateBtn">新建</button>
+                </div>
+            </div>
+            <div class="template-grid" id="templateGrid"></div>
+            <div class="config-panel" id="configPanel"></div>
+        </div>
+
+        <!-- 右侧实时预览区 -->
+        <div class="preview-area">
+            <div class="preview-title"> 实时表单预览</div>
+            <div class="live-form" id="livePreview"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 模态框 -->
+<div class="modal" id="templateModal"><div class="modal-card"><h4 id="modalTitle">新建模板</h4><input id="modalTemplateName" class="modal-input" placeholder="模板名称"><input id="modalTemplateDesc" class="modal-input" placeholder="描述"><div class="modal-actions"><button class="btn-cancel" id="modalCancel">取消</button><button class="btn-save" id="modalSave">保存</button></div></div></div>
+<div class="modal" id="permModal"><div class="modal-card"><h4>权限设置 (高校角色)</h4><div id="permMatrixContainer"></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal('permModal')">取消</button><button class="btn-save" id="savePermMatrix">保存</button></div></div></div>
+<iframe style="width:0;height:0;border:0;visibility:hidden;" id="printFrame"></iframe>
+
+<script>
+    (function() {
+        // 数据
+        let templates = [
+            { id: 't1', name: '美术校考', description: '作品集/面试', fields: [ { name:'考生姓名', type:'文本', required:true }, { name:'报考方向', type:'下拉', required:true } ],
+              permissions: {
+                '教务处长': { view: true, editField: true, delete: true, managePerm: true },
+                '招生办主任': { view: true, editField: true, delete: false, managePerm: false },
+                '院系秘书': { view: true, editField: false, delete: false, managePerm: false },
+                '考生本人': { view: false, editField: false, delete: false, managePerm: false }
+              } },
+            { id: 't2', name: '音乐面试', description: '主副专业', fields: [ { name:'姓名', type:'文本', required:true }, { name:'主乐器', type:'文本', required:true } ],
+              permissions: {
+                '教务处长': { view: true, editField: true, delete: true, managePerm: true },
+                '招生办主任': { view: true, editField: true, delete: false, managePerm: false },
+                '院系秘书': { view: true, editField: false, delete: false, managePerm: false },
+                '考生本人': { view: true, editField: false, delete: false, managePerm: false }
+              } },
+            { id: 't3', name: '体育单招', description: '专项等级', fields: [ { name:'姓名', type:'文本', required:true }, { name:'专项', type:'下拉', required:true } ],
+              permissions: {
+                '教务处长': { view: true, editField: true, delete: true, managePerm: true },
+                '招生办主任': { view: true, editField: true, delete: false, managePerm: false },
+                '院系秘书': { view: true, editField: false, delete: false, managePerm: false },
+                '考生本人': { view: false, editField: false, delete: false, managePerm: false }
+              } }
+        ];
+
+        let currentTemplateId = 't1';
+        let searchKeyword = '';
+        let permTemplateId = null;
+
+        const roleList = ['教务处长', '招生办主任', '院系秘书', '考生本人'];
+        const permOptions = ['view', 'editField', 'delete', 'managePerm'];
+        const permChinese = { view:'查看', editField:'编辑字段', delete:'删除模板', managePerm:'权限管理' };
+
+        // DOM
+        const templateGrid = document.getElementById('templateGrid');
+        const configPanel = document.getElementById('configPanel');
+        const livePreview = document.getElementById('livePreview');
+        const searchInput = document.getElementById('searchInput');
+        const newBtn = document.getElementById('newTemplateBtn');
+        const templateModal = document.getElementById('templateModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalName = document.getElementById('modalTemplateName');
+        const modalDesc = document.getElementById('modalTemplateDesc');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalSave = document.getElementById('modalSave');
+        const permModal = document.getElementById('permModal');
+        const permMatrixContainer = document.getElementById('permMatrixContainer');
+        const savePermBtn = document.getElementById('savePermMatrix');
+
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function esc(str) { return String(str).replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c])); }
+
+        // 初始化拖拽
+        document.querySelectorAll('.drag-item').forEach(item => {
+            item.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', e.target.dataset.type || '文本');
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+        });
+
+        // 实时预览
+        function updateLivePreview() {
+            const t = templates.find(tt => tt.id === currentTemplateId);
+            if (!t) { livePreview.innerHTML = '<div>请选择模板</div>'; return; }
+            let html = '';
+            t.fields.forEach(f => {
+                let input = '';
+                if (f.type === '文本') input = `<input type="text" placeholder="${f.name}" value="">`;
+                else if (f.type === '数字') input = `<input type="number" placeholder="数字" value="0">`;
+                else if (f.type === '下拉') input = `<select><option>选项一</option><option>选项二</option></select>`;
+                else if (f.type === '日期') input = `<input type="date" value="2025-03-12">`;
+                html += `<div class="live-field"><label>${esc(f.name)}${f.required ? ' *' : ''}</label>${input}</div>`;
+            });
+            livePreview.innerHTML = html || '<div style="color:#999;">拖拽字段至此</div>';
+        }
+
+        // 渲染模板卡片
+        function renderTemplates() {
+            const filtered = templates.filter(t => t.name.toLowerCase().includes(searchKeyword.toLowerCase()) || t.description.toLowerCase().includes(searchKeyword.toLowerCase()));
+            let html = '';
+            filtered.forEach(t => {
+                const activeClass = t.id === currentTemplateId ? 'active' : '';
+                html += `<div class="template-card ${activeClass}" data-id="${t.id}">
+                    <h4>${esc(t.name)}</h4>
+                    <div class="card-actions-text">
+                        <button class="text-btn edit-template" data-id="${t.id}">编辑</button>
+                        <button class="text-btn perm-tpl" data-id="${t.id}">权限</button>
+                        <button class="text-btn delete-tpl" data-id="${t.id}">删除</button>
+                    </div>
+                </div>`;
+            });
+            templateGrid.innerHTML = html;
+
+            document.querySelectorAll('.template-card').forEach(c => {
+                c.addEventListener('click', (e) => {
+                    if (e.target.closest('button')) return;
+                    const id = c.dataset.id;
+                    if (id) { currentTemplateId = id; renderTemplates(); renderConfigPanel(); updateLivePreview(); }
+                });
+            });
+            document.querySelectorAll('.edit-template').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); editTemplate(b.dataset.id); }));
+            document.querySelectorAll('.perm-tpl').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); openPermModal(b.dataset.id); }));
+            document.querySelectorAll('.delete-tpl').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); deleteTemplate(b.dataset.id); }));
+        }
+
+        // 渲染配置面板 - 字段设计器（无底部添加栏，直接编辑字段名）
+        function renderConfigPanel() {
+            const t = templates.find(tt => tt.id === currentTemplateId);
+            if (!t) return;
+
+            // 构建字段列表 - 每个字段卡片包含直接编辑的输入框
+            let fieldsHtml = '';
+            t.fields.forEach((f, idx) => {
+                fieldsHtml += `
+                    <div class="field-item" data-index="${idx}" draggable="false">
+                        <div class="field-item-header">
+                            <span class="field-item-drag-handle" draggable="true" title="拖拽排序">⋮⋮</span>
+                            <input type="text" class="field-name-input" value="${esc(f.name)}" data-index="${idx}" placeholder="字段名">
+                        </div>
+                        <div>
+                            <span class="field-type-badge">${esc(f.type)}</span>
+                        </div>
+                        <div class="field-item-footer">
+                            <label class="required-toggle">
+                                <input type="checkbox" ${f.required ? 'checked' : ''} data-index="${idx}" class="required-checkbox"> 必填
+                            </label>
+                            <button class="remove-field" data-index="${idx}">移除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            if (!fieldsHtml) fieldsHtml = '<div style="grid-column:1/-1; padding:2rem; text-align:center; color:#6f8aac;">从左侧拖拽字段添加，支持并排显示</div>';
+
+            const panelHtml = `
+                <div class="panel-header">
+                    <span style="font-weight:600;">${esc(t.name)} · 字段设计 (并排显示)</span>
+                    <div class="perm-summary">
+                        <span>教务处长可编辑</span>
+                        <button class="btn-plain" id="quickPermBtn" style="padding:0.2rem 0.8rem;">权限</button>
+                    </div>
+                </div>
+                <div class="field-dropzone" id="fieldDropzone">${fieldsHtml}</div>
+            `;
+            configPanel.innerHTML = panelHtml;
+
+            // 字段名修改 - 实时更新
+            document.querySelectorAll('.field-name-input').forEach(input => {
+                input.addEventListener('input', function(e) {
+                    const idx = this.dataset.index;
+                    if (idx !== undefined) {
+                        t.fields[idx].name = this.value || '未命名';
+                        updateLivePreview();
+                    }
+                });
+                input.addEventListener('blur', () => updateLivePreview());
+            });
+
+            // 必填复选框
+            document.querySelectorAll('.required-checkbox').forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    const idx = this.dataset.index;
+                    if (idx !== undefined) {
+                        t.fields[idx].required = this.checked;
+                        updateLivePreview();
+                    }
+                });
+            });
+
+            // 移除字段
+            document.querySelectorAll('.remove-field').forEach(b => {
+                b.addEventListener('click', () => {
+                    const idx = b.dataset.index;
+                    t.fields.splice(idx, 1);
+                    renderConfigPanel();
+                    updateLivePreview();
+                });
+            });
+
+            // 拖拽放置区
+            const dropzone = document.getElementById('fieldDropzone');
+            if (dropzone) {
+                dropzone.addEventListener('dragover', e => { 
+                    e.preventDefault(); 
+                    e.dataTransfer.dropEffect = 'copy'; 
+                    dropzone.classList.add('drag-over'); 
+                });
+                dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+                dropzone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    dropzone.classList.remove('drag-over');
+                    const data = e.dataTransfer.getData('text/plain');
+                    
+                    if (data.startsWith('reorder:')) {
+                        // 内部排序
+                        const fromIdx = parseInt(data.split(':')[1]);
+                        if (!isNaN(fromIdx) && fromIdx >=0 && fromIdx < t.fields.length) {
+                            // 获取鼠标位置相对于放置区的索引
+                            const dropRect = dropzone.getBoundingClientRect();
+                            const mouseY = e.clientY;
+                            const mouseX = e.clientX;
+                            
+                            // 计算应该插入到哪个位置
+                            const items = Array.from(dropzone.querySelectorAll('.field-item'));
+                            let targetIndex = items.length;
+                            
+                            for (let i = 0; i < items.length; i++) {
+                                const rect = items[i].getBoundingClientRect();
+                                if (mouseY < rect.top + rect.height/2) {
+                                    targetIndex = i;
+                                    break;
+                                }
+                            }
+                            
+                            // 移动字段
+                            const [moved] = t.fields.splice(fromIdx, 1);
+                            t.fields.splice(targetIndex, 0, moved);
+                        }
+                    } else {
+                        // 从库拖拽 - 支持多个字段并排，直接添加
+                        const fieldType = data || '文本';
+                        t.fields.push({ name: fieldType+'字段', type: fieldType, required: false });
+                    }
+                    renderConfigPanel();
+                    updateLivePreview();
+                });
+            }
+
+            // 处理字段拖拽手柄 (用于排序)
+            document.querySelectorAll('.field-item-drag-handle').forEach(handle => {
+                handle.addEventListener('dragstart', (e) => {
+                    const item = e.target.closest('.field-item');
+                    if (!item) return;
+                    const idx = item.dataset.index;
+                    e.dataTransfer.setData('text/plain', 'reorder:'+idx);
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+            });
+
+            document.getElementById('quickPermBtn')?.addEventListener('click', () => openPermModal(t.id));
+        }
+
+        // 编辑模板
+        function editTemplate(id) {
+            const t = templates.find(tt => tt.id === id); if (!t) return;
+            modalTitle.innerText = '编辑模板';
+            modalName.value = t.name; modalDesc.value = t.description;
+            templateModal.dataset.editId = id;
+            openModal('templateModal');
+        }
+
+        newBtn.addEventListener('click', () => {
+            modalTitle.innerText = '新建模板'; modalName.value = ''; modalDesc.value = '';
+            delete templateModal.dataset.editId; openModal('templateModal');
+        });
+
+        modalSave.addEventListener('click', () => {
+            const name = modalName.value.trim(); if (!name) return alert('名称必填');
+            const desc = modalDesc.value.trim() || '无描述';
+            const editId = templateModal.dataset.editId;
+            if (editId) {
+                const t = templates.find(tt => tt.id === editId); if (t) { t.name = name; t.description = desc; }
+            } else {
+                const newId = 't'+Date.now();
+                templates.push({ id: newId, name, description: desc, fields: [{ name:'姓名', type:'文本', required: true }],
+                    permissions: {
+                        '教务处长': { view: true, editField: true, delete: true, managePerm: true },
+                        '招生办主任': { view: true, editField: true, delete: false, managePerm: false },
+                        '院系秘书': { view: true, editField: false, delete: false, managePerm: false },
+                        '考生本人': { view: false, editField: false, delete: false, managePerm: false }
+                    }
+                });
+                currentTemplateId = newId;
+            }
+            closeModal('templateModal'); renderTemplates(); renderConfigPanel(); updateLivePreview();
+        });
+
+        modalCancel.addEventListener('click', () => closeModal('templateModal'));
+
+        function deleteTemplate(id) {
+            if (!confirm('删除该模板吗？')) return;
+            templates = templates.filter(tt => tt.id !== id);
+            if (currentTemplateId === id) currentTemplateId = templates.length ? templates[0].id : null;
+            if (!templates.length) templates.push({ id:'empty', name:'示例', description:'新建模板', fields:[], permissions:{} });
+            renderTemplates(); renderConfigPanel(); updateLivePreview();
+        }
+
+        // 权限模态框
+        function openPermModal(id) {
+            const t = templates.find(tt => tt.id === id); if (!t) return;
+            permTemplateId = id;
+            const perms = t.permissions || {};
+            let matrixHtml = '<div class="perm-matrix">';
+            roleList.forEach(role => {
+                const rolePerms = perms[role] || { view: false, editField: false, delete: false, managePerm: false };
+                matrixHtml += `<div class="matrix-row"><div class="matrix-role">${role}</div><div class="matrix-perms">`;
+                permOptions.forEach(p => {
+                    matrixHtml += `<label><input type="checkbox" data-role="${role}" data-perm="${p}" ${rolePerms[p]?'checked':''}> ${permChinese[p]}</label>`;
+                });
+                matrixHtml += '</div></div>';
+            });
+            matrixHtml += '</div>';
+            permMatrixContainer.innerHTML = matrixHtml;
+            openModal('permModal');
+        }
+
+        savePermBtn.addEventListener('click', () => {
+            if (!permTemplateId) return; const t = templates.find(tt=>tt.id===permTemplateId); if (!t) return;
+            const newPerms = {};
+            roleList.forEach(role => newPerms[role] = { view: false, editField: false, delete: false, managePerm: false });
+            document.querySelectorAll('#permMatrixContainer input[type=checkbox]').forEach(cb => {
+                const role = cb.dataset.role; const perm = cb.dataset.perm;
+                if (role && perm) newPerms[role][perm] = cb.checked;
+            });
+            t.permissions = newPerms;
+            closeModal('permModal'); renderConfigPanel(); renderTemplates();
+        });
+
+        searchInput.addEventListener('input', (e) => { searchKeyword = e.target.value; renderTemplates(); });
+
+        // 初始化
+        renderTemplates(); renderConfigPanel(); updateLivePreview();
+    })();
+</script>
+</body>
+</html>

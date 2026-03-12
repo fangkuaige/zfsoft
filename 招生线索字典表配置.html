@@ -1,1194 +1,703 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高管教育招生线索管理 - 基础设置</title>
-    <style>
-        /* 全局样式重置 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft Yahei", Arial, sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            color: #303133;
-            line-height: 1.6;
-        }
-
-        /* 页面头部 */
-        .page-header {
-            background-color: #fff;
-            padding: 16px 24px;
-            border-bottom: 1px solid #e4e7ed;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: #409eff;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 16px;
-            display: flex;
-            align-items: center;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .back-btn:hover {
-            background-color: #ecf5ff;
-        }
-
-        .page-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 2px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            background-color: #e6a23c;
-            color: #fff;
-            margin-left: 8px;
-        }
-
-        /* 搜索和新增字典类型区域 */
-        .search-bar {
-            background-color: #fff;
-            padding: 16px 24px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.04);
-        }
-
-        .search-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search-input {
-            width: 300px;
-            padding: 10px 16px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: #409eff;
-        }
-
-        .search-btn {
-            background-color: #409eff;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        }
-
-        .search-btn:hover {
-            background-color: #66b1ff;
-        }
-
-        .add-dict-type-btn {
-            background-color: #67c23a;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: background-color 0.2s;
-        }
-
-        .add-dict-type-btn:hover {
-            background-color: #85ce61;
-        }
-
-        /* 主容器 */
-        .container {
-            padding: 24px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* 配置卡片布局 */
-        .config-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .config-card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-            transition: box-shadow 0.2s;
-        }
-
-        .config-card:hover {
-            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.08);
-        }
-
-        .card-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #e4e7ed;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            background-color: #fafafa;
-        }
-
-        /* 卡片头部操作按钮组 */
-        .card-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .add-btn {
-            background-color: #409eff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .add-btn:hover {
-            background-color: #66b1ff;
-        }
-
-        .add-btn:active {
-            background-color: #3399ff;
-        }
-
-        /* 字典类型删除按钮 */
-        .delete-type-btn {
-            background-color: #f56c6c;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .delete-type-btn:hover {
-            background-color: #f78989;
-        }
-
-        /* 表格样式 */
-        .config-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        .config-table th,
-        .config-table td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid #e4e7ed;
-        }
-
-        .config-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #606266;
-        }
-
-        .config-table tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        /* 操作按钮 */
-        .edit-btn {
-            color: #409eff;
-            border: none;
-            background: none;
-            cursor: pointer;
-            margin-right: 8px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .edit-btn:hover {
-            background-color: #ecf5ff;
-        }
-
-        .delete-btn {
-            color: #f56c6c;
-            border: none;
-            background: none;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .delete-btn:hover {
-            background-color: #fef0f0;
-        }
-
-        /* 弹窗样式 */
-        .modal-mask {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            display: none;
-            backdrop-filter: blur(2px);
-        }
-
-        .modal-content {
-            width: 420px;
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            animation: modalFadeIn 0.3s ease;
-        }
-
-        /* 新增字典类型弹窗 */
-        .dict-type-modal {
-            width: 400px;
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #303133;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #909399;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .close-btn:hover {
-            background-color: #f5f5f5;
-            color: #606266;
-        }
-
-        /* 优化后的表单样式 */
-        .form-wrapper {
-            background-color: #fafafa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-
-        .form-title {
-            font-size: 14px;
-            color: #606266;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e4e7ed;
-        }
-
-        .form-item {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-        }
-
-        .form-label {
-            display: inline-block;
-            width: 90px;
-            text-align: right;
-            margin-right: 12px;
-            font-weight: 500;
-            color: #303133;
-            font-size: 14px;
-        }
-
-        .form-input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.2s;
-            outline: none;
-        }
-
-        .form-input:focus {
-            border-color: #409eff;
-            box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
-        }
-
-        .form-input::placeholder {
-            color: #c0c4cc;
-        }
-
-        .form-input:disabled {
-            background-color: #f5f7fa;
-            color: #909399;
-            cursor: not-allowed;
-        }
-
-        .number-input {
-            width: 120px;
-        }
-
-        .form-tip {
-            font-size: 12px;
-            color: #909399;
-            margin-top: 4px;
-            margin-left: 4px;
-        }
-
-        /* 弹窗按钮组 */
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 24px;
-            padding-top: 16px;
-            border-top: 1px solid #e4e7ed;
-        }
-
-        .cancel-btn {
-            padding: 9px 20px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            background-color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            color: #606266;
-        }
-
-        .cancel-btn:hover {
-            border-color: #c0c4cc;
-            background-color: #f5f7fa;
-        }
-
-        .save-btn {
-            padding: 9px 20px;
-            border: none;
-            border-radius: 6px;
-            background-color: #409eff;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .save-btn:hover {
-            background-color: #66b1ff;
-        }
-
-        .save-btn:active {
-            background-color: #3399ff;
-        }
-
-        .save-btn:disabled {
-            background-color: #a0cfff;
-            cursor: not-allowed;
-        }
-
-        /* 提示框样式 */
-        .message {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-            z-index: 1001;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            animation: messageFadeIn 0.3s ease;
-        }
-
-        @keyframes messageFadeIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -20px);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, 0);
-            }
-        }
-
-        .message-success {
-            background-color: #67c23a;
-        }
-
-        .message-error {
-            background-color: #f56c6c;
-        }
-
-        /* 分页样式 */
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-        }
-
-        .page-btn {
-            padding: 8px 12px;
-            border: 1px solid #dcdfe6;
-            border-radius: 4px;
-            background-color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .page-btn:hover {
-            border-color: #409eff;
-            color: #409eff;
-        }
-
-        .page-btn:disabled {
-            border-color: #e4e7ed;
-            color: #c0c4cc;
-            cursor: not-allowed;
-            background-color: #f5f7fa;
-        }
-
-        .page-num {
-            padding: 8px 16px;
-            border: 1px solid #409eff;
-            border-radius: 4px;
-            background-color: #409eff;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .page-info {
-            margin-left: 16px;
-            font-size: 14px;
-            color: #606266;
-        }
-
-        /* 响应式适配 */
-        @media (max-width: 768px) {
-            .config-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal-content, .dict-type-modal {
-                width: 90%;
-                padding: 20px;
-            }
-            
-            .form-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .form-label {
-                width: 100%;
-                text-align: left;
-                margin-bottom: 8px;
-            }
-
-            .search-bar {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-
-            .search-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .search-input {
-                width: 100%;
-            }
-
-            .card-actions {
-                flex-wrap: wrap;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>高管教育 · 动态模块管理</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: #f0f4f8;
+    }
+    #app {
+      height: 100%;
+      width: 100%;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .page-header {
+      margin-bottom: 1.2rem;
+      flex-shrink: 0;
+    }
+    .page-header h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #0b2b4a;
+      border-left: 6px solid #2563eb;
+      padding-left: 1rem;
+    }
+    .page-header h2 {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #1e3a5f;
+      margin-top: 0.2rem;
+      padding-left: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    /* 全局工具栏 */
+    .global-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: white;
+      padding: 1rem 1.2rem;
+      border-radius: 40px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border: 1px solid #e2e8f0;
+    }
+    .global-search {
+      flex: 2 1 250px;
+      display: flex;
+      align-items: center;
+      background: #f9fcff;
+      border: 1.5px solid #d9e2ef;
+      border-radius: 60px;
+      padding: 0.1rem 0.1rem 0.1rem 1.5rem;
+    }
+    .global-search i {
+      color: #64748b;
+      font-size: 1rem;
+    }
+    .global-search input {
+      border: none;
+      background: transparent;
+      padding: 0.7rem 0.7rem 0.7rem 0.5rem;
+      width: 100%;
+      outline: none;
+      font-size: 0.95rem;
+    }
+    .add-module-section {
+      display: flex;
+      flex: 1 1 300px;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .add-module-section input {
+      flex: 1;
+      background: #ffffff;
+      border: 1.5px solid #dce3eb;
+      border-radius: 60px;
+      padding: 0.7rem 1.2rem;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .add-module-section input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+    .primary-btn {
+      background: #2563eb;
+      border: none;
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border-radius: 60px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+      box-shadow: 0 4px 8px rgba(37,99,235,0.2);
+      transition: 0.15s;
+      border: 1px solid #2563eb;
+    }
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+    /* 全局分页 */
+    .global-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin: 1rem 0 0.5rem;
+      flex-shrink: 0;
+    }
+    .pagination-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .page-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 30px;
+      padding: 0.4rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #1e3a8a;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .page-btn:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .page-info {
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    /* 模块网格 */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+      flex: 1 1 auto;
+      align-content: start;
+    }
+    @media (min-width: 640px) {
+      .modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    /* 卡片 (模块) */
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 20px rgba(0,20,50,0.04);
+      padding: 1rem 1rem 1rem;
+      border: 1px solid #e6edf4;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+      border-bottom: 2px solid #eef2f6;
+      padding-bottom: 0.5rem;
+    }
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #0f2b45;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .card-title i {
+      color: #3b82f6;
+      width: 1.6rem;
+    }
+    .delete-module-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: 0.1s;
+    }
+    .delete-module-btn:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    /* 模块内搜索 */
+    .inner-search {
+      margin-bottom: 0.8rem;
+    }
+    .inner-search input {
+      width: 100%;
+      background: #f9fcff;
+      border: 1.5px solid #d9e2ef;
+      border-radius: 60px;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    /* 条目网格 (一行四项) */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.4rem;
+      margin: 0.3rem 0 0.6rem;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 0.2rem 0;
+    }
+    @media (max-width: 500px) {
+      .items-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .grid-item {
+      background: #f8fafd;
+      border: 1px solid #dde5ef;
+      border-radius: 40px;
+      padding: 0.3rem 0.2rem 0.3rem 0.8rem;
+      font-size: 0.85rem;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .grid-item span {
+      flex: 1;
+      word-break: break-word;
+    }
+    .item-delete {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .item-delete:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .empty-grid-msg {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: #94a3b8;
+      font-style: italic;
+      padding: 0.6rem;
+      background: #f1f5f9;
+      border-radius: 40px;
+      border: 1px dashed #cbd5e1;
+    }
+    /* 模块内部分页 */
+    .inner-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0.2rem 0 0.6rem;
+    }
+    .inner-page-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 30px;
+      padding: 0.2rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #1e3a8a;
+      cursor: pointer;
+    }
+    .inner-page-btn:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .inner-page-info {
+      font-size: 0.8rem;
+      color: #475569;
+    }
+    /* 添加条目区域 */
+    .add-item-section {
+      display: flex;
+      gap: 0.3rem;
+      margin-top: 0.2rem;
+    }
+    .item-input {
+      flex: 1;
+      background: #ffffff;
+      border: 1.5px solid #dce3eb;
+      border-radius: 60px;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .add-item-btn {
+      background: #2563eb;
+      border: none;
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 60px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      white-space: nowrap;
+    }
+    /* 无模块提示 */
+    .no-modules {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
+      background: white;
+      border-radius: 40px;
+      color: #64748b;
+      border: 2px dashed #cbd5e1;
+    }
+  </style>
 </head>
 <body>
-    <!-- 页面头部 -->
-    <div class="page-header" style="display: none;">
-        <div class="header-left">
-            <button class="back-btn" id="backBtn">← 返回</button>
-            <span class="page-title">招生线索字典配置</span>
-            <span class="tag">重点功能</span>
-        </div>
+<div id="app">
+  <!-- <div class="page-header">
+    <h1>2. 高管教育招生线索管理</h1>
+    <h2><i class="fas fa-angle-up"></i> 2.1 基础设置 · 可动态增删模块</h2>
+  </div> -->
+
+  <!-- 全局工具栏 -->
+  <div class="global-toolbar">
+    <div class="global-search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="globalModuleSearch" placeholder="搜索模块名称..." autocomplete="off">
     </div>
-
-    <!-- 主容器 -->
-    <div >
-        <!-- 搜索和新增字典类型区域 -->
-        <div class="search-bar">
-            <div class="search-group">
-                <input type="text" class="search-input" id="searchInput" placeholder="请输入字典类型或配置项名称搜索">
-                <button class="search-btn" id="searchBtn">搜索</button>
-                <button class="search-btn" id="resetBtn" style="background-color: #909399;">重置</button>
-            </div>
-            <button class="add-dict-type-btn" id="addDictTypeBtn">
-                <span>+</span> 新增字典类型
-            </button>
-        </div>
-
-        <!-- 配置卡片容器 -->
-        <div class="config-grid" id="configGrid"></div>
-
-        <!-- 分页控件 -->
-        <div class="pagination" id="pagination">
-            <button class="page-btn" id="prevPageBtn" disabled>上一页</button>
-            <span class="page-num" id="pageNum">1</span>
-            <button class="page-btn" id="nextPageBtn">下一页</button>
-            <span class="page-info" id="pageInfo">共 1 页 / 7 条</span>
-        </div>
+    <div class="add-module-section">
+      <input type="text" id="newModuleName" placeholder="新模块名称, 如: 线索阶段">
+      <button class="primary-btn" id="addModuleBtn"><i class="fa-solid fa-plus"></i> 新增模块</button>
     </div>
+  </div>
 
-    <!-- 配置项弹窗 -->
-    <div class="modal-mask" id="modalMask">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span id="modalTitle">添加配置项</span>
-                <button class="close-btn" id="closeBtn">×</button>
-            </div>
-            
-            <!-- 优化后的表单结构 -->
-            <div class="form-wrapper">
-                <div class="form-title">基础信息</div>
-                <form id="configForm">
-                    <div class="form-item">
-                        <label class="form-label">配置名称：</label>
-                        <div class="form-input-wrapper">
-                            <input type="text" class="form-input" id="configName" required placeholder="请输入配置名称">
-                            <div class="form-tip">支持中英文、数字和特殊符号</div>
-                        </div>
-                    </div>
-                    <div class="form-item">
-                        <label class="form-label">排序：</label>
-                        <div class="form-input-wrapper">
-                            <input type="number" class="form-input number-input" id="configSort" min="1" value="1" required>
-                            <div class="form-tip">数字越小，显示越靠前</div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="cancel-btn" id="cancelBtn">取消</button>
-                <button class="save-btn" id="saveBtn">保存</button>
-            </div>
-        </div>
+  <!-- 模块网格容器 -->
+  <div id="modulesGrid" class="modules-grid"></div>
+
+  <!-- 全局分页控件 -->
+  <div class="global-pagination" id="globalPagination">
+    <span class="page-info" id="globalPageInfo"></span>
+    <div class="pagination-controls">
+      <button class="page-btn" id="globalPrevBtn" disabled><i class="fa-solid fa-chevron-left"></i> 上一页</button>
+      <button class="page-btn" id="globalNextBtn" disabled>下一页 <i class="fa-solid fa-chevron-right"></i></button>
     </div>
+  </div>
+</div>
 
-    <!-- 新增字典类型弹窗 -->
-    <div class="modal-mask" id="dictTypeModalMask">
-        <div class="modal-content dict-type-modal">
-            <div class="modal-header">
-                <span>新增字典类型</span>
-                <button class="close-btn" id="dictTypeCloseBtn">×</button>
+<script>
+  (function() {
+    // ---------- 初始模块数据 (七个基础设置) ----------
+    let modules = [
+      { id: 'm1', name: '线索类别', icon: 'fa-tag', items: ['公开课', '内训', '高管研修', '峰会', 'MBA', 'DBA', '短期课程', '企业内训', '在线讲座', '体验营'] },
+      { id: 'm2', name: '咨询类别', icon: 'fa-headset', items: ['课程咨询', '项目咨询', '合作咨询', '定制咨询', '学位咨询', '企业团报', '师资咨询'] },
+      { id: 'm3', name: '退回原因', icon: 'fa-rotate-left', items: ['无意向', '预算不足', '联系人错误', '稍后跟进', '已有供应商', '决策链长'] },
+      { id: 'm4', name: '关闭原因', icon: 'fa-circle-xmark', items: ['已报名其他', '暂不学习', '失联', '内部转化', '重复线索', '无效号码'] },
+      { id: 'm5', name: '线索推荐人', icon: 'fa-user-tie', items: ['张老师', '李老师', '王主任', '刘教授', '陈博士', '市场部', '校友会'] },
+      { id: 'm6', name: '线索渠道', icon: 'fa-bullhorn', items: ['官网', '微信公众号', '线下展会', '百度竞价', '抖音', '小红书', '电话咨询'] },
+      { id: 'm7', name: '线索途径', icon: 'fa-road', items: ['搜索', '朋友介绍', '广告', '自媒体', '邮件推送', '短信'] }
+    ];
+
+    // 每个模块内部的搜索分页状态 (key: moduleId)
+    let innerStates = {};
+    modules.forEach(m => {
+      innerStates[m.id] = { search: '', page: 1 };
+    });
+
+    // 全局状态
+    let globalSearchTerm = '';               // 模块名称搜索词
+    const GLOBAL_PAGE_SIZE = 4;              // 每页显示4个模块
+    let globalPage = 1;
+
+    // 获取过滤后的模块列表
+    function getFilteredModules() {
+      if (!globalSearchTerm.trim()) return modules;
+      const term = globalSearchTerm.trim().toLowerCase();
+      return modules.filter(m => m.name.toLowerCase().includes(term));
+    }
+
+    // 根据全局分页获取当前页模块
+    function getCurrentPageModules() {
+      const filtered = getFilteredModules();
+      const start = (globalPage - 1) * GLOBAL_PAGE_SIZE;
+      const end = start + GLOBAL_PAGE_SIZE;
+      return filtered.slice(start, end);
+    }
+
+    // 更新全局分页控件状态
+    function updateGlobalPagination() {
+      const filtered = getFilteredModules();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / GLOBAL_PAGE_SIZE));
+      if (globalPage > totalPages) globalPage = totalPages;
+      if (globalPage < 1) globalPage = 1;
+
+      document.getElementById('globalPageInfo').innerText = `第 ${globalPage} / ${totalPages} 页 (共 ${filtered.length} 个模块)`;
+      const prevBtn = document.getElementById('globalPrevBtn');
+      const nextBtn = document.getElementById('globalNextBtn');
+      prevBtn.disabled = globalPage <= 1;
+      nextBtn.disabled = globalPage >= totalPages;
+    }
+
+    // 渲染所有模块 (当前页)
+    function renderModules() {
+      const grid = document.getElementById('modulesGrid');
+      const currentModules = getCurrentPageModules();
+      updateGlobalPagination();
+
+      if (currentModules.length === 0) {
+        grid.innerHTML = `<div class="no-modules"><i class="fa-regular fa-folder-open"></i> 没有匹配的模块，请修改搜索词或新增模块</div>`;
+        return;
+      }
+
+      let html = '';
+      currentModules.forEach(module => {
+        const state = innerStates[module.id] || { search: '', page: 1 };
+        const items = module.items || [];
+
+        // 过滤内部条目
+        let filteredItems = items;
+        if (state.search.trim()) {
+          const term = state.search.trim().toLowerCase();
+          filteredItems = items.filter(it => it.toLowerCase().includes(term));
+        }
+        const totalInnerPages = Math.max(1, Math.ceil(filteredItems.length / 8)); // 每页8项
+        let currentInnerPage = state.page;
+        if (currentInnerPage > totalInnerPages) currentInnerPage = totalInnerPages;
+        if (currentInnerPage < 1) currentInnerPage = 1;
+        state.page = currentInnerPage; // 同步
+
+        const start = (currentInnerPage - 1) * 8;
+        const end = start + 8;
+        const currentItems = filteredItems.slice(start, end);
+
+        // 构建内部条目网格
+        let itemsGridHtml = '';
+        if (currentItems.length === 0) {
+          itemsGridHtml = `<div class="empty-grid-msg"><i class="fa-regular fa-eye-slash"></i> 暂无条目</div>`;
+        } else {
+          itemsGridHtml = '<div class="items-grid">';
+          currentItems.forEach(item => {
+            const safeValue = item.replace(/"/g, '&quot;');
+            itemsGridHtml += `
+              <div class="grid-item">
+                <span>${escapeHtml(item)}</span>
+                <button class="item-delete" type="button" data-module-id="${module.id}" data-item-value="${safeValue}" title="删除条目"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            `;
+          });
+          itemsGridHtml += '</div>';
+        }
+
+        // 内部翻页
+        const innerPrevDisabled = currentInnerPage <= 1 ? 'disabled' : '';
+        const innerNextDisabled = currentInnerPage >= totalInnerPages ? 'disabled' : '';
+
+        // 卡片完整 html
+        html += `
+          <div class="card" data-module-id="${module.id}">
+            <div class="card-header">
+              <div class="card-title"><i class="fas ${module.icon || 'fa-tag'}"></i> ${escapeHtml(module.name)}</div>
+              <button class="delete-module-btn" type="button" data-module-id="${module.id}" title="删除模块"><i class="fa-regular fa-trash-can"></i></button>
             </div>
-            
-            <form id="dictTypeForm">
-                <div class="form-item">
-                    <label class="form-label">字典Key：</label>
-                    <div class="form-input-wrapper">
-                        <input type="text" class="form-input" id="dictKey" required placeholder="如：sourceType（字母+数字+下划线）">
-                        <div class="form-tip">唯一标识，仅支持字母、数字、下划线</div>
-                    </div>
-                </div>
-                <div class="form-item">
-                    <label class="form-label">字典名称：</label>
-                    <div class="form-input-wrapper">
-                        <input type="text" class="form-input" id="dictTitle" required placeholder="如：来源类型">
-                        <div class="form-tip">显示名称，支持中英文</div>
-                    </div>
-                </div>
-            </form>
-            
-            <div class="modal-footer">
-                <button class="cancel-btn" id="dictTypeCancelBtn">取消</button>
-                <button class="save-btn" id="dictTypeSaveBtn">保存</button>
+            <div class="inner-search">
+              <input type="text" class="inner-search-input" data-module-id="${module.id}" placeholder="搜索条目..." value="${escapeHtml(state.search)}" />
             </div>
-        </div>
-    </div>
+            ${itemsGridHtml}
+            <div class="inner-pagination">
+              <button class="inner-page-btn inner-prev" data-module-id="${module.id}" ${innerPrevDisabled}><i class="fa-solid fa-chevron-left"></i> 上一页</button>
+              <span class="inner-page-info">${currentInnerPage}/${totalInnerPages}</span>
+              <button class="inner-page-btn inner-next" data-module-id="${module.id}" ${innerNextDisabled}>下一页 <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="add-item-section">
+              <input type="text" class="item-input" placeholder="新条目..." />
+              <button class="add-item-btn" data-module-id="${module.id}"><i class="fa-solid fa-plus"></i> 添加</button>
+            </div>
+          </div>
+        `;
+      });
+      grid.innerHTML = html;
+    }
 
-    <!-- 提示框 -->
-    <div class="message" id="messageBox"></div>
+    // 辅助转义
+    function escapeHtml(unsafe) {
+      return String(unsafe).replace(/[&<>"]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        if (m === '"') return '&quot;';
+        return m;
+      });
+    }
 
-    <script>
-        // 1. 核心数据定义 - 统一字典表结构
-        const dictConfig = [
-            { key: 'clueType', title: '线索类别', items: [
-                { id: 1, name: '潜在客户', sort: 1 },
-                { id: 2, name: '意向强烈', sort: 2 },
-                { id: 3, name: '已转化', sort: 3 }
-            ]},
-            { key: 'consultType', title: '咨询类别', items: [
-                { id: 1, name: '课程咨询', sort: 1 },
-                { id: 2, name: '报名咨询', sort: 2 },
-                { id: 3, name: '缴费咨询', sort: 3 }
-            ]},
-            { key: 'returnReason', title: '退回原因', items: [
-                { id: 1, name: '信息有误', sort: 1 },
-                { id: 2, name: '非目标客户', sort: 2 }
-            ]},
-            { key: 'closeReason', title: '关闭原因', items: [
-                { id: 1, name: '无意向', sort: 1 },
-                { id: 2, name: '已录取', sort: 2 },
-                { id: 3, name: '放弃申请', sort: 3 }
-            ]},
-            { key: 'referrer', title: '推荐人', items: [
-                { id: 1, name: '内部员工', sort: 1 },
-                { id: 2, name: '校友', sort: 2 },
-                { id: 3, name: '合作机构', sort: 3 }
-            ]},
-            { key: 'channel', title: '渠道', items: [
-                { id: 1, name: '官网', sort: 1 },
-                { id: 2, name: '公众号', sort: 2 },
-                { id: 3, name: '线下活动', sort: 3 },
-                { id: 4, name: '朋友推荐', sort: 4 }
-            ]},
-            { key: 'way', title: '途径', items: [
-                { id: 1, name: '官网→百度SEM', sort: 1 },
-                { id: 2, name: '公众号→推文', sort: 2 },
-                { id: 3, name: '线下活动→校园宣讲', sort: 3 }
-            ]}
-        ];
+    // 重置全局页码并重新渲染
+    function refreshGlobal(keepPage = false) {
+      if (!keepPage) globalPage = 1;
+      renderModules();
+    }
 
-        // 2. 全局状态变量
-        let currentDictKey = ''; // 当前操作的字典key
-        let currentItemId = '';  // 当前编辑的项ID
-        let isEditMode = false;  // 是否编辑模式
-        let currentPage = 1;     // 当前页码
-        const pageSize = 8;      // 每页显示数量
-        let filteredDictConfig = [...dictConfig]; // 筛选后的字典数据
+    // ---------- 事件绑定 ----------
+    // 全局搜索模块
+    document.getElementById('globalModuleSearch').addEventListener('input', function(e) {
+      globalSearchTerm = e.target.value;
+      globalPage = 1;
+      renderModules();
+    });
 
-        // 3. DOM元素获取
-        const configGrid = document.getElementById('configGrid');
-        const modalMask = document.getElementById('modalMask');
-        const dictTypeModalMask = document.getElementById('dictTypeModalMask');
-        const modalTitle = document.getElementById('modalTitle');
-        const configName = document.getElementById('configName');
-        const configSort = document.getElementById('configSort');
-        const messageBox = document.getElementById('messageBox');
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const addDictTypeBtn = document.getElementById('addDictTypeBtn');
-        const prevPageBtn = document.getElementById('prevPageBtn');
-        const nextPageBtn = document.getElementById('nextPageBtn');
-        const pageNum = document.getElementById('pageNum');
-        const pageInfo = document.getElementById('pageInfo');
+    // 新增模块
+    document.getElementById('addModuleBtn').addEventListener('click', function() {
+      const input = document.getElementById('newModuleName');
+      const name = input.value.trim();
+      if (!name) {
+        alert('请输入模块名称');
+        return;
+      }
+      // 生成唯一id
+      const newId = 'mod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+      modules.unshift({ 
+        id: newId, 
+        name: name, 
+        icon: 'fa-tag',   // 默认图标
+        items: [] 
+      });
+      innerStates[newId] = { search: '', page: 1 };
+      // 清空搜索框，并重置全局搜索为空白，以便看到新模块
+      globalSearchTerm = '';
+      document.getElementById('globalModuleSearch').value = '';
+      globalPage = 1;
+      input.value = '';
+      renderModules();
+    });
 
-        // 4. 页面初始化
-        function initPage() {
-            renderConfigCards();
-            updatePagination();
-            bindEventListeners();
+    // 全局上一页/下一页
+    document.getElementById('globalPrevBtn').addEventListener('click', function() {
+      if (globalPage > 1) {
+        globalPage--;
+        renderModules();
+      }
+    });
+    document.getElementById('globalNextBtn').addEventListener('click', function() {
+      const filtered = getFilteredModules();
+      const totalPages = Math.ceil(filtered.length / GLOBAL_PAGE_SIZE);
+      if (globalPage < totalPages) {
+        globalPage++;
+        renderModules();
+      }
+    });
+
+    // 利用事件代理监听网格内所有动态事件
+    const grid = document.getElementById('modulesGrid');
+    grid.addEventListener('click', function(e) {
+      const target = e.target;
+
+      // 1. 删除模块
+      const deleteModuleBtn = target.closest('.delete-module-btn');
+      if (deleteModuleBtn) {
+        e.preventDefault();
+        const moduleId = deleteModuleBtn.dataset.moduleId;
+        if (!moduleId) return;
+        if (confirm('确定删除该模块吗？其所有条目也会被删除。')) {
+          modules = modules.filter(m => m.id !== moduleId);
+          delete innerStates[moduleId];
+          // 调整全局页码
+          const filtered = getFilteredModules();
+          const totalPages = Math.ceil(filtered.length / GLOBAL_PAGE_SIZE);
+          if (globalPage > totalPages) globalPage = totalPages || 1;
+          renderModules();
         }
+        return;
+      }
 
-        // 5. 渲染配置卡片（支持分页）
-        function renderConfigCards() {
-            configGrid.innerHTML = '';
-            
-            // 计算分页数据
-            const startIndex = (currentPage - 1) * pageSize;
-            const endIndex = startIndex + pageSize;
-            const paginatedData = filteredDictConfig.slice(startIndex, endIndex);
-
-            if (paginatedData.length === 0) {
-                configGrid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #909399;">
-                        暂无匹配的字典数据
-                    </div>
-                `;
-                return;
-            }
-
-            paginatedData.forEach(config => {
-                // 创建卡片容器
-                const card = document.createElement('div');
-                card.className = 'config-card';
-                
-                // 卡片头部 - 新增删除类型按钮
-                const cardHeader = document.createElement('div');
-                cardHeader.className = 'card-header';
-                cardHeader.innerHTML = `
-                    <span>${config.title}</span>
-                    <div class="card-actions">
-                        <button class="add-btn" data-key="${config.key}">
-                            <span>+</span> 添加
-                        </button>
-                        <button class="delete-type-btn" data-key="${config.key}">
-                            <span>🗑️</span> 删除类型
-                        </button>
-                    </div>
-                `;
-                
-                // 配置表格
-                const table = document.createElement('table');
-                table.className = 'config-table';
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th>配置名称</th>
-                            <th style="width: 80px;">排序</th>
-                            <th style="width: 120px;">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${config.items.map(item => `
-                            <tr data-id="${item.id}" data-key="${config.key}">
-                                <td>${item.name}</td>
-                                <td>
-                                    <input type="number" class="form-input number-input" 
-                                           value="${item.sort}" min="1" 
-                                           onchange="updateSort('${config.key}', ${item.id}, this.value)">
-                                </td>
-                                <td>
-                                    <button class="edit-btn" data-key="${config.key}" data-id="${item.id}">编辑</button>
-                                    <button class="delete-btn" data-key="${config.key}" data-id="${item.id}">删除</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                `;
-                
-                // 组装卡片
-                card.appendChild(cardHeader);
-                card.appendChild(table);
-                configGrid.appendChild(card);
-            });
+      // 2. 添加条目
+      const addItemBtn = target.closest('.add-item-btn');
+      if (addItemBtn) {
+        e.preventDefault();
+        const moduleId = addItemBtn.dataset.moduleId;
+        const card = addItemBtn.closest('.card');
+        const input = card.querySelector('.item-input');
+        const newVal = input.value.trim();
+        if (!newVal) { alert('请输入条目内容'); return; }
+        const module = modules.find(m => m.id === moduleId);
+        if (module) {
+          module.items.unshift(newVal);  // 插入最前
+          // 重置该模块内部搜索和页码，以便看到新条目
+          innerStates[moduleId].search = '';
+          innerStates[moduleId].page = 1;
+          // 需要同步清除内部搜索框的值（下次渲染时会重置）
+          renderModules();
         }
+        return;
+      }
 
-        // 6. 更新分页控件
-        function updatePagination() {
-            const totalItems = filteredDictConfig.length;
-            const totalPages = Math.ceil(totalItems / pageSize);
-            
-            // 更新页码显示
-            pageNum.textContent = currentPage;
-            pageInfo.textContent = `共 ${totalPages} 页 / ${totalItems} 条`;
-            
-            // 禁用/启用分页按钮
-            prevPageBtn.disabled = currentPage === 1;
-            nextPageBtn.disabled = currentPage === totalPages;
+      // 3. 删除条目
+      const deleteItemBtn = target.closest('.item-delete');
+      if (deleteItemBtn) {
+        e.preventDefault();
+        const moduleId = deleteItemBtn.dataset.moduleId;
+        const itemValue = deleteItemBtn.dataset.itemValue; // 原始字符串
+        if (!moduleId || !itemValue) return;
+        const module = modules.find(m => m.id === moduleId);
+        if (module) {
+          const idx = module.items.findIndex(v => v === itemValue);
+          if (idx !== -1) {
+            module.items.splice(idx, 1);
+            // 内部页码自适应（保持当前页，但可能页变少）
+            const state = innerStates[moduleId];
+            const filtered = module.items.filter(it => !state.search || it.toLowerCase().includes(state.search.toLowerCase()));
+            const totalInnerPages = Math.ceil(filtered.length / 8);
+            if (state.page > totalInnerPages) state.page = totalInnerPages || 1;
+            renderModules();
+          }
         }
+        return;
+      }
 
-        // 7. 搜索功能
-        function searchDict() {
-            const keyword = searchInput.value.trim().toLowerCase();
-            if (!keyword) {
-                filteredDictConfig = [...dictConfig];
-                currentPage = 1;
-                renderConfigCards();
-                updatePagination();
-                return;
-            }
-
-            // 筛选包含关键词的字典类型或配置项
-            filteredDictConfig = dictConfig.filter(config => {
-                // 检查字典标题
-                if (config.title.toLowerCase().includes(keyword)) {
-                    return true;
-                }
-                // 检查配置项名称
-                const hasMatchItem = config.items.some(item => 
-                    item.name.toLowerCase().includes(keyword)
-                );
-                return hasMatchItem;
-            });
-
-            currentPage = 1; // 搜索后重置到第一页
-            renderConfigCards();
-            updatePagination();
+      // 4. 内部上一页
+      const innerPrev = target.closest('.inner-prev');
+      if (innerPrev) {
+        e.preventDefault();
+        const moduleId = innerPrev.dataset.moduleId;
+        if (!moduleId) return;
+        const state = innerStates[moduleId];
+        if (state && state.page > 1) {
+          state.page--;
+          renderModules();
         }
+        return;
+      }
 
-        // 8. 新增字典类型（优化：新增类型插入到数组最前面）
-        function addDictType(key, title) {
-            // 检查key是否已存在
-            const isKeyExist = dictConfig.some(config => config.key === key);
-            if (isKeyExist) {
-                showMessage('字典Key已存在，请更换', 'error');
-                return;
-            }
-
-            // 新增类型插入到数组最前面（核心优化点）
-            dictConfig.unshift({
-                key: key,
-                title: title,
-                items: []
-            });
-
-            // 更新筛选数据和页面
-            filteredDictConfig = [...dictConfig];
-            renderConfigCards();
-            updatePagination();
-            showMessage('字典类型添加成功', 'success');
-            
-            // 关闭弹窗
-            dictTypeModalMask.style.display = 'none';
-            // 重置表单
-            document.getElementById('dictTypeForm').reset();
+      // 5. 内部下一页
+      const innerNext = target.closest('.inner-next');
+      if (innerNext) {
+        e.preventDefault();
+        const moduleId = innerNext.dataset.moduleId;
+        if (!moduleId) return;
+        const state = innerStates[moduleId];
+        const module = modules.find(m => m.id === moduleId);
+        if (module && state) {
+          const filtered = module.items.filter(it => !state.search || it.toLowerCase().includes(state.search.toLowerCase()));
+          const totalInnerPages = Math.ceil(filtered.length / 8);
+          if (state.page < totalInnerPages) {
+            state.page++;
+            renderModules();
+          }
         }
+        return;
+      }
+    });
 
-        // 9. 删除字典类型
-        function deleteDictType(key) {
-            // 二次确认
-            if (!confirm(`确定要删除【${dictConfig.find(item => item.key === key).title}】字典类型吗？删除后该类型下的所有配置项也会被删除！`)) {
-                return;
-            }
-
-            // 删除字典类型
-            const typeIndex = dictConfig.findIndex(config => config.key === key);
-            if (typeIndex !== -1) {
-                dictConfig.splice(typeIndex, 1);
-                
-                // 更新筛选数据
-                filteredDictConfig = [...dictConfig];
-                
-                // 处理分页边界情况
-                const totalPages = Math.ceil(filteredDictConfig.length / pageSize);
-                if (currentPage > totalPages && totalPages > 0) {
-                    currentPage = totalPages;
-                } else if (totalPages === 0) {
-                    currentPage = 1;
-                }
-                
-                renderConfigCards();
-                updatePagination();
-                showMessage('字典类型删除成功', 'success');
-            }
+    // 内部搜索输入 (使用input事件代理)
+    grid.addEventListener('input', function(e) {
+      const target = e.target;
+      if (target.classList.contains('inner-search-input')) {
+        const moduleId = target.dataset.moduleId;
+        if (!moduleId) return;
+        const newSearch = target.value;
+        const state = innerStates[moduleId];
+        if (state) {
+          state.search = newSearch;
+          state.page = 1;  // 重置为第一页
+          renderModules();
         }
+      }
+    });
 
-        // 10. 绑定所有事件监听
-        function bindEventListeners() {
-            // 返回按钮
-            document.getElementById('backBtn').addEventListener('click', () => {
-                window.history.back();
-            });
-
-            // 搜索按钮
-            searchBtn.addEventListener('click', searchDict);
-            // 回车搜索
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') searchDict();
-            });
-            // 重置按钮
-            resetBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                filteredDictConfig = [...dictConfig];
-                currentPage = 1;
-                renderConfigCards();
-                updatePagination();
-            });
-
-            // 新增字典类型按钮
-            addDictTypeBtn.addEventListener('click', () => {
-                dictTypeModalMask.style.display = 'flex';
-            });
-
-            // 分页按钮
-            prevPageBtn.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderConfigCards();
-                    updatePagination();
-                }
-            });
-
-            nextPageBtn.addEventListener('click', () => {
-                const totalPages = Math.ceil(filteredDictConfig.length / pageSize);
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderConfigCards();
-                    updatePagination();
-                }
-            });
-
-            // 添加按钮（事件委托）
-            configGrid.addEventListener('click', (e) => {
-                if (e.target.closest('.add-btn')) {
-                    const key = e.target.closest('.add-btn').dataset.key;
-                    openModal(false, key);
-                }
-            });
-
-            // 编辑按钮（事件委托）
-            configGrid.addEventListener('click', (e) => {
-                if (e.target.classList.contains('edit-btn')) {
-                    const key = e.target.dataset.key;
-                    const id = parseInt(e.target.dataset.id);
-                    openModal(true, key, id);
-                }
-            });
-
-            // 删除配置项按钮（事件委托）
-            configGrid.addEventListener('click', (e) => {
-                if (e.target.classList.contains('delete-btn')) {
-                    const key = e.target.dataset.key;
-                    const id = parseInt(e.target.dataset.id);
-                    confirmDelete(key, id);
-                }
-            });
-
-            // 删除字典类型按钮（事件委托）
-            configGrid.addEventListener('click', (e) => {
-                if (e.target.closest('.delete-type-btn')) {
-                    const key = e.target.closest('.delete-type-btn').dataset.key;
-                    deleteDictType(key);
-                }
-            });
-
-            // 配置项弹窗关闭按钮
-            document.getElementById('closeBtn').addEventListener('click', closeModal);
-            document.getElementById('cancelBtn').addEventListener('click', closeModal);
-
-            // 配置项保存按钮
-            document.getElementById('saveBtn').addEventListener('click', saveConfigItem);
-
-            // 字典类型弹窗关闭按钮
-            document.getElementById('dictTypeCloseBtn').addEventListener('click', () => {
-                dictTypeModalMask.style.display = 'none';
-                document.getElementById('dictTypeForm').reset();
-            });
-            document.getElementById('dictTypeCancelBtn').addEventListener('click', () => {
-                dictTypeModalMask.style.display = 'none';
-                document.getElementById('dictTypeForm').reset();
-            });
-
-            // 字典类型保存按钮
-            document.getElementById('dictTypeSaveBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                const dictKey = document.getElementById('dictKey').value.trim();
-                const dictTitle = document.getElementById('dictTitle').value.trim();
-
-                // 表单验证
-                if (!dictKey) {
-                    showMessage('请输入字典Key', 'error');
-                    return;
-                }
-                if (!/^[a-zA-Z0-9_]+$/.test(dictKey)) {
-                    showMessage('字典Key仅支持字母、数字、下划线', 'error');
-                    return;
-                }
-                if (!dictTitle) {
-                    showMessage('请输入字典名称', 'error');
-                    return;
-                }
-
-                addDictType(dictKey, dictTitle);
-            });
-        }
-
-        // 11. 打开配置项弹窗
-        function openModal(isEdit, key, id = null) {
-            isEditMode = isEdit;
-            currentDictKey = key;
-            currentItemId = id;
-
-            // 设置弹窗标题
-            modalTitle.textContent = isEdit ? '编辑配置项' : '添加配置项';
-            
-            // 清空/填充表单
-            configName.value = '';
-            configName.placeholder = isEdit ? '请修改配置名称' : '请输入配置名称';
-            configSort.value = 1;
-            
-            if (isEdit) {
-                const config = dictConfig.find(item => item.key === key);
-                const item = config.items.find(i => i.id === id);
-                configName.value = item.name;
-                configSort.value = item.sort;
-            }
-
-            // 显示弹窗
-            modalMask.style.display = 'flex';
-        }
-
-        // 12. 关闭配置项弹窗
-        function closeModal() {
-            modalMask.style.display = 'none';
-            // 重置表单
-            document.getElementById('configForm').reset();
-            isEditMode = false;
-            currentDictKey = '';
-            currentItemId = '';
-        }
-
-        // 13. 保存配置项
-        function saveConfigItem(e) {
-            e.preventDefault();
-            
-            // 表单验证
-            if (!configName.value.trim()) {
-                showMessage('请输入配置名称', 'error');
-                return;
-            }
-            
-            const name = configName.value.trim();
-            const sort = parseInt(configSort.value);
-            
-            const config = dictConfig.find(item => item.key === currentDictKey);
-            
-            if (isEditMode) {
-                // 编辑模式：更新现有项
-                const itemIndex = config.items.findIndex(i => i.id === currentItemId);
-                if (itemIndex !== -1) {
-                    config.items[itemIndex].name = name;
-                    config.items[itemIndex].sort = sort;
-                    showMessage('编辑成功', 'success');
-                }
-            } else {
-                // 添加模式：创建新项
-                const newId = Date.now(); // 使用时间戳作为唯一ID
-                config.items.push({
-                    id: newId,
-                    name: name,
-                    sort: sort
-                });
-                showMessage('添加成功', 'success');
-            }
-            
-            // 更新筛选数据（保持搜索状态）
-            filteredDictConfig = [...dictConfig];
-            // 重新渲染页面
-            renderConfigCards();
-            closeModal();
-        }
-
-        // 14. 确认删除配置项
-        function confirmDelete(key, id) {
-            if (confirm('确定要删除该配置项吗？')) {
-                const config = dictConfig.find(item => item.key === key);
-                config.items = config.items.filter(item => item.id !== id);
-                
-                // 更新筛选数据
-                filteredDictConfig = [...dictConfig];
-                renderConfigCards();
-                updatePagination();
-                showMessage('删除成功', 'success');
-            }
-        }
-
-        // 15. 更新排序
-        function updateSort(key, id, newSort) {
-            const config = dictConfig.find(item => item.key === key);
-            const item = config.items.find(i => i.id === id);
-            if (item) {
-                item.sort = parseInt(newSort);
-                // 按排序值重新排序
-                config.items.sort((a, b) => a.sort - b.sort);
-                
-                // 更新筛选数据
-                filteredDictConfig = [...dictConfig];
-                renderConfigCards();
-            }
-        }
-
-        // 16. 显示提示消息
-        function showMessage(text, type = 'success') {
-            messageBox.textContent = text;
-            messageBox.className = `message message-${type}`;
-            messageBox.style.display = 'block';
-            
-            // 3秒后隐藏
-            setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, 3000);
-        }
-
-        // 页面加载完成后初始化
-        window.addEventListener('DOMContentLoaded', initPage);
-
-        // 扩展：获取字典数据（供其他模块调用，实现动态渲染下拉选项）
-        window.getDictData = function(key) {
-            const config = dictConfig.find(item => item.key === key);
-            return config ? config.items : [];
-        };
-    </script>
+    // 初始渲染
+    renderModules();
+  })();
+</script>
 </body>
 </html>
