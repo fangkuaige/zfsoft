@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研途助手 · 研究生学业管理 (弹窗版)</title>
+    <!-- 使用与分数变动记录一致的 Inter 字体 + 图标库 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 完全沿用分数变动记录的样式框架，调整细节适配作业/成绩管理 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 筛选栏 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+            flex: 1 1 140px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 表格区域 */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;  /* 保证字段完整显示 */
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .course-color-dot {
+            width: 12px; height: 12px; border-radius: 4px; display: inline-block; margin-right: 6px;
+        }
+        .badge-reason {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .score-badge {
+            background: #d9f0f7;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.8rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+
+        /* 分页 */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 弹窗 (完全复用风格) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 800px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .readonly-field {
+            background: #ecf2f9; color: #2a4e6e; font-weight: 500;
+        }
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+        /* 课程颜色标签 */
+        .color-dot { width: 14px; height: 14px; border-radius: 6px; display: inline-block; margin-right: 4px; }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 卡片：筛选栏 + 新增按钮 -->
+    <div class="card">
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-search"></i> 作业标题</label>
+                <input type="text" class="filter-input" id="filterTitle" placeholder="作业名称">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-book"></i> 课程</label>
+                <select class="filter-select" id="filterCourse">
+                    <option value="all">全部课程</option>
+                    <option value="高级机器学习">高级机器学习</option>
+                    <option value="论文写作">论文写作</option>
+                    <option value="算法设计">算法设计</option>
+                    <option value="数据可视化">数据可视化</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-clock"></i> 状态</label>
+                <select class="filter-select" id="filterStatus">
+                    <option value="all">全部状态</option>
+                    <option value="进行中">进行中</option>
+                    <option value="已完成">已完成</option>
+                    <option value="逾期">逾期</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="openAddModalBtn"><i class="fas fa-plus-circle"></i> 新增作业/成绩</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 作业/成绩列表卡片 -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fas fa-tasks"></i> 课程作业与成绩管理
+        </div>
+        <div class="table-wrapper">
+            <table id="assignmentTable">
+                <thead>
+                    <tr>
+                        <th>作业标题</th><th>课程</th><th>截止时间</th><th>状态</th><th>成绩</th><th>优先级</th><th>描述</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <!-- 分页 -->
+        <div class="pagination-bar" id="paginationContainer"></div>
+    </div>
+</div>
+
+<!-- 新增/编辑 弹窗 (完全仿照分数变动记录) -->
+<div class="modal-overlay" id="assignmentModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-pen"></i> 作业/成绩</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="assignmentForm" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="input-group full-width">
+                    <label><i class="fas fa-heading"></i> 作业标题 *</label>
+                    <input type="text" class="input-field" id="modalTitleField" required placeholder="例如：模型对比实验">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-book-open"></i> 课程 *</label>
+                    <select class="input-field" id="modalCourse" required>
+                        <option value="高级机器学习">高级机器学习</option>
+                        <option value="论文写作">论文写作</option>
+                        <option value="算法设计">算法设计</option>
+                        <option value="数据可视化">数据可视化</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-calendar"></i> 截止日期 *</label>
+                    <input type="datetime-local" class="input-field" id="modalDeadline" required>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-flag"></i> 优先级</label>
+                    <select class="input-field" id="modalPriority">
+                        <option value="高">高</option>
+                        <option value="中" selected>中</option>
+                        <option value="低">低</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-circle"></i> 状态</label>
+                    <select class="input-field" id="modalStatus">
+                        <option value="进行中">进行中</option>
+                        <option value="已完成">已完成</option>
+                        <option value="逾期">逾期</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-star"></i> 成绩 (得分)</label>
+                    <input type="number" step="0.1" min="0" max="100" class="input-field" id="modalScore" placeholder="如88.5">
+                </div>
+                <div class="input-group full-width">
+                    <label><i class="fas fa-align-left"></i> 作业描述</label>
+                    <textarea class="input-field" id="modalDesc" rows="2" placeholder="详细要求或备注"></textarea>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> 保存记录</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function(){
+        // ---------- 模拟作业数据 (包含成绩) ----------
+        let allAssignments = [
+            { id: 'a1', title: '模型对比实验', course: '高级机器学习', deadline: '2026-03-15T23:59', status: '进行中', priority: '高', description: '对比CNN/Transformer', score: null },
+            { id: 'a2', title: '文献综述初稿', course: '论文写作', deadline: '2026-03-16T18:00', status: '进行中', priority: '中', description: '至少15篇参考文献', score: null },
+            { id: 'a3', title: 'LeetCode周赛总结', course: '算法设计', deadline: '2026-03-16T23:59', status: '进行中', priority: '低', description: '前三题题解', score: null },
+            { id: 'a4', title: '贝叶斯作业', course: '高级机器学习', deadline: '2026-03-10T23:59', status: '已完成', priority: '中', description: '推导题', score: 88 },
+            { id: 'a5', title: '研究计划书', course: '论文写作', deadline: '2026-03-05T12:00', status: '已完成', priority: '高', description: '开题准备', score: 92 },
+            { id: 'a6', title: '动态规划作业', course: '算法设计', deadline: '2026-03-01T23:59', status: '逾期', priority: '中', description: '5道DP', score: 65 },
+            { id: 'a7', title: '数据可视化大作业', course: '数据可视化', deadline: '2026-03-20T23:59', status: '进行中', priority: '高', description: '交互式仪表盘', score: null },
+            { id: 'a8', title: '期末项目报告', course: '数据可视化', deadline: '2026-03-25T23:59', status: '进行中', priority: '中', description: '小组项目', score: null },
+            { id: 'a9', title: '机器学习基础作业', course: '高级机器学习', deadline: '2026-02-28T23:59', status: '已完成', priority: '中', description: '线性回归', score: 94 },
+            { id: 'a10', title: '摘要翻译', course: '论文写作', deadline: '2026-03-18T23:59', status: '进行中', priority: '低', description: '中译英', score: null },
+        ];
+
+        // 分页配置
+        const pageSize = 5;
+        let currentPage = 1;
+        // 筛选条件
+        let filters = { title: '', course: 'all', status: 'all' };
+
+        // DOM 元素
+        const tbody = document.getElementById('tableBody');
+        const toast = document.getElementById('toast');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const filterTitle = document.getElementById('filterTitle');
+        const filterCourse = document.getElementById('filterCourse');
+        const filterStatus = document.getElementById('filterStatus');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const openAddModalBtn = document.getElementById('openAddModalBtn');
+
+        // 弹窗元素
+        const modal = document.getElementById('assignmentModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const modalForm = document.getElementById('assignmentForm');
+        const modalTitleField = document.getElementById('modalTitleField');
+        const modalCourse = document.getElementById('modalCourse');
+        const modalDeadline = document.getElementById('modalDeadline');
+        const modalPriority = document.getElementById('modalPriority');
+        const modalStatus = document.getElementById('modalStatus');
+        const modalScore = document.getElementById('modalScore');
+        const modalDesc = document.getElementById('modalDesc');
+
+        // 当前编辑ID
+        let editingId = null;
+
+        // 辅助函数
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+        // 格式化日期时间用于显示
+        function formatDateTime(datetimeStr) {
+            if (!datetimeStr) return '—';
+            const d = new Date(datetimeStr);
+            if (isNaN(d.getTime())) return datetimeStr;
+            return d.toLocaleString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}).replace(/\//g,'-');
+        }
+
+        // 根据当前时间计算逾期状态 (辅助显示，但保留数据自有状态)
+        function computeStatus(item) {
+            if (item.status === '已完成') return '已完成';
+            const now = new Date();
+            const due = new Date(item.deadline);
+            if (due < now) return '逾期';
+            return '进行中';
+        }
+
+        // 筛选逻辑
+        function filterList() {
+            return allAssignments.filter(item => {
+                if (filters.title && !item.title.toLowerCase().includes(filters.title.toLowerCase())) return false;
+                if (filters.course && filters.course !== 'all' && item.course !== filters.course) return false;
+                if (filters.status && filters.status !== 'all') {
+                    const currentStatus = computeStatus(item);  // 实时计算避免手动维护不一致，但保留原状态字段
+                    if (currentStatus !== filters.status) return false;
+                }
+                return true;
+            });
+        }
+
+        function getFiltered() { return filterList(); }
+
+        function getPaginated() {
+            const filtered = getFiltered();
+            const start = (currentPage - 1) * pageSize;
+            return filtered.slice(start, start + pageSize);
+        }
+
+        function totalPages() {
+            return Math.ceil(getFiltered().length / pageSize);
+        }
+
+        function goToPage(page) {
+            const total = totalPages();
+            if (page < 1) page = 1;
+            if (total > 0 && page > total) page = total;
+            if (page === currentPage) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        }
+        window.pageGo = goToPage;
+
+        // 渲染分页
+        function renderPagination() {
+            const total = totalPages();
+            if (total <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationContainer.innerHTML = html;
+        }
+
+        // 删除记录
+        function deleteAssignment(id) {
+            allAssignments = allAssignments.filter(a => a.id !== id);
+            const filtered = getFiltered();
+            if (filtered.length === 0 && currentPage > 1) currentPage--;
+            showToast('作业已删除');
+            renderTable();
+            renderPagination();
+        }
+
+        // 打开新增弹窗
+        function openAddModal() {
+            editingId = null;
+            modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> 新增作业';
+            modalTitleField.value = '';
+            modalCourse.value = '高级机器学习';
+            // 默认截止时间今天20:00
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = new Date(now - tzOffset).toISOString().slice(0,16);
+            modalDeadline.value = localISOTime;
+            modalPriority.value = '中';
+            modalStatus.value = '进行中';
+            modalScore.value = '';
+            modalDesc.value = '';
+            modal.classList.add('show');
+        }
+
+        // 打开编辑弹窗
+        function openEditModal(id) {
+            const item = allAssignments.find(a => a.id === id);
+            if (!item) return;
+            editingId = id;
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑作业/成绩';
+            modalTitleField.value = item.title || '';
+            modalCourse.value = item.course || '高级机器学习';
+            // 截止时间格式化
+            if (item.deadline) {
+                let d = new Date(item.deadline);
+                if (!isNaN(d.getTime())) {
+                    const tzOffset = d.getTimezoneOffset() * 60000;
+                    modalDeadline.value = new Date(d - tzOffset).toISOString().slice(0,16);
+                } else {
+                    modalDeadline.value = '';
+                }
+            } else {
+                modalDeadline.value = '';
+            }
+            modalPriority.value = item.priority || '中';
+            modalStatus.value = item.status || '进行中';
+            modalScore.value = item.score ?? '';
+            modalDesc.value = item.description || '';
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            editingId = null;
+        }
+
+        // 保存记录
+        function saveAssignment() {
+            const title = modalTitleField.value.trim();
+            const course = modalCourse.value;
+            const deadline = modalDeadline.value;
+            const priority = modalPriority.value;
+            const status = modalStatus.value;
+            const score = modalScore.value === '' ? null : parseFloat(modalScore.value);
+            const description = modalDesc.value.trim();
+
+            if (!title || !course || !deadline) {
+                showToast('请填写标题、课程和截止时间', 1500);
+                return;
+            }
+            if (score !== null && (score < 0 || score > 100)) {
+                showToast('成绩应在0-100之间', 1500);
+                return;
+            }
+
+            const data = {
+                title, course, deadline, priority, status,
+                score: score,
+                description: description || null,
+            };
+
+            if (editingId) {
+                const index = allAssignments.findIndex(a => a.id === editingId);
+                if (index !== -1) { allAssignments[index] = { ...allAssignments[index], ...data }; }
+                showToast('作业已更新');
+            } else {
+                const newItem = { id: generateId(), ...data };
+                allAssignments.push(newItem);
+                showToast('作业已添加');
+                // 跳转到最后一页以便看见新增
+                const filtered = getFiltered();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+            closeModal();
+            renderTable();
+            renderPagination();
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const paginated = getPaginated();
+            let html = '';
+            if (paginated.length === 0) {
+                html = `<tr><td colspan="8" style="text-align:center; padding:3rem; color:#8899bb;"><i class="fas fa-edit" style="font-size:2rem; opacity:0.5;"></i><br>暂无作业记录</td></tr>`;
+            } else {
+                paginated.forEach(item => {
+                    const currentStatus = computeStatus(item); // 实时状态
+                    const statusColor = currentStatus === '已完成' ? '#4caf50' : (currentStatus === '逾期' ? '#e65f5f' : '#f39c12');
+                    const scoreDisplay = item.score !== null ? `<span class="score-badge">${item.score}</span>` : '<span style="color:#99aec6;">—</span>';
+                    // 课程颜色dot
+                    let courseColor = '#2c5f8a';
+                    if (item.course === '高级机器学习') courseColor = '#1d7a6b';
+                    else if (item.course === '论文写作') courseColor = '#b45b0f';
+                    else if (item.course === '算法设计') courseColor = '#2c5f8a';
+                    else if (item.course === '数据可视化') courseColor = '#8a4f9e';
+
+                    html += `<tr>`;
+                    html += `<td><span style="font-weight:500;">${escapeHtml(item.title)}</span></td>`;
+                    html += `<td><span class="color-dot" style="background:${courseColor};"></span>${escapeHtml(item.course)}</td>`;
+                    html += `<td>${formatDateTime(item.deadline)}</td>`;
+                    html += `<td><span style="background:${statusColor}20; color:${statusColor}; padding:4px 12px; border-radius:40px; font-weight:500;">${currentStatus}</span></td>`;
+                    html += `<td>${scoreDisplay}</td>`;
+                    html += `<td>${escapeHtml(item.priority || '中')}</td>`;
+                    html += `<td><span class="badge-reason" title="${escapeHtml(item.description||'')}">${escapeHtml(item.description?.substring(0,15)||'—')}${item.description?.length>15?'…':''}</span></td>`;
+                    html += `<td><div class="action-btns">`;
+                    html += `<button class="icon-btn" onclick="window.editHandler('${item.id}')"><i class="fas fa-pen"></i> 编辑</button>`;
+                    html += `<button class="icon-btn delete-btn" onclick="window.deleteHandler('${item.id}')"><i class="fas fa-trash"></i> 删除</button>`;
+                    html += `</div></td></tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        // 收集筛选并应用
+        function applyFilters() {
+            filters.title = filterTitle.value;
+            filters.course = filterCourse.value;
+            filters.status = filterStatus.value;
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        function resetFilters() {
+            filterTitle.value = '';
+            filterCourse.value = 'all';
+            filterStatus.value = 'all';
+            filters = { title: '', course: 'all', status: 'all' };
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        // 挂载全局方法
+        window.deleteHandler = deleteAssignment;
+        window.editHandler = openEditModal;
+
+        // 事件监听
+        filterTitle.addEventListener('input', applyFilters);
+        filterCourse.addEventListener('change', applyFilters);
+        filterStatus.addEventListener('change', applyFilters);
+        resetFilterBtn.addEventListener('click', resetFilters);
+        openAddModalBtn.addEventListener('click', openAddModal);
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        modalForm.addEventListener('submit', (e) => { e.preventDefault(); saveAssignment(); });
+
+        // 初始化
+        renderTable();
+        renderPagination();
+    })();
+</script>
+</body>
+</html>

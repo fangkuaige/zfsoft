@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生日常管理 · 完善签到功能</title>
+    <!-- Inter 字体 + 图标库 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- 二维码生成库 -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 签到方式卡片 —— 可交互 */
+        .sign-methods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: space-between;
+        }
+        .sign-card {
+            background: #f5faff;
+            border-radius: 28px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1 1 160px;
+            border: 1px solid #dae6f2;
+            box-shadow: 0 4px 12px rgba(0,30,60,0.04);
+            transition: all 0.1s;
+            cursor: pointer;
+        }
+        .sign-card:hover { background: #e1effa; transform: translateY(-2px); }
+        .sign-icon {
+            background: #d6e6f8;
+            border-radius: 50%;
+            width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            color: #1b4c7c; font-size: 1.6rem;
+        }
+        .sign-info h4 { font-weight: 600; font-size: 1rem; color: #0f3b5c; }
+        .sign-info p { font-size: 0.75rem; color: #4d7395; }
+
+        /* 其他组件沿用（筛选栏、表格、分页、弹窗等） */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+            flex: 1 1 140px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+        .btn-success { background: #e0f0ea; border-color: #b7d9cc; color: #146b4d; }
+        .btn-warning { background: #fff2db; border-color: #f3d9b2; color: #aa6d1e; }
+
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .student-name { font-weight: 600; color: #0b2b40; }
+        .badge-status {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .badge-present { background: #e0f2e2; color: #1b7340; }
+        .badge-late { background: #fff1cf; color: #b55f0a; }
+        .badge-absent { background: #ffe8e8; color: #b13e3e; }
+        .badge-leave { background: #e1d9fa; color: #4a3b9c; }
+
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.8rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 签到专用弹窗 (人脸/二维码/GPS/课表) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 600px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .sign-demo-area {
+            background: #f2f8ff; border-radius: 28px; padding: 2rem;
+            text-align: center; margin: 1.5rem 0;
+            border: 2px dashed #b9d2ec;
+        }
+        .qrcode-container { display: flex; justify-content: center; margin: 1rem 0; }
+        #qrcodeCanvas { border-radius: 20px; padding: 10px; background: white; }
+        .face-emoji { font-size: 4rem; margin-bottom: 1rem; }
+        .location-data { background: #e5effa; padding: 1rem; border-radius: 20px; font-family: monospace; }
+
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 多签到方式卡片 —— 完善的实际功能 -->
+    <div class="sign-methods">
+        <div class="sign-card" id="faceSignCard">
+            <div class="sign-icon"><i class="fas fa-camera"></i></div>
+            <div class="sign-info"><h4>人脸签到</h4><p>AI 活体检测</p></div>
+        </div>
+        <div class="sign-card" id="gpsSignCard">
+            <div class="sign-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="sign-info"><h4>GPS签到</h4><p>获取地理位置</p></div>
+        </div>
+        <div class="sign-card" id="qrcodeSignCard">
+            <div class="sign-icon"><i class="fas fa-qrcode"></i></div>
+            <div class="sign-info"><h4>二维码签到</h4><p>动态扫码/展示</p></div>
+        </div>
+        <div class="sign-card" id="syncSignCard">
+            <div class="sign-icon"><i class="fas fa-table"></i></div>
+            <div class="sign-info"><h4>课表同步</h4><p>自动匹配课程</p></div>
+        </div>
+    </div>
+
+    <!-- 筛选 + 功能按钮 (同上版) -->
+    <div class="card">
+        <div class="action-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-user"></i> 姓名/学号</label>
+                <input type="text" class="filter-input" id="searchKeyword" placeholder="搜索">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-calendar"></i> 日期</label>
+                <input type="date" class="filter-input" id="filterDate">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-flag"></i> 考勤状态</label>
+                <select class="filter-select" id="filterStatus">
+                    <option value="">全部</option><option value="present">正常</option><option value="late">迟到</option><option value="absent">缺勤</option><option value="leave">请假</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-left: auto;">
+                <button class="btn btn-outline btn-sm" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary btn-sm" id="queryBtn"><i class="fas fa-search"></i> 查询</button>
+                <button class="btn btn-success btn-sm" id="confirmSelectedBtn"><i class="fas fa-check-circle"></i> 确认考勤</button>
+                <button class="btn btn-outline btn-sm" id="exportStatsBtn"><i class="fas fa-download"></i> 导出统计</button>
+            </div>
+        </div>
+        <!-- 统计摘要 -->
+        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+            <span class="stat-badge" id="statPresent"><i class="fas fa-check-circle" style="color:#2a7f4b;"></i> 正常: 0</span>
+            <span class="stat-badge" id="statLate"><i class="fas fa-clock" style="color:#b9761a;"></i> 迟到: 0</span>
+            <span class="stat-badge" id="statAbsent"><i class="fas fa-times-circle" style="color:#b13e3e;"></i> 缺勤: 0</span>
+            <span class="stat-badge" id="statLeave"><i class="fas fa-file-alt" style="color:#5f3dc4;"></i> 请假: 0</span>
+            <span class="stat-badge" id="statTotal"><i class="fas fa-users"></i> 总人数: 0</span>
+        </div>
+    </div>
+
+    <!-- 考勤记录表格卡片 -->
+    <div class="card">
+        <div class="section-title"><i class="fas fa-clipboard-list"></i> 研究生考勤记录 · 签到功能已完善</div>
+        <div class="table-wrapper">
+            <table id="attendanceTable">
+                <thead>
+                    <tr><th>选择</th><th>姓名</th><th>学号</th><th>日期</th><th>签到方式</th><th>状态</th><th>签到时间</th><th>操作</th></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div class="pagination-bar" id="paginationContainer"></div>
+    </div>
+</div>
+
+<!-- 人脸签到弹窗 -->
+<div class="modal-overlay" id="faceModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-camera"></i> 人脸识别签到</h3><button class="modal-close" id="closeFaceModal">&times;</button></div>
+        <div class="sign-demo-area">
+            <div class="face-emoji">😐 → 😊</div>
+            <p>请面对摄像头，点击下方按钮模拟拍照识别</p>
+            <button class="btn btn-primary" id="simulateFaceDetect"><i class="fas fa-camera"></i> 模拟拍照识别</button>
+        </div>
+        <p style="color:#1e4a6f;"><i class="fas fa-info-circle"></i> 活体检测 & 人脸比对 (演示环境使用模拟)</p>
+    </div>
+</div>
+
+<!-- GPS签到弹窗 -->
+<div class="modal-overlay" id="gpsModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-map-marker-alt"></i> GPS定位签到</h3><button class="modal-close" id="closeGpsModal">&times;</button></div>
+        <div class="sign-demo-area">
+            <p><i class="fas fa-satellite-dish"></i> 正在获取位置……</p>
+            <div class="location-data" id="gpsLocation">尚未获取</div>
+            <button class="btn btn-primary" id="getLocationBtn"><i class="fas fa-location-arrow"></i> 获取GPS并签到</button>
+        </div>
+    </div>
+</div>
+
+<!-- 二维码签到弹窗 (展示动态二维码) -->
+<div class="modal-overlay" id="qrcodeModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-qrcode"></i> 二维码签到</h3><button class="modal-close" id="closeQrcodeModal">&times;</button></div>
+        <div class="sign-demo-area">
+            <p>动态二维码 (每30秒刷新)，可使用微信/校园APP扫描</p>
+            <div class="qrcode-container" id="qrcodeContainer">
+                <canvas id="qrcodeCanvas"></canvas>
+            </div>
+            <button class="btn btn-outline btn-sm" id="refreshQrcode"><i class="fas fa-sync-alt"></i> 刷新二维码</button>
+            <p style="margin-top:1rem; font-size:0.8rem;">扫码后自动签到 (模拟设备识别)</p>
+        </div>
+    </div>
+</div>
+
+<!-- 课表同步签到弹窗 -->
+<div class="modal-overlay" id="syncModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-table"></i> 课表同步签到</h3><button class="modal-close" id="closeSyncModal">&times;</button></div>
+        <div class="sign-demo-area">
+            <p>📚 当前课程: <strong>高级机器学习 (周一 3-4节)</strong></p>
+            <p>同步教务系统，自动为您签到</p>
+            <button class="btn btn-primary" id="syncSignBtn"><i class="fas fa-sync-alt"></i> 执行课表同步签到</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function(){
+        // ---------- 考勤数据集 ----------
+        let attendanceRecords = [
+            { id: 'r1', name: '欧阳雪', stuId: 'G202401', date: '2026-03-15', method: '人脸识别', status: 'present', time: '08:55' },
+            { id: 'r2', name: '王博文', stuId: 'G202402', date: '2026-03-15', method: 'GPS定位', status: 'late', time: '09:20' },
+            { id: 'r3', name: '李思睿', stuId: 'G202403', date: '2026-03-15', method: '二维码', status: 'absent', time: '—' },
+            { id: 'r4', name: '赵一凡', stuId: 'G202404', date: '2026-03-15', method: '蓝牙/WiFi', status: 'leave', time: '—' },
+            { id: 'r5', name: '陈果', stuId: 'G202405', date: '2026-03-14', method: '课表同步', status: 'present', time: '08:30' },
+            { id: 'r6', name: '周明', stuId: 'G202406', date: '2026-03-14', method: '人脸识别', status: 'present', time: '08:50' },
+            { id: 'r7', name: '郑青', stuId: 'G202407', date: '2026-03-14', method: 'GPS', status: 'late', time: '09:10' },
+            { id: 'r8', name: '林溪', stuId: 'G202408', date: '2026-03-13', method: '二维码', status: 'present', time: '08:48' },
+            { id: 'r9', name: '徐远', stuId: 'G202409', date: '2026-03-13', method: '人脸识别', status: 'leave', time: '—' },
+            { id: 'r10', name: '沈梦', stuId: 'G202410', date: '2026-03-13', method: '蓝牙', status: 'absent', time: '—' },
+            { id: 'r11', name: '高天阳', stuId: 'G202411', date: '2026-03-15', method: '课表同步', status: 'present', time: '08:59' },
+            { id: 'r12', name: '苏小冉', stuId: 'G202412', date: '2026-03-14', method: '人脸识别', status: 'present', time: '08:34' },
+        ];
+
+        // 分页
+        let currentPage = 1;
+        const pageSize = 5;
+        let filters = { keyword: '', date: '', status: '' };
+
+        // DOM 元素
+        const tbody = document.getElementById('tableBody');
+        const toast = document.getElementById('toast');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const searchKeyword = document.getElementById('searchKeyword');
+        const filterDate = document.getElementById('filterDate');
+        const filterStatus = document.getElementById('filterStatus');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const queryBtn = document.getElementById('queryBtn');
+        const confirmSelectedBtn = document.getElementById('confirmSelectedBtn');
+        const exportStatsBtn = document.getElementById('exportStatsBtn');
+
+        // 签到卡片
+        const faceCard = document.getElementById('faceSignCard');
+        const gpsCard = document.getElementById('gpsSignCard');
+        const qrcodeCard = document.getElementById('qrcodeSignCard');
+        const syncCard = document.getElementById('syncSignCard');
+
+        // 弹窗
+        const faceModal = document.getElementById('faceModal');
+        const gpsModal = document.getElementById('gpsModal');
+        const qrcodeModal = document.getElementById('qrcodeModal');
+        const syncModal = document.getElementById('syncModal');
+
+        const closeFace = document.getElementById('closeFaceModal');
+        const closeGps = document.getElementById('closeGpsModal');
+        const closeQrcode = document.getElementById('closeQrcodeModal');
+        const closeSync = document.getElementById('closeSyncModal');
+
+        // 功能按钮
+        const simulateFaceBtn = document.getElementById('simulateFaceDetect');
+        const getLocationBtn = document.getElementById('getLocationBtn');
+        const refreshQrcode = document.getElementById('refreshQrcode');
+        const syncSignBtn = document.getElementById('syncSignBtn');
+        const gpsLocationDiv = document.getElementById('gpsLocation');
+
+        // 辅助
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        // 添加签到记录 (通用: 为学生创建一条今日签到)
+        function addSignRecord(studentName, stuId, method) {
+            const today = new Date().toISOString().slice(0,10);
+            const nowTime = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+            // 判断是否迟到 (9:00后)
+            const hour = new Date().getHours();
+            const minute = new Date().getMinutes();
+            const isLate = (hour > 9) || (hour === 9 && minute > 0);
+            const status = isLate ? 'late' : 'present';
+
+            const newRecord = {
+                id: 'sign_' + Date.now() + Math.random().toString(36).substr(2,4),
+                name: studentName,
+                stuId: stuId,
+                date: today,
+                method: method,
+                status: status,
+                time: nowTime,
+            };
+            attendanceRecords.push(newRecord);
+            renderTable(); renderPagination(); updateStats();
+            showToast(`${studentName} 通过${method}签到成功 (${status==='late'?'迟到':'正常'})`);
+        }
+
+        // 随机找一个“未签到”的学生 (演示用)
+        function getRandomStudent() {
+            const candidates = attendanceRecords.filter(r => r.date !== new Date().toISOString().slice(0,10) || r.status === 'absent' || r.status === 'leave');
+            if (candidates.length > 0) {
+                const rand = candidates[Math.floor(Math.random() * candidates.length)];
+                return { name: rand.name, stuId: rand.stuId };
+            }
+            // 兜底
+            return { name: '欧阳雪', stuId: 'G202401' };
+        }
+
+        // 人脸签到逻辑
+        faceCard.addEventListener('click', ()=>{
+            faceModal.classList.add('show');
+        });
+        closeFace.addEventListener('click', ()=> faceModal.classList.remove('show'));
+        simulateFaceBtn.addEventListener('click', ()=>{
+            const { name, stuId } = getRandomStudent();
+            addSignRecord(name, stuId, '人脸识别');
+            faceModal.classList.remove('show');
+        });
+
+        // GPS签到
+        gpsCard.addEventListener('click', ()=> gpsModal.classList.add('show'));
+        closeGps.addEventListener('click', ()=> gpsModal.classList.remove('show'));
+        getLocationBtn.addEventListener('click', ()=>{
+            if (!navigator.geolocation) {
+                gpsLocationDiv.innerText = '浏览器不支持GPS';
+                return;
+            }
+            navigator.geolocation.getCurrentPosition((pos)=>{
+                const lat = pos.coords.latitude.toFixed(6);
+                const lng = pos.coords.longitude.toFixed(6);
+                gpsLocationDiv.innerHTML = `纬度: ${lat}, 经度: ${lng} <br> 精度: ±${pos.coords.accuracy}m`;
+                // 模拟签到
+                const { name, stuId } = getRandomStudent();
+                addSignRecord(name, stuId, 'GPS定位');
+                setTimeout(()=> gpsModal.classList.remove('show'), 1000);
+            }, (err)=>{
+                gpsLocationDiv.innerText = '获取失败: ' + err.message;
+                // 降级模拟
+                const { name, stuId } = getRandomStudent();
+                addSignRecord(name, stuId, 'GPS定位(模拟)');
+                setTimeout(()=> gpsModal.classList.remove('show'), 800);
+            }, { enableHighAccuracy: true });
+        });
+
+        // 二维码签到: 生成动态二维码
+        let qrTimer;
+        function generateQrCode() {
+            const canvas = document.getElementById('qrcodeCanvas');
+            const token = 'QR_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+            QRCode.toCanvas(canvas, token, { width: 200, margin: 2 }, (err)=>{
+                if (err) console.error(err);
+            });
+            // 模拟扫码：点击canvas自动签到
+            canvas.onclick = ()=>{
+                const { name, stuId } = getRandomStudent();
+                addSignRecord(name, stuId, '二维码扫码');
+                showToast('扫码识别成功，已签到');
+            };
+        }
+        qrcodeCard.addEventListener('click', ()=>{
+            qrcodeModal.classList.add('show');
+            generateQrCode();
+            qrTimer = setInterval(generateQrCode, 30000); // 30秒刷新
+        });
+        closeQrcode.addEventListener('click', ()=>{
+            clearInterval(qrTimer);
+            qrcodeModal.classList.remove('show');
+        });
+        refreshQrcode.addEventListener('click', generateQrCode);
+
+        // 课表同步签到
+        syncCard.addEventListener('click', ()=> syncModal.classList.add('show'));
+        closeSync.addEventListener('click', ()=> syncModal.classList.remove('show'));
+        syncSignBtn.addEventListener('click', ()=>{
+            const { name, stuId } = getRandomStudent();
+            addSignRecord(name, stuId, '课表同步');
+            syncModal.classList.remove('show');
+        });
+
+        // 表格渲染、筛选、分页 (完全沿用之前)
+        function filterRecords() {
+            return attendanceRecords.filter(r => {
+                if (filters.keyword) {
+                    const kw = filters.keyword.toLowerCase();
+                    if (!r.name.toLowerCase().includes(kw) && !r.stuId.toLowerCase().includes(kw)) return false;
+                }
+                if (filters.date && r.date !== filters.date) return false;
+                if (filters.status && r.status !== filters.status) return false;
+                return true;
+            });
+        }
+        function getFiltered() { return filterRecords(); }
+        function getPaginated() {
+            const f = getFiltered(); const start = (currentPage-1)*pageSize; return f.slice(start, start+pageSize);
+        }
+        function totalPages() { return Math.ceil(getFiltered().length/pageSize); }
+        function goToPage(page) {
+            const total = totalPages();
+            if (page<1) page=1; if (total>0 && page>total) page=total;
+            if (page===currentPage) return; currentPage=page; renderTable(); renderPagination();
+        }
+        window.pageGo = goToPage;
+
+        function renderPagination() {
+            const total = totalPages();
+            if (total<=1) { paginationContainer.innerHTML = ''; return; }
+            let html = `<span class="page-info">第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage===1?'disabled':''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i=1; i<=total; i++) {
+                if (i===currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage===total?'disabled':''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationContainer.innerHTML = html;
+        }
+
+        function statusBadge(status) {
+            const map = { present:'badge-present', late:'badge-late', absent:'badge-absent', leave:'badge-leave' };
+            const text = { present:'正常', late:'迟到', absent:'缺勤', leave:'请假' };
+            return `<span class="badge-status ${map[status]||''}">${text[status]||status}</span>`;
+        }
+
+        function renderTable() {
+            const paginated = getPaginated();
+            let html = '';
+            if (paginated.length===0) html = '<tr><td colspan="8" style="text-align:center;">暂无记录</td></tr>';
+            else {
+                paginated.forEach(r=>{
+                    html += `<tr><td><input type="checkbox" class="row-checkbox" data-id="${r.id}"></td>
+                        <td class="student-name">${r.name}</td><td>${r.stuId}</td><td>${r.date}</td>
+                        <td>${r.method}</td><td>${statusBadge(r.status)}</td><td>${r.time}</td>
+                        <td><div class="action-btns"><button class="icon-btn" onclick="window.notifySingle('${r.name}')"><i class="fas fa-envelope"></i> 通知</button></div></td></tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        window.notifySingle = (name)=> showToast(`通知已发给 ${name}`);
+
+        function updateStats() {
+            const total = attendanceRecords.length;
+            const present = attendanceRecords.filter(r=>r.status==='present').length;
+            const late = attendanceRecords.filter(r=>r.status==='late').length;
+            const absent = attendanceRecords.filter(r=>r.status==='absent').length;
+            const leave = attendanceRecords.filter(r=>r.status==='leave').length;
+            document.getElementById('statPresent').innerHTML = `<i class="fas fa-check-circle" style="color:#2a7f4b;"></i> 正常: ${present}`;
+            document.getElementById('statLate').innerHTML = `<i class="fas fa-clock" style="color:#b9761a;"></i> 迟到: ${late}`;
+            document.getElementById('statAbsent').innerHTML = `<i class="fas fa-times-circle" style="color:#b13e3e;"></i> 缺勤: ${absent}`;
+            document.getElementById('statLeave').innerHTML = `<i class="fas fa-file-alt" style="color:#5f3dc4;"></i> 请假: ${leave}`;
+            document.getElementById('statTotal').innerHTML = `<i class="fas fa-users"></i> 总人数: ${total}`;
+        }
+
+        function applyFilters() {
+            filters.keyword = searchKeyword.value;
+            filters.date = filterDate.value;
+            filters.status = filterStatus.value;
+            currentPage = 1;
+            renderTable(); renderPagination();
+        }
+
+        resetFilterBtn.addEventListener('click', ()=>{
+            searchKeyword.value = ''; filterDate.value = ''; filterStatus.value = '';
+            filters = { keyword:'', date:'', status:'' };
+            currentPage = 1; renderTable(); renderPagination();
+        });
+        queryBtn.addEventListener('click', applyFilters);
+
+        confirmSelectedBtn.addEventListener('click', ()=>{
+            const cbs = document.querySelectorAll('.row-checkbox:checked');
+            if (cbs.length===0) { showToast('请选择记录'); return; }
+            cbs.forEach(cb=>{
+                const rec = attendanceRecords.find(r=>r.id===cb.dataset.id);
+                if (rec && rec.status!=='present') { rec.status='present'; rec.time='已确认'; }
+            });
+            renderTable(); updateStats(); showToast(`已确认 ${cbs.length} 条`);
+        });
+
+        exportStatsBtn.addEventListener('click', ()=>{
+            const csv = '姓名,学号,日期,状态\n' + attendanceRecords.map(r=>`${r.name},${r.stuId},${r.date},${r.status}`).join('\n');
+            const blob = new Blob([csv],{type:'text/csv'}); const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = '考勤统计.csv'; a.click();
+            showToast('导出考勤统计 CSV');
+        });
+
+        // 点击背景关闭弹窗
+        [faceModal, gpsModal, qrcodeModal, syncModal].forEach(modal => {
+            modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('show'); });
+        });
+
+        // 初始化
+        renderTable(); renderPagination(); updateStats();
+    })();
+</script>
+</body>
+</html>

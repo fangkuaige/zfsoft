@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生 · 教学案例库 (完整增删改查+弹窗)</title>
+    <!-- Inter 字体 + Font Awesome 6 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 全局风格 —— 沿用卡片、弹窗、按钮，干净专业 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 筛选操作栏 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 160px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 表格容器 */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;  /* 保证字段完整 */
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .case-title {
+            font-weight: 600;
+            color: #0b2b40;
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .badge-subject {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tag-container {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+            max-width: 200px;
+        }
+        .tag {
+            background: #ecf4fa;
+            color: #1d577b;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .difficulty-badge {
+            background: #e0f0fa;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.8rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+
+        /* 分页 */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 弹窗 (完全复用风格，足够大) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 800px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .readonly-field {
+            background: #ecf2f9; color: #2a4e6e; font-weight: 500;
+        }
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 筛选卡片 + 新增按钮 (查的界面) -->
+    <div class="card">
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-book"></i> 案例名称</label>
+                <input type="text" class="filter-input" id="filterTitle" placeholder="关键词">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-tag"></i> 学科分类</label>
+                <select class="filter-select" id="filterSubject">
+                    <option value="">全部学科</option>
+                    <option value="计算机">计算机</option>
+                    <option value="人工智能">人工智能</option>
+                    <option value="数据科学">数据科学</option>
+                    <option value="电子工程">电子工程</option>
+                    <option value="数学">数学</option>
+                    <option value="管理学">管理学</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-signal"></i> 难度</label>
+                <select class="filter-select" id="filterDifficulty">
+                    <option value="">全部</option>
+                    <option value="初级">初级</option>
+                    <option value="中级">中级</option>
+                    <option value="高级">高级</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="openAddModalBtn"><i class="fas fa-plus-circle"></i> 新建案例</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 案例列表卡片 (展示查的结果) -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fas fa-case-study"></i> 教学案例库
+            <span style="font-size: 0.9rem; font-weight: 400; margin-left: 1rem; color: #4f6f8f;" id="caseCount">(0)</span>
+        </div>
+        <div class="table-wrapper">
+            <table id="caseTable">
+                <thead>
+                    <tr>
+                        <th>案例名称</th><th>学科</th><th>标签</th><th>难度</th><th>创建人</th><th>创建日期</th><th>使用次数</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <!-- 分页 -->
+        <div class="pagination-bar" id="paginationContainer"></div>
+    </div>
+</div>
+
+<!-- ========= 增/删/改 共用弹窗 ========= -->
+<div class="modal-overlay" id="caseModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-pen"></i> 案例详情</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="caseForm" onsubmit="return false;">
+            <div class="form-grid">
+                <!-- 案例名称 全宽 -->
+                <div class="input-group full-width">
+                    <label><i class="fas fa-heading"></i> 案例名称 *</label>
+                    <input type="text" class="input-field" id="modalTitleField" required placeholder="例如：深度学习图像分类实战">
+                </div>
+                <!-- 学科 + 难度 -->
+                <div class="input-group">
+                    <label><i class="fas fa-tag"></i> 学科 *</label>
+                    <select class="input-field" id="modalSubject" required>
+                        <option value="">— 选择 —</option>
+                        <option value="计算机">计算机</option>
+                        <option value="人工智能">人工智能</option>
+                        <option value="数据科学">数据科学</option>
+                        <option value="电子工程">电子工程</option>
+                        <option value="数学">数学</option>
+                        <option value="管理学">管理学</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-signal"></i> 难度 *</label>
+                    <select class="input-field" id="modalDifficulty" required>
+                        <option value="初级">初级</option>
+                        <option value="中级">中级</option>
+                        <option value="高级">高级</option>
+                    </select>
+                </div>
+                <!-- 标签 (逗号分隔) -->
+                <div class="input-group full-width">
+                    <label><i class="fas fa-hashtag"></i> 标签 (逗号分隔)</label>
+                    <input type="text" class="input-field" id="modalTags" placeholder="机器学习, 计算机视觉, PyTorch">
+                </div>
+                <!-- 创建人(只读) + 创建日期 + 使用次数(只读) -->
+                <div class="input-group">
+                    <label><i class="fas fa-user"></i> 创建人</label>
+                    <input type="text" class="input-field" id="modalCreator" placeholder="例如：张教授">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-calendar"></i> 创建日期</label>
+                    <input type="date" class="input-field" id="modalCreatedAt">
+                </div>
+                <div class="input-group full-width">
+                    <label><i class="fas fa-align-left"></i> 案例描述</label>
+                    <textarea class="input-field" rows="2" id="modalDescription" placeholder="简要描述教学目标、适用场景等"></textarea>
+                </div>
+                <!-- 使用次数 (编辑时展示，新增隐藏也没关系) -->
+                <div class="input-group">
+                    <label><i class="fas fa-chart-line"></i> 使用次数</label>
+                    <input type="number" class="input-field readonly-field" id="modalUsage" readonly value="0">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> 保存案例</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 独立的删除确认弹窗 (增强体验) -->
+<div class="modal-overlay" id="deleteConfirmModal">
+    <div class="modal-card" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-trash-alt" style="color:#b13e3e;"></i> 确认删除</h3>
+            <button class="modal-close" id="closeDeleteModal">&times;</button>
+        </div>
+        <p style="margin: 1.5rem 0;">确定要删除案例 <strong id="deleteCaseName"></strong> 吗？此操作不可撤销。</p>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="cancelDeleteBtn">取消</button>
+            <button class="btn" style="background:#b13e3e; color:white;" id="confirmDeleteBtn">删除</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // ---------- 丰富的模拟数据 (20+案例，覆盖各个学科) ----------
+        let allCases = [
+            { id: 'c1', title: '深度学习在图像识别中的应用', subject: '人工智能', tags: ['深度学习', 'CNN', '图像分类'], difficulty: '高级', creator: '张教授', createdAt: '2026-02-10', usageCount: 8, description: '使用ResNet实现图像分类，包含完整代码和数据集' },
+            { id: 'c2', title: '基于Python的数值计算方法', subject: '数学', tags: ['数值分析', 'Python', '微分方程'], difficulty: '中级', creator: '李老师', createdAt: '2026-01-15', usageCount: 12, description: '讲解差分、迭代、插值等基础数值方法' },
+            { id: 'c3', title: '强化学习入门——GridWorld', subject: '人工智能', tags: ['强化学习', 'Q-learning', '仿真'], difficulty: '初级', creator: '王研究员', createdAt: '2026-02-20', usageCount: 5, description: '从零搭建强化学习小游戏，适合初学者' },
+            { id: 'c4', title: '大数据处理：Spark实践', subject: '数据科学', tags: ['Spark', 'Scala', '数据处理'], difficulty: '高级', creator: '陈教授', createdAt: '2025-12-01', usageCount: 20, description: '电商日志分析实战，含完整数据集' },
+            { id: 'c5', title: '管理科学中的决策树模型', subject: '管理学', tags: ['决策树', '运筹学', '案例分析'], difficulty: '中级', creator: '赵博士', createdAt: '2026-02-28', usageCount: 3, description: '结合企业案例讲解ID3、C4.5算法' },
+            { id: 'c6', title: '嵌入式系统中断处理', subject: '电子工程', tags: ['STM32', '中断', 'RTOS'], difficulty: '高级', creator: '周教授', createdAt: '2026-01-05', usageCount: 6, description: '分析中断优先级、裸机与RTOS对比' },
+            { id: 'c7', title: 'Python数据可视化基础', subject: '数据科学', tags: ['Matplotlib', 'Seaborn', '图表'], difficulty: '初级', creator: '吴老师', createdAt: '2026-03-01', usageCount: 15, description: '常用图表绘制及美化技巧' },
+            { id: 'c8', title: '算法设计与分析：分治法', subject: '计算机', tags: ['快速排序', '归并', '主定理'], difficulty: '中级', creator: '郑教授', createdAt: '2025-11-20', usageCount: 10, description: '以排序和最近点对为例讲解分治思想' },
+            { id: 'c9', title: '自然语言处理情感分析', subject: '人工智能', tags: ['NLP', '情感分析', 'LSTM'], difficulty: '高级', creator: '黄博士', createdAt: '2026-02-14', usageCount: 7, description: '基于IMDb数据集的情感分类实战' },
+            { id: 'c10', title: '最优化理论与算法', subject: '数学', tags: ['梯度下降', '牛顿法', '凸优化'], difficulty: '高级', creator: '刘教授', createdAt: '2025-12-10', usageCount: 4, description: '手推多种优化算法，附代码' },
+            { id: 'c11', title: '数据库系统：索引优化', subject: '计算机', tags: ['B+树', 'MySQL', '性能调优'], difficulty: '中级', creator: '孙老师', createdAt: '2026-02-18', usageCount: 9, description: '深入分析索引原理及慢查询优化' },
+            { id: 'c12', title: '时间序列分析实战', subject: '数据科学', tags: ['ARIMA', '预测', 'Python'], difficulty: '高级', creator: '朱教授', createdAt: '2026-01-22', usageCount: 2, description: '基于金融数据的预测案例' },
+            { id: 'c13', title: '计算机网络：TCP拥塞控制', subject: '计算机', tags: ['TCP', '拥塞控制', 'NS3'], difficulty: '高级', creator: '秦老师', createdAt: '2025-09-15', usageCount: 5, description: '仿真实验与算法分析' },
+            { id: 'c14', title: '自动控制理论：PID整定', subject: '电子工程', tags: ['PID', 'Simulink', '稳定性'], difficulty: '中级', creator: '严教授', createdAt: '2026-02-05', usageCount: 11, description: '结合无人机悬停案例' },
+            { id: 'c15', title: '组织行为学案例：团队激励', subject: '管理学', tags: ['激励理论', '案例分析', '团队'], difficulty: '初级', creator: '李教授', createdAt: '2026-03-10', usageCount: 1, description: '互联网公司团队管理场景' },
+            { id: 'c16', title: '傅里叶变换及其应用', subject: '数学', tags: ['傅里叶', '信号处理', 'MATLAB'], difficulty: '中级', creator: '王老师', createdAt: '2025-12-05', usageCount: 6, description: '从连续到离散，附代码' },
+            { id: 'c17', title: '推荐系统：协同过滤', subject: '人工智能', tags: ['推荐系统', '协同过滤', 'MovieLens'], difficulty: '中级', creator: '谭博士', createdAt: '2026-02-25', usageCount: 8, description: '基于用户/物品的推荐实现' },
+            { id: 'c18', title: '软件工程：敏捷开发模拟', subject: '计算机', tags: ['敏捷', 'Scrum', '项目管理'], difficulty: '初级', creator: '陈老师', createdAt: '2026-01-30', usageCount: 14, description: '角色扮演敏捷开发流程' },
+            { id: 'c19', title: '无线通信：OFDM原理', subject: '电子工程', tags: ['OFDM', '5G', '仿真'], difficulty: '高级', creator: '韩教授', createdAt: '2025-11-10', usageCount: 3, description: '包含MATLAB链路级仿真' },
+            { id: 'c20', title: '市场调研与数据分析', subject: '管理学', tags: ['SPSS', '问卷', '回归'], difficulty: '中级', creator: '杨教授', createdAt: '2026-02-12', usageCount: 7, description: '消费者行为数据分析' },
+            { id: 'c21', title: '并行计算：MPI基础', subject: '计算机', tags: ['MPI', '并行', 'C++'], difficulty: '高级', creator: '冯老师', createdAt: '2025-10-18', usageCount: 4, description: '集群环境下的矩阵乘法' },
+        ];
+
+        // 分页配置
+        const pageSize = 7;  // 每页显示7个，让数据更丰富
+        let currentPage = 1;
+        // 筛选条件
+        let filters = { title: '', subject: '', difficulty: '' };
+
+        // DOM 元素
+        const tbody = document.getElementById('tableBody');
+        const toast = document.getElementById('toast');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const caseCountSpan = document.getElementById('caseCount');
+        const filterTitle = document.getElementById('filterTitle');
+        const filterSubject = document.getElementById('filterSubject');
+        const filterDifficulty = document.getElementById('filterDifficulty');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const openAddModalBtn = document.getElementById('openAddModalBtn');
+
+        // 主弹窗 (增/改)
+        const modal = document.getElementById('caseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const modalForm = document.getElementById('caseForm');
+        // 弹窗字段
+        const modalTitleField = document.getElementById('modalTitleField');
+        const modalSubject = document.getElementById('modalSubject');
+        const modalDifficulty = document.getElementById('modalDifficulty');
+        const modalTags = document.getElementById('modalTags');
+        const modalCreator = document.getElementById('modalCreator');
+        const modalCreatedAt = document.getElementById('modalCreatedAt');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalUsage = document.getElementById('modalUsage');
+
+        // 删除确认弹窗
+        const deleteModal = document.getElementById('deleteConfirmModal');
+        const deleteCaseNameSpan = document.getElementById('deleteCaseName');
+        const closeDeleteModal = document.getElementById('closeDeleteModal');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        let pendingDeleteId = null;
+
+        // 当前编辑ID
+        let editingId = null;
+
+        // 辅助函数
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+        function formatDate(dateStr) { return dateStr || '—'; }
+
+        // 筛选逻辑 (查)
+        function filterList() {
+            return allCases.filter(item => {
+                if (filters.title && !item.title.toLowerCase().includes(filters.title.toLowerCase())) return false;
+                if (filters.subject && item.subject !== filters.subject) return false;
+                if (filters.difficulty && item.difficulty !== filters.difficulty) return false;
+                return true;
+            });
+        }
+
+        function getFiltered() { return filterList(); }
+
+        function getPaginated() {
+            const filtered = getFiltered();
+            const start = (currentPage - 1) * pageSize;
+            return filtered.slice(start, start + pageSize);
+        }
+
+        function totalPages() {
+            return Math.ceil(getFiltered().length / pageSize);
+        }
+
+        function goToPage(page) {
+            const total = totalPages();
+            if (page < 1) page = 1;
+            if (total > 0 && page > total) page = total;
+            if (page === currentPage) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        }
+        window.pageGo = goToPage;
+
+        // 渲染分页
+        function renderPagination() {
+            const total = totalPages();
+            if (total <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationContainer.innerHTML = html;
+        }
+
+        // 打开删除确认弹窗 (删)
+        function confirmDeleteCase(id) {
+            const item = allCases.find(c => c.id === id);
+            if (!item) return;
+            pendingDeleteId = id;
+            deleteCaseNameSpan.innerText = item.title;
+            deleteModal.classList.add('show');
+        }
+
+        // 执行删除
+        function executeDelete() {
+            if (!pendingDeleteId) return;
+            allCases = allCases.filter(c => c.id !== pendingDeleteId);
+            const filtered = getFiltered();
+            if (filtered.length === 0 && currentPage > 1) currentPage--;
+            showToast('案例已永久删除');
+            closeDeleteModalFn();
+            updateCaseCount();
+            renderTable();
+            renderPagination();
+            pendingDeleteId = null;
+        }
+
+        function closeDeleteModalFn() {
+            deleteModal.classList.remove('show');
+            pendingDeleteId = null;
+        }
+
+        // 打开新增弹窗 (增)
+        function openAddModal() {
+            editingId = null;
+            modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> 新建教学案例';
+            modalTitleField.value = '';
+            modalSubject.value = '';
+            modalDifficulty.value = '初级';
+            modalTags.value = '';
+            modalCreator.value = '当前教师';  // 模拟默认创建人
+            const today = new Date().toISOString().slice(0,10);
+            modalCreatedAt.value = today;
+            modalDescription.value = '';
+            modalUsage.value = '0';
+            modal.classList.add('show');
+        }
+
+        // 打开编辑弹窗 (改)
+        function openEditModal(id) {
+            const item = allCases.find(c => c.id === id);
+            if (!item) return;
+            editingId = id;
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑案例';
+            modalTitleField.value = item.title || '';
+            modalSubject.value = item.subject || '';
+            modalDifficulty.value = item.difficulty || '初级';
+            modalTags.value = item.tags ? item.tags.join(', ') : '';
+            modalCreator.value = item.creator || '未知';
+            modalCreatedAt.value = item.createdAt || '';
+            modalDescription.value = item.description || '';
+            modalUsage.value = item.usageCount || 0;
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            editingId = null;
+        }
+
+        // 保存案例 (增/改)
+        function saveCase() {
+            const title = modalTitleField.value.trim();
+            const subject = modalSubject.value;
+            const difficulty = modalDifficulty.value;
+            const tagsRaw = modalTags.value.trim();
+            const creator = modalCreator.value.trim() || '教师';
+            const createdAt = modalCreatedAt.value;
+            const description = modalDescription.value.trim();
+            const usage = parseInt(modalUsage.value, 10) || 0;
+
+            if (!title || !subject || !difficulty) {
+                showToast('请填写案例名称、学科和难度', 1500);
+                return;
+            }
+
+            // 处理标签
+            const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(t => t) : [];
+
+            if (editingId) {
+                // 更新
+                const index = allCases.findIndex(c => c.id === editingId);
+                if (index !== -1) {
+                    allCases[index] = {
+                        ...allCases[index],
+                        title, subject, difficulty, tags, creator, createdAt, description,
+                        usageCount: usage  // 保留原使用次数，也可以让编辑时手动改，但一般只读。这里尊重输入。
+                    };
+                }
+                showToast('案例已更新');
+            } else {
+                // 新增
+                const newCase = {
+                    id: generateId(),
+                    title, subject, difficulty, tags, creator, createdAt, description,
+                    usageCount: 0   // 新案例默认0次使用
+                };
+                allCases.push(newCase);
+                showToast('新案例已添加');
+                // 跳转到最后一页以便看见新增
+                const filtered = getFiltered();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+
+            closeModal();
+            updateCaseCount();
+            renderTable();
+            renderPagination();
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const paginated = getPaginated();
+            let html = '';
+            if (paginated.length === 0) {
+                html = `<tr><td colspan="8" style="text-align:center; padding:3rem; color:#8899bb;"><i class="fas fa-box-open" style="font-size:2rem; opacity:0.5;"></i><br>暂无教学案例</td></tr>`;
+            } else {
+                paginated.forEach(item => {
+                    const tagHtml = (item.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+                    html += `<tr>`;
+                    html += `<td class="case-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</td>`;
+                    html += `<td><span class="badge-subject">${escapeHtml(item.subject)}</span></td>`;
+                    html += `<td><div class="tag-container">${tagHtml || '—'}</div></td>`;
+                    html += `<td><span class="difficulty-badge">${escapeHtml(item.difficulty)}</span></td>`;
+                    html += `<td>${escapeHtml(item.creator)}</td>`;
+                    html += `<td>${formatDate(item.createdAt)}</td>`;
+                    html += `<td>${item.usageCount ?? 0}</td>`;
+                    html += `<td><div class="action-btns">`;
+                    html += `<button class="icon-btn" onclick="window.editHandler('${item.id}')"><i class="fas fa-pen"></i> 编辑</button>`;
+                    html += `<button class="icon-btn delete-btn" onclick="window.deleteHandler('${item.id}')"><i class="fas fa-trash"></i> 删除</button>`;
+                    html += `</div></td></tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        function updateCaseCount() {
+            caseCountSpan.innerText = `(${getFiltered().length})`;
+        }
+
+        // 收集筛选 (查)
+        function applyFilters() {
+            filters.title = filterTitle.value;
+            filters.subject = filterSubject.value;
+            filters.difficulty = filterDifficulty.value;
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+            updateCaseCount();
+        }
+
+        function resetFilters() {
+            filterTitle.value = '';
+            filterSubject.value = '';
+            filterDifficulty.value = '';
+            filters = { title: '', subject: '', difficulty: '' };
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+            updateCaseCount();
+        }
+
+        // 挂载全局方法供onclick使用
+        window.deleteHandler = confirmDeleteCase;
+        window.editHandler = openEditModal;
+
+        // 事件监听
+        filterTitle.addEventListener('input', applyFilters);
+        filterSubject.addEventListener('change', applyFilters);
+        filterDifficulty.addEventListener('change', applyFilters);
+        resetFilterBtn.addEventListener('click', resetFilters);
+        openAddModalBtn.addEventListener('click', openAddModal);
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        modalForm.addEventListener('submit', (e) => { e.preventDefault(); saveCase(); });
+
+        // 删除弹窗事件
+        closeDeleteModal.addEventListener('click', closeDeleteModalFn);
+        cancelDeleteBtn.addEventListener('click', closeDeleteModalFn);
+        confirmDeleteBtn.addEventListener('click', executeDelete);
+        deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) closeDeleteModalFn(); });
+
+        // 初始化
+        renderTable();
+        renderPagination();
+        updateCaseCount();
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生教务 · 完整增删改查(弹窗新增)</title>
+    <!-- Inter 字体 + Font Awesome 6 + SheetJS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .dashboard {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        @media (max-width: 640px) {
+            .dashboard { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0, 20, 40, 0.08);
+            padding: 1.8rem 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+            flex: 1 1 140px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 60, 110, 0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        th {
+            text-align: left;
+            padding: 1rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .student-name { font-weight: 600; color: #0b2b40; }
+        .badge-group {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .badge-reason {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.75rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+        .two-col { display: flex; gap: 1.5rem; flex: 1; }
+        .two-col > .card { flex: 1 1 50%; }
+        @media (max-width: 900px) { .two-col { flex-direction: column; } }
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 700px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.5rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group {
+            display: flex; flex-direction: column; gap: 0.3rem;
+        }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="two-col">
+        <!-- ========= 左侧：学员管理 ========= -->
+        <div class="card">
+            <div class="section-title">
+                <!-- <i class="fas fa-users"></i> 学员管理 -->
+                <!-- 新增学员按钮放在标题右侧 显眼位置 -->
+                <button class="btn btn-primary btn-sm" id="openAddStudentModalBtn" style="margin-left: auto;"><i class="fas fa-plus-circle"></i> 新增学员</button>
+            </div>
+            <!-- 学员搜索栏 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label><i class="fas fa-layer-group"></i> 班级</label>
+                    <select class="filter-select" id="filterClass">
+                        <option value="">全部班级</option>
+                        <option value="2023级硕士1班">2023级硕士1班</option>
+                        <option value="2023级硕士2班">2023级硕士2班</option>
+                        <option value="2024级博士班">2024级博士班</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-users-between-lines"></i> 组别</label>
+                    <select class="filter-select" id="filterGroup">
+                        <option value="">全部组别</option>
+                        <option value="人工智能组">人工智能组</option>
+                        <option value="数据科学组">数据科学组</option>
+                        <option value="网络安全组">网络安全组</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-id-card"></i> 学号</label>
+                    <input type="text" class="filter-input" id="filterStudentId" placeholder="学号">
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn btn-outline btn-sm" id="resetStudentFilter"><i class="fas fa-undo"></i> 重置</button>
+                    <button class="btn btn-primary btn-sm" id="exportStudentsBtn"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                </div>
+            </div>
+            <!-- 学员表格 -->
+            <div class="table-wrapper">
+                <table id="studentTable">
+                    <thead><tr><th>姓名</th><th>学号</th><th>班级</th><th>组别</th><th>操作</th></tr></thead>
+                    <tbody id="studentTableBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination-bar" id="studentPagination"></div>
+        </div>
+
+        <!-- ========= 右侧：分数变动记录 ========= -->
+        <div class="card">
+            <div class="section-title">
+                <!-- <i class="fas fa-history"></i> 分数变动记录 -->
+                <button class="btn btn-primary btn-sm" id="openAddScoreModalBtn" style="margin-left: auto;"><i class="fas fa-plus-circle"></i> 新增记录</button>
+            </div>
+            <div class="filter-bar">
+                <div class="filter-item"><label>学生姓名</label><input type="text" class="filter-input" id="scoreFilterName" placeholder="姓名"></div>
+                <div class="filter-item"><label>学号</label><input type="text" class="filter-input" id="scoreFilterId" placeholder="学号"></div>
+                <div class="filter-item"><label>从</label><input type="date" class="filter-input" id="scoreDateFrom"></div>
+                <div class="filter-item"><label>至</label><input type="date" class="filter-input" id="scoreDateTo"></div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-outline btn-sm" id="resetScoreFilter"><i class="fas fa-undo"></i>重置</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="scoreTable">
+                    <thead><tr><th>姓名</th><th>学号</th><th>课程</th><th>调整前</th><th>调整后</th><th>原因</th><th>操作</th></tr></thead>
+                    <tbody id="scoreTableBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination-bar" id="scorePagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========= 学员新增/编辑弹窗 (二合一) ========= -->
+<div class="modal-overlay" id="studentModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="studentModalTitle"><i class="fas fa-user-plus"></i> 新增学员</h3>
+            <button class="modal-close" id="closeStudentModal">&times;</button>
+        </div>
+        <form id="studentForm" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="input-group full-width"><label><i class="fas fa-user"></i> 姓名 *</label><input class="input-field" id="editStudentName" required placeholder="例如：张三"></div>
+                <div class="input-group full-width"><label><i class="fas fa-id-card"></i> 学号 *</label><input class="input-field" id="editStudentId" required placeholder="G2024001"></div>
+                <div class="input-group"><label>班级</label>
+                    <select class="filter-select" id="editClass">
+                        <option value="2023级硕士1班">2023级硕士1班</option>
+                        <option value="2023级硕士2班">2023级硕士2班</option>
+                        <option value="2024级博士班">2024级博士班</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>组别</label>
+                    <select class="filter-select" id="editGroup">
+                        <option value="人工智能组">人工智能组</option>
+                        <option value="数据科学组">数据科学组</option>
+                        <option value="网络安全组">网络安全组</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="cancelStudentBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="saveStudentBtn"><i class="fas fa-save"></i> 保存学员</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========= 分数变动新增/编辑弹窗 ========= -->
+<div class="modal-overlay" id="scoreModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="scoreModalTitle"><i class="fas fa-pen"></i> 新增分数变动</h3>
+            <button class="modal-close" id="closeScoreModal">&times;</button>
+        </div>
+        <form id="scoreForm" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="input-group"><label>姓名 *</label><input class="input-field" id="scoreStudentName" required></div>
+                <div class="input-group"><label>学号 *</label><input class="input-field" id="scoreStudentId" required></div>
+                <div class="input-group full-width"><label>课程</label><input class="input-field" id="scoreCourse"></div>
+                <div class="input-group"><label>调整前 *</label><input type="number" step="0.1" class="input-field" id="scoreBefore" required value="0"></div>
+                <div class="input-group"><label>调整后 *</label><input type="number" step="0.1" class="input-field" id="scoreAfter" required value="0"></div>
+                <div class="input-group full-width"><label>调整原因 *</label><input class="input-field" id="scoreReason" required></div>
+                <div class="input-group"><label>调整时间</label><input type="datetime-local" class="input-field" id="scoreTime"></div>
+                <div class="input-group"><label>登记人</label><input class="input-field" id="scoreRegistrar" readonly value="教务员"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="cancelScoreBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> 保存记录</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // ========== 通用 ==========
+        const toast = document.getElementById('toast');
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2,8); }
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // ========== 学员管理数据 ==========
+        let students = [
+            { id: 's1', name: '欧阳雪', studentId: 'G202401', className: '2023级硕士1班', group: '人工智能组' },
+            { id: 's2', name: '王博文', studentId: 'G202402', className: '2023级硕士1班', group: '数据科学组' },
+            { id: 's3', name: '李思睿', studentId: 'G202403', className: '2023级硕士2班', group: '网络安全组' },
+            { id: 's4', name: '赵一凡', studentId: 'G202404', className: '2024级博士班', group: '人工智能组' },
+            { id: 's5', name: '陈果', studentId: 'G202405', className: '2023级硕士2班', group: '数据科学组' },
+            { id: 's6', name: '周明', studentId: 'G202406', className: '2024级博士班', group: '网络安全组' }
+        ];
+
+        // 学员筛选
+        let studentFilters = { className: '', group: '', studentId: '' };
+        let studentPage = 1;
+        const studentPageSize = 4;
+
+        function filterStudents() {
+            return students.filter(s => {
+                if (studentFilters.className && s.className !== studentFilters.className) return false;
+                if (studentFilters.group && s.group !== studentFilters.group) return false;
+                if (studentFilters.studentId && !s.studentId.includes(studentFilters.studentId)) return false;
+                return true;
+            });
+        }
+        function paginateStudents() {
+            const f = filterStudents();
+            const start = (studentPage-1)*studentPageSize;
+            return f.slice(start, start+studentPageSize);
+        }
+        function totalStudentPages() { return Math.ceil(filterStudents().length / studentPageSize); }
+
+        function renderStudentTable() {
+            const list = paginateStudents();
+            let html = '';
+            if (list.length === 0) html = '<tr><td colspan="5" style="text-align:center;padding:2rem;">暂无学员</td></tr>';
+            else {
+                list.forEach(s => {
+                    html += `<tr>
+                        <td class="student-name">${escapeHtml(s.name)}</td>
+                        <td>${escapeHtml(s.studentId)}</td>
+                        <td>${escapeHtml(s.className)}</td>
+                        <td><span class="badge-group">${escapeHtml(s.group)}</span></td>
+                        <td><div class="action-btns">
+                            <button class="icon-btn" onclick="window.editStudent('${s.id}')"><i class="fas fa-pen"></i>编辑</button>
+                            <button class="icon-btn delete-btn" onclick="window.deleteStudent('${s.id}')"><i class="fas fa-trash"></i>删除</button>
+                        </div></td></tr>`;
+                });
+            }
+            document.getElementById('studentTableBody').innerHTML = html;
+            renderStudentPagination();
+        }
+        function renderStudentPagination() {
+            const total = totalStudentPages();
+            const c = document.getElementById('studentPagination');
+            if (total <= 1) { c.innerHTML = ''; return; }
+            let html = `<span class="page-info">第 ${studentPage}/${total}</span>`;
+            html += `<button class="pagination-btn" ${studentPage===1?'disabled':''} onclick="window.goStudentPage(${studentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i=1; i<=total; i++) {
+                if (i===studentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.goStudentPage(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${studentPage===total?'disabled':''} onclick="window.goStudentPage(${studentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            c.innerHTML = html;
+        }
+        window.goStudentPage = (p) => { if(p>0 && p<=totalStudentPages()) { studentPage = p; renderStudentTable(); } };
+
+        window.deleteStudent = (id) => {
+            students = students.filter(s => s.id !== id);
+            if (filterStudents().length === 0 && studentPage > 1) studentPage--;
+            renderStudentTable();
+            showToast('学员已删除');
+        };
+
+        // ---------- 学员弹窗：新增/编辑共用 ----------
+        const studentModal = document.getElementById('studentModal');
+        const studentModalTitle = document.getElementById('studentModalTitle');
+        let editingStudentId = null; // null 表示新增
+
+        // 打开新增学员弹窗
+        function openAddStudentModal() {
+            editingStudentId = null;
+            studentModalTitle.innerHTML = '<i class="fas fa-user-plus"></i> 新增学员';
+            // 清空表单
+            document.getElementById('editStudentName').value = '';
+            document.getElementById('editStudentId').value = '';
+            document.getElementById('editClass').value = '2023级硕士1班'; // 默认第一个
+            document.getElementById('editGroup').value = '人工智能组';
+            studentModal.classList.add('show');
+        }
+
+        // 编辑学员 (已存在)
+        window.editStudent = (id) => {
+            const stu = students.find(s => s.id === id);
+            if (!stu) return;
+            editingStudentId = id;
+            studentModalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑学员';
+            document.getElementById('editStudentName').value = stu.name;
+            document.getElementById('editStudentId').value = stu.studentId;
+            document.getElementById('editClass').value = stu.className;
+            document.getElementById('editGroup').value = stu.group;
+            studentModal.classList.add('show');
+        };
+
+        // 保存学员 (新增或编辑)
+        document.getElementById('studentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('editStudentName').value.trim();
+            const studentId = document.getElementById('editStudentId').value.trim();
+            const className = document.getElementById('editClass').value;
+            const group = document.getElementById('editGroup').value;
+
+            if (!name || !studentId) {
+                showToast('姓名和学号不能为空');
+                return;
+            }
+
+            if (editingStudentId) {
+                // 编辑
+                const index = students.findIndex(s => s.id === editingStudentId);
+                if (index !== -1) {
+                    students[index] = { ...students[index], name, studentId, className, group };
+                    showToast('学员更新成功');
+                }
+            } else {
+                // 新增：检查学号是否重复 (简单提醒)
+                if (students.some(s => s.studentId === studentId)) {
+                    showToast('学号已存在，请勿重复', 2000);
+                    return;
+                }
+                const newStudent = {
+                    id: generateId(),
+                    name,
+                    studentId,
+                    className,
+                    group
+                };
+                students.push(newStudent);
+                showToast('学员新增成功');
+                // 跳转到最后一页以便看到新数据
+                studentPage = Math.ceil(filterStudents().length / studentPageSize) || 1;
+            }
+
+            studentModal.classList.remove('show');
+            renderStudentTable();
+        });
+
+        // 关闭学员弹窗
+        const closeStudentModal = () => studentModal.classList.remove('show');
+        document.getElementById('closeStudentModal').addEventListener('click', closeStudentModal);
+        document.getElementById('cancelStudentBtn').addEventListener('click', closeStudentModal);
+
+        // 学员筛选事件
+        document.getElementById('filterClass').addEventListener('change', function() {
+            studentFilters.className = this.value; studentPage = 1; renderStudentTable();
+        });
+        document.getElementById('filterGroup').addEventListener('change', function() {
+            studentFilters.group = this.value; studentPage = 1; renderStudentTable();
+        });
+        document.getElementById('filterStudentId').addEventListener('input', function() {
+            studentFilters.studentId = this.value; studentPage = 1; renderStudentTable();
+        });
+        document.getElementById('resetStudentFilter').addEventListener('click', function() {
+            document.getElementById('filterClass').value = '';
+            document.getElementById('filterGroup').value = '';
+            document.getElementById('filterStudentId').value = '';
+            studentFilters = { className:'', group:'', studentId:'' };
+            studentPage = 1;
+            renderStudentTable();
+        });
+
+        // 新增学员按钮
+        document.getElementById('openAddStudentModalBtn').addEventListener('click', openAddStudentModal);
+
+        // ========== 导出Excel (保持不变) ==========
+        document.getElementById('exportStudentsBtn').addEventListener('click', function() {
+            const filteredAll = filterStudents();
+            const studentRows = filteredAll.map(s => ({ '姓名': s.name, '学号': s.studentId, '班级': s.className, '组别': s.group }));
+            if (studentRows.length === 0) { showToast('没有学员数据可导出', 1500); return; }
+            const wb = XLSX.utils.book_new();
+            const wsStudents = XLSX.utils.json_to_sheet(studentRows);
+            XLSX.utils.book_append_sheet(wb, wsStudents, '学员信息');
+            const allScores = scoreAdjustments.map(s => ({ '学生姓名': s.studentName, '学号': s.studentId, '课程': s.course || '', '调整前': s.beforeScore, '调整后': s.afterScore, '调整原因': s.reason, '调整时间': s.adjustedAt, '登记人': s.adjustedBy }));
+            const wsScores = XLSX.utils.json_to_sheet(allScores);
+            XLSX.utils.book_append_sheet(wb, wsScores, '分数变动');
+            XLSX.writeFile(wb, `研究生教务_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast(`导出成功 (学员${filteredAll.length}条)`);
+        });
+
+        // ========== 分数变动数据 ==========
+        let scoreAdjustments = [
+            { id: 'a1', studentName: '欧阳雪', studentId: 'G202401', course: '高级机器学习', beforeScore: 82.5, afterScore: 87.0, reason: '核分错误', adjustedAt: '2026-03-10T14:30', adjustedBy: '教务李老师' },
+            { id: 'a2', studentName: '王博文', studentId: 'G202402', course: '自然语言处理', beforeScore: 91.0, afterScore: 91.0, reason: '平时分补登', adjustedAt: '2026-03-09T09:20', adjustedBy: '助教小王' },
+            { id: 'a3', studentName: '李思睿', studentId: 'G202403', course: '论文写作', beforeScore: 75.0, afterScore: 85.0, reason: '重新批改', adjustedAt: '2026-03-08T16:00', adjustedBy: '导师陈' }
+        ];
+
+        let scoreFilters = { studentName: '', studentId: '', dateFrom: '', dateTo: '' };
+        let scorePage = 1;
+        const scorePageSize = 4;
+
+        function filterScores() {
+            return scoreAdjustments.filter(s => {
+                if (scoreFilters.studentName && !s.studentName.includes(scoreFilters.studentName)) return false;
+                if (scoreFilters.studentId && !s.studentId.includes(scoreFilters.studentId)) return false;
+                if (scoreFilters.dateFrom && s.adjustedAt.slice(0,10) < scoreFilters.dateFrom) return false;
+                if (scoreFilters.dateTo && s.adjustedAt.slice(0,10) > scoreFilters.dateTo) return false;
+                return true;
+            });
+        }
+        function paginateScores() {
+            const f = filterScores(); const start = (scorePage-1)*scorePageSize; return f.slice(start, start+scorePageSize);
+        }
+        function totalScorePages() { return Math.ceil(filterScores().length / scorePageSize); }
+
+        function renderScoreTable() {
+            const list = paginateScores();
+            let html = '';
+            if (list.length === 0) html = '<tr><td colspan="7" style="text-align:center;">无记录</td></tr>';
+            else {
+                list.forEach(s => {
+                    html += `<tr><td>${escapeHtml(s.studentName)}</td><td>${escapeHtml(s.studentId)}</td>
+                        <td>${escapeHtml(s.course||'—')}</td><td>${s.beforeScore}</td><td>${s.afterScore}</td>
+                        <td><span class="badge-reason">${escapeHtml(s.reason)}</span></td>
+                        <td><div class="action-btns">
+                            <button class="icon-btn" onclick="window.editScore('${s.id}')"><i class="fas fa-pen"></i>编辑</button>
+                            <button class="icon-btn delete-btn" onclick="window.deleteScore('${s.id}')"><i class="fas fa-trash"></i>删除</button>
+                        </div></td></tr>`;
+                });
+            }
+            document.getElementById('scoreTableBody').innerHTML = html;
+            renderScorePagination();
+        }
+        function renderScorePagination() {
+            const total = totalScorePages(); const c = document.getElementById('scorePagination');
+            if (total <= 1) { c.innerHTML = ''; return; }
+            let html = `<span class="page-info">第 ${scorePage}/${total}</span>`;
+            html += `<button class="pagination-btn" ${scorePage===1?'disabled':''} onclick="window.goScorePage(${scorePage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i=1; i<=total; i++) {
+                if (i===scorePage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.goScorePage(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${scorePage===total?'disabled':''} onclick="window.goScorePage(${scorePage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            c.innerHTML = html;
+        }
+        window.goScorePage = (p) => { if(p>0 && p<=totalScorePages()) { scorePage = p; renderScoreTable(); } };
+
+        window.deleteScore = (id) => {
+            scoreAdjustments = scoreAdjustments.filter(a => a.id !== id);
+            if (filterScores().length === 0 && scorePage > 1) scorePage--;
+            renderScoreTable(); renderScorePagination(); showToast('分数记录已删');
+        };
+
+        // 分数弹窗逻辑 (新增/编辑)
+        const scoreModal = document.getElementById('scoreModal');
+        const scoreModalTitle = document.getElementById('scoreModalTitle');
+        let editingScoreId = null;
+
+        // 打开新增分数弹窗
+        function openAddScoreModal() {
+            editingScoreId = null;
+            scoreModalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> 新增分数变动';
+            document.getElementById('scoreStudentName').value = '';
+            document.getElementById('scoreStudentId').value = '';
+            document.getElementById('scoreCourse').value = '';
+            document.getElementById('scoreBefore').value = 0;
+            document.getElementById('scoreAfter').value = 0;
+            document.getElementById('scoreReason').value = '';
+            const now = new Date(); 
+            const tz = now.getTimezoneOffset()*60000;
+            document.getElementById('scoreTime').value = new Date(now-tz).toISOString().slice(0,16);
+            document.getElementById('scoreRegistrar').value = '教务员';
+            scoreModal.classList.add('show');
+        }
+
+        window.editScore = (id) => {
+            const item = scoreAdjustments.find(a => a.id === id);
+            if (!item) return;
+            editingScoreId = id;
+            scoreModalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑分数变动';
+            document.getElementById('scoreStudentName').value = item.studentName;
+            document.getElementById('scoreStudentId').value = item.studentId;
+            document.getElementById('scoreCourse').value = item.course || '';
+            document.getElementById('scoreBefore').value = item.beforeScore;
+            document.getElementById('scoreAfter').value = item.afterScore;
+            document.getElementById('scoreReason').value = item.reason;
+            document.getElementById('scoreTime').value = item.adjustedAt;
+            document.getElementById('scoreRegistrar').value = item.adjustedBy;
+            scoreModal.classList.add('show');
+        };
+
+        document.getElementById('openAddScoreModalBtn').addEventListener('click', openAddScoreModal);
+
+        document.getElementById('scoreForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                studentName: document.getElementById('scoreStudentName').value.trim(),
+                studentId: document.getElementById('scoreStudentId').value.trim(),
+                course: document.getElementById('scoreCourse').value.trim(),
+                beforeScore: parseFloat(document.getElementById('scoreBefore').value),
+                afterScore: parseFloat(document.getElementById('scoreAfter').value),
+                reason: document.getElementById('scoreReason').value.trim(),
+                adjustedAt: document.getElementById('scoreTime').value,
+                adjustedBy: document.getElementById('scoreRegistrar').value,
+            };
+            if (!data.studentName || !data.studentId || isNaN(data.beforeScore) || isNaN(data.afterScore) || !data.reason) {
+                return showToast('请填写必填项');
+            }
+            if (data.beforeScore<0||data.beforeScore>100||data.afterScore<0||data.afterScore>100) {
+                return showToast('分数应在0-100之间');
+            }
+            if (editingScoreId) {
+                const idx = scoreAdjustments.findIndex(a => a.id === editingScoreId);
+                if (idx !== -1) scoreAdjustments[idx] = { ...scoreAdjustments[idx], ...data };
+                showToast('更新成功');
+            } else {
+                scoreAdjustments.push({ id: generateId(), ...data });
+                showToast('新增成功');
+                // 跳转到最后一页
+                scorePage = Math.ceil(filterScores().length / scorePageSize) || 1;
+            }
+            scoreModal.classList.remove('show');
+            renderScoreTable(); renderScorePagination();
+        });
+
+        const closeScoreModal = () => scoreModal.classList.remove('show');
+        document.getElementById('closeScoreModal').addEventListener('click', closeScoreModal);
+        document.getElementById('cancelScoreBtn').addEventListener('click', closeScoreModal);
+
+        // 分数筛选
+        function applyScoreFilter() {
+            scoreFilters.studentName = document.getElementById('scoreFilterName').value;
+            scoreFilters.studentId = document.getElementById('scoreFilterId').value;
+            scoreFilters.dateFrom = document.getElementById('scoreDateFrom').value;
+            scoreFilters.dateTo = document.getElementById('scoreDateTo').value;
+            scorePage = 1; renderScoreTable(); renderScorePagination();
+        }
+        document.getElementById('scoreFilterName').addEventListener('input', applyScoreFilter);
+        document.getElementById('scoreFilterId').addEventListener('input', applyScoreFilter);
+        document.getElementById('scoreDateFrom').addEventListener('change', applyScoreFilter);
+        document.getElementById('scoreDateTo').addEventListener('change', applyScoreFilter);
+        document.getElementById('resetScoreFilter').addEventListener('click', function() {
+            document.getElementById('scoreFilterName').value = '';
+            document.getElementById('scoreFilterId').value = '';
+            document.getElementById('scoreDateFrom').value = '';
+            document.getElementById('scoreDateTo').value = '';
+            scoreFilters = { studentName:'', studentId:'', dateFrom:'', dateTo:'' };
+            scorePage = 1; renderScoreTable(); renderScorePagination();
+        });
+
+        // 初始渲染
+        renderStudentTable();
+        renderScoreTable();
+    })();
+</script>
+</body>
+</html>

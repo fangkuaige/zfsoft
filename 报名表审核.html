@@ -3,483 +3,663 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>材料评审 · 面试管理（模拟下载）</title>
-    <!-- Font Awesome 5 (免费) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- JSZip 用于生成真实ZIP -->
+    <title>材料评审 · 面试管理（完整编辑弹窗 + 邮件短信模板）</title>
+    <!-- Inter 字体 + Font Awesome 6 (完全复用分数变动页) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- JSZip 保留真实下载 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        /* 完全沿用「学生分数变动记录」风格，并保留左侧分类布局 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
         }
-        body, html {
-            height: 100%;
-            width: 100%;
-            background-color: #f1f5f9;
-        }
-        .app {
+        /* 双栏布局容器 */
+        .app-layout {
             display: flex;
-            height: 100vh;
             width: 100%;
-            overflow: hidden;
+            min-height: 100vh;
         }
+        /* 左侧侧边栏 (项目分类树) */
         .sidebar {
             width: 300px;
-            background-color: #ffffff;
-            border-right: 1px solid #e2e8f0;
-            display: flex;
-            flex-direction: column;
+            background: #ffffff;
+            border-right: 1px solid #e2eaf3;
+            padding: 1.8rem 1rem;
             overflow-y: auto;
-            padding: 1.25rem 0.75rem;
-        }
-        .main {
-            flex: 1;
-            background-color: #f8fafc;
-            overflow-y: auto;
-            padding: 1.5rem 1.8rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
+            box-shadow: 4px 0 15px rgba(0,20,40,0.04);
         }
         @media (max-width: 768px) {
-            .app { flex-direction: column; height: auto; min-height: 100vh; }
-            .sidebar { width: 100%; max-height: 40vh; }
-            .main { padding: 1rem; }
+            .app-layout { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e2eaf3; }
         }
         .sidebar-title {
-            font-weight: 600; font-size: 1rem; color: #334155;
-            margin-bottom: 1.2rem; padding-left: 0.5rem; border-left: 4px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+            padding-left: 0.5rem;
+            border-left: 4px solid #2f6e9e;
         }
+        .sidebar-title i { color: #2f6e9e; font-size: 1.2rem; }
+
+        /* 项目树样式 */
         .project-tree { list-style: none; }
-        .project-item { margin-bottom: 1.25rem; }
+        .project-item { margin-bottom: 1.5rem; }
         .project-header {
-            font-weight: 600; color: #0f172a; padding: 0.4rem 0.5rem;
-            background-color: #f1f5f9; border-radius: 6px; cursor: default;
+            font-weight: 600; color: #0b2b40; padding: 0.6rem 0.8rem;
+            background: #eaf1f9; border-radius: 16px; cursor: default;
             display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;
+            border: 1px solid #d4e0ec;
         }
-        .class-list { list-style: none; margin-top: 0.6rem; margin-left: 1.2rem; }
+        .class-list { list-style: none; margin-top: 0.6rem; margin-left: 0.8rem; }
         .class-item {
-            display: flex; flex-direction: column; padding: 0.5rem 0.5rem 0.5rem 0.75rem;
-            border-radius: 8px; transition: background 0.1s; cursor: pointer;
-            border-bottom: 1px dashed #e9eef3;
+            display: flex; flex-direction: column; padding: 0.6rem 0.8rem;
+            border-radius: 16px; transition: 0.1s; cursor: pointer;
+            border: 1px solid transparent; margin-bottom: 0.25rem;
         }
-        .class-item.active-class { background-color: #e0f2fe; border-left: 3px solid #3b82f6; }
-        .class-item:hover { background-color: #f1f5f9; }
+        .class-item.active-class {
+            background: #e0f2fe; border-color: #aac8e4; 
+            border-left: 4px solid #1e4a6f;
+        }
+        .class-item:hover { background: #f1f7fd; }
         .class-name {
             font-weight: 500; color: #1e293b; font-size: 0.9rem;
             display: flex; justify-content: space-between;
         }
-        .class-name span { color: #3b82f6; font-size: 0.75rem; background: #e0f2fe; padding: 0.2rem 0.6rem; border-radius: 30px; }
+        .class-name span { color: #2f6e9e; font-size: 0.7rem; background: #e3f0fa; padding: 0.2rem 0.6rem; border-radius: 30px; }
         .stats-grid {
-            display: flex; flex-wrap: wrap; gap: 0.6rem 0.8rem; margin-top: 0.5rem; font-size: 0.75rem;
-            background: #ffffff; padding: 0.4rem 0.5rem; border-radius: 12px; border: 1px solid #eef2f6;
+            display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; font-size: 0.7rem;
         }
-        .stat-item { display: flex; align-items: center; gap: 0.2rem; color: #334155; }
-        .stat-total { font-weight: 600; color: #0f172a; }
-        .stat-submitted { color: #2563eb; }
-        .stat-pending { color: #d97706; }
-        .stat-approved { color: #059669; }
+        .stat-item { display: flex; align-items: center; gap: 0.2rem; color: #466585; }
+        .stat-total { font-weight: 600; color: #0b2b40; }
+
+        /* 右侧主内容区 */
+        .main-content {
+            flex: 1;
+            padding: 1.5rem 1.8rem;
+            overflow-y: auto;
+        }
+        @media (max-width: 640px) {
+            .main-content { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
 
         /* 筛选栏 */
         .filter-bar {
-            background: white; padding: 0.8rem 1.2rem; border-radius: 16px;
-            border: 1px solid #e9eef3; display: flex; flex-wrap: wrap;
-            align-items: center; gap: 1rem; font-size: 0.85rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
         }
         .filter-item {
-            display: flex; align-items: center; gap: 0.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+            flex: 1 1 150px;
         }
-        .filter-item input, .filter-item select {
-            padding: 0.3rem 0.6rem; border-radius: 30px; border: 1px solid #d1d9e6;
-            background: white; font-size: 0.8rem;
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
         }
-
-        .toolbar {
-            display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem;
-            background: white; padding: 0.8rem 1.2rem; border-radius: 16px;
-            border: 1px solid #e9eef3;
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
         }
-        .btn-group { display: flex; flex-wrap: wrap; gap: 0.3rem; }
         .btn {
-            background: white; border: 1px solid #d1d9e6; color: #1e293b;
-            padding: 0.45rem 1rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500;
-            display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;
-            transition: 0.1s; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
         }
-        .btn i { color: #5f6c84; font-size: 0.8rem; }
-        .btn-primary { background: #2563eb; border-color: #2563eb; color: white; }
-        .btn-primary i { color: white; }
-        .btn-outline-blue { border-color: #b3d0ff; background: #eef4ff; color: #1e4fd9; }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 工具栏 */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem 1.5rem;
+            background: #ffffff;
+            padding: 0.8rem 0;
+            margin-bottom: 1.2rem;
+        }
+        .toolbar .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
         .select-tag {
-            background: white; border: 1px solid #d1d9e6; border-radius: 30px;
-            padding: 0.4rem 1.8rem 0.4rem 1rem; font-size: 0.8rem; color: #1e293b;
-            appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 14px;
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 40px;
+            padding: 0.4rem 2rem 0.4rem 1.2rem;
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.8rem center;
+            background-size: 14px;
             cursor: pointer;
         }
 
+        /* 表格 */
         .table-wrapper {
-            background: white; border-radius: 20px; padding: 0.2rem 0 1rem 0;
-            border: 1px solid #eef2f6; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
             overflow-x: auto;
+            margin-top: 0.5rem;
         }
         table {
-            width: 100%; border-collapse: collapse; min-width: 1100px; font-size: 0.8rem;
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
         }
         th {
-            text-align: left; padding: 1rem 0.6rem 0.8rem 0.6rem; color: #475569;
-            font-weight: 600; border-bottom: 1px solid #e2e8f0; white-space: nowrap;
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
         }
-        td { padding: 0.8rem 0.6rem; border-bottom: 1px solid #f1f5f9; color: #1f2a41; }
-        .checkbox-col { width: 30px; text-align: center; }
-        .status-badge {
-            display: inline-block; padding: 0.2rem 0.6rem; border-radius: 30px;
-            font-size: 0.7rem; font-weight: 600; text-align: center; min-width: 70px;
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
         }
-        .status-pending { background: #ffedd5; color: #9a3412; }
-        .status-initial { background: #dbeafe; color: #1e40af; }
-        .status-review { background: #dcfce7; color: #166534; }
-        .status-rework { background: #fef9c3; color: #854d0e; }
-        .status-reject { background: #fee2e2; color: #b91c1c; }
-        .action-icons { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-        .action-icons i {
-            color: #475569; font-size: 1rem; padding: 0.3rem;
-            background: #f1f4f9; border-radius: 30px; transition: 0.1s; cursor: pointer;
+        .student-name { font-weight: 600; color: #0b2b40; }
+        .badge-status {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
         }
+        .status-pending { background: #fff3d8; color: #b45b0f; }
+        .status-initial { background: #d9edff; color: #024d8c; }
+        .status-review { background: #dcfce7; color: #1f7042; }
+        .status-rework { background: #fef9c3; color: #8f6f1b; }
+        .status-reject { background: #ffe2e2; color: #b53b3b; }
+        .score-badge {
+            background: #e6f0f9;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        .action-icons {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .icon-btn-sm {
+            background: #f2f8ff; border: none; color: #2a577b;
+            width: 32px; height: 32px; border-radius: 40px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.1s; font-size: 0.85rem;
+        }
+        .icon-btn-sm:hover { background: #dae9f8; }
+        .checkbox-col { width: 40px; text-align: center; }
 
-        .pagination {
+        /* 分页 */
+        .pagination-bar {
             display: flex; justify-content: flex-end; align-items: center;
-            gap: 0.5rem; margin-top: 1rem; padding: 0 0.5rem;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
         }
-        .page-info { font-size: 0.8rem; color: #475569; }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
 
-        /* 模态框 */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
-            z-index: 1000;
+        /* 弹窗 (完全复用分数变动页) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
         }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: white; border-radius: 24px; max-width: 500px; width: 90%;
-            padding: 1.8rem; box-shadow: 0 20px 30px rgba(0,0,0,0.2);
-            max-height: 80vh; overflow-y: auto;
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 700px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 85vh; overflow-y: auto;
         }
+        .modal-overlay.show .modal-card { transform: scale(1); }
         .modal-header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 1.2rem; font-weight: 600; font-size: 1.2rem;
+            margin-bottom: 1.5rem;
         }
-        .modal-close { cursor: pointer; font-size: 1.5rem; line-height: 1; }
-        .preview-placeholder {
-            background: #e2e8f0; height: 160px; border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            color: #475569; font-size: 1rem; border: 2px dashed #94a3b8;
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
         }
-        .hr { border-top: 1px solid #edf2f7; margin: 1rem 0; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        /* 预览模拟样式 */
-        .preview-doc {
-            border: 1px solid #d1d9e6; padding: 1rem; border-radius: 16px; background: #f9fafc;
-            font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow: auto;
+        .modal-close:hover { color: #1e3a5f; }
+
+        /* 编辑弹窗表单网格 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem 1.8rem;
+            margin-top: 0.5rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #4e6f8c;
+            text-transform: uppercase;
+        }
+        .input-field {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.75rem 1.2rem;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15);
+            background: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+
+        .project-badge {
+            background: #eaf1f9; border-radius: 40px; padding: 0.2rem 1rem; font-size: 0.8rem; color: #1d4b6e;
         }
     </style>
 </head>
 <body>
-    <!-- 全局模态框 (用于所有弹窗) -->
-    <div id="globalModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span id="modalTitle">操作</span>
-                <span class="modal-close" id="modalClose">&times;</span>
-            </div>
-            <div id="modalBody"></div>
-            <div class="hr"></div>
-            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-                <span class="btn" id="modalCancel">取消</span>
-                <span class="btn btn-primary" id="modalConfirm">确认</span>
+<div class="app-layout">
+    <!-- 左侧项目分类侧边栏 (完全保留) -->
+    <div class="sidebar" id="sidebar"></div>
+
+    <!-- 右侧主内容区 -->
+    <div class="main-content">
+        <!-- 卡片：筛选栏 (无新增按钮) -->
+        <div class="card">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label><i class="fas fa-user"></i> 考生姓名</label>
+                    <input type="text" class="filter-input" id="filterName" placeholder="姓名">
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-tag"></i> 状态</label>
+                    <select class="filter-select" id="filterStatus">
+                        <option value="">全部状态</option>
+                        <option value="待审核">待审核</option>
+                        <option value="初审通过">初审通过</option>
+                        <option value="复审通过">复审通过</option>
+                        <option value="退回修改">退回修改</option>
+                        <option value="不通过">不通过</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-pencil-alt"></i> 笔试最低</label>
+                    <input type="number" class="filter-input" id="filterWrittenMin" placeholder="≥">
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-pencil-alt"></i> 笔试最高</label>
+                    <input type="number" class="filter-input" id="filterWrittenMax" placeholder="≤">
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-microphone-alt"></i> 面试资格</label>
+                    <select class="filter-select" id="filterInterview">
+                        <option value="">全部</option>
+                        <option value="yes">已具备</option>
+                        <option value="no">未具备</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                    <button class="btn btn-primary" id="applyFilterBtn"><i class="fas fa-filter"></i> 筛选</button>
+                </div>
             </div>
         </div>
+
+        <!-- 主卡片：列表 + 批量工具栏 (移除了模板新增和复审结果下拉) -->
+        <div class="card">
+            <div class="section-title">
+                <i class="fas fa-users-between-lines"></i> 材料评审与面试管理
+                <span class="project-badge" id="activeClassDisplay">计算机科学 (CS01)</span>
+            </div>
+
+            <!-- 工具栏 (批量操作) - 移除了模板新增按钮 -->
+            <div class="toolbar">
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline" data-action="batchDownload"><i class="fas fa-download"></i> 批量ZIP</button>
+                    <button class="btn btn-sm btn-outline" data-action="batchAudit"><i class="fas fa-check-circle"></i> 批量初审</button>
+                    <button class="btn btn-sm btn-outline" data-action="batchSetBatch"><i class="fas fa-calendar-alt"></i> 批次</button>
+                    <button class="btn btn-sm btn-outline" data-action="batchAdjustProject"><i class="fas fa-project-diagram"></i> 调整项目</button>
+                    <button class="btn btn-sm btn-outline" data-action="batchToPublic"><i class="fas fa-archive"></i> 转公共库</button>
+                </div>
+                <div style="flex:1;"></div>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline" data-action="sendEmail"><i class="fas fa-envelope"></i> 邮件</button>
+                    <button class="btn btn-sm btn-outline" data-action="sendSms"><i class="fas fa-sms"></i> 短信</button>
+                    <button class="btn btn-sm btn-outline" data-action="viewHistory"><i class="fas fa-history"></i> 历史</button>
+                </div>
+            </div>
+
+            <!-- 表格区 -->
+            <div class="table-wrapper">
+                <table id="reviewTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col"><input type="checkbox" id="selectAll"></th>
+                            <th>姓名/ID</th>
+                            <th>项目/班级</th>
+                            <th>材料</th>
+                            <th>状态</th>
+                            <th>笔试</th>
+                            <th>面试资格</th>
+                            <th>面试分</th>
+                            <th>录取结果</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination-bar" id="paginationContainer"></div>
+        </div>
     </div>
+</div>
 
-    <div id="appContainer" class="app"></div>
+<!-- 全局弹窗 (用于确认和编辑) -->
+<div class="modal-overlay" id="globalModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-question-circle"></i> 确认操作</h3>
+            <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div id="modalBody" style="min-height: 80px; font-size: 1rem;"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-outline" id="modalCancel">取消</button>
+            <button type="button" class="btn btn-primary" id="modalConfirm">确认</button>
+        </div>
+    </div>
+</div>
 
-    <script>
-        (function() {
-            // ---------- 数据结构 ----------
-            let publicPool = [];
+<!-- Toast -->
+<div id="toast" class="toast-message">操作成功</div>
 
-            let templates = [
-                { name: '初审通知', content: '您的材料已通过初审，请等待复审。' },
-                { name: '复审结果', content: '恭喜您通过复审！' },
-                { name: '退回修改', content: '您的材料需要修改，请登录查看。' },
-                { name: '面试通知', content: '请于指定时间参加面试。' }
-            ];
+<script>
+    (function() {
+        // ---------- 数据定义 ----------
+        let publicPool = [];
 
-            let histories = [
-                { time: '09:45', target: '李敏', template: '初审通过', type: '邮件' },
-                { time: '昨天 16:20', target: '12位考生', template: '待审核提醒', type: '短信' },
-                { time: '昨天 10:11', target: '王启航', template: '复审结果', type: '邮件' }
-            ];
+        // 保留模板数组，但只用于邮件/短信选择
+        let templates = [
+            { name: '初审通知', content: '您的材料已通过初审，请等待复审。' },
+            { name: '复审结果', content: '恭喜您通过复审！' },
+            { name: '退回修改', content: '您的材料需要修改，请登录查看。' },
+            { name: '面试通知', content: '请于指定时间参加面试。' }
+        ];
 
-            function generateStudents(count, classCode) {
-                const firstNames = ['张','王','李','赵','陈','刘','周','吴','郑','孙'];
-                const lastNames = ['思睿','敏','启航','小冉','一鸣','安妮','凯','茜','逸','泽'];
-                const statusList = ['待审核','初审通过','复审通过','退回修改','不通过'];
-                const batches = ['第一批','第二批','第三批'];
-                const results = ['录取','不录取','待定'];
-                const students = [];
-                for (let i = 1; i <= count; i++) {
-                    const name = firstNames[Math.floor(Math.random() * firstNames.length)] + 
-                                 lastNames[Math.floor(Math.random() * lastNames.length)] + (i%2===0?'':i);
-                    const status = statusList[Math.floor(Math.random() * statusList.length)];
-                    const hasInterview = Math.random() > 0.3;
-                    students.push({
-                        id: `${classCode}-${100 + i}`,
-                        name: name,
-                        classCode: classCode,
-                        status: status,
-                        batch: batches[Math.floor(Math.random() * batches.length)],
-                        writtenScore: Math.floor(Math.random() * 41) + 60,
-                        interviewQual: hasInterview,
-                        interviewScore: hasInterview ? Math.floor(Math.random() * 41) + 60 : null,
-                        admissionResult: results[Math.floor(Math.random() * results.length)]
-                    });
-                }
-                return students;
-            }
+        let histories = [
+            { time: '09:45', target: '李敏', template: '初审通过', type: '邮件' },
+            { time: '昨天 16:20', target: '12位考生', template: '待审核提醒', type: '短信' }
+        ];
 
-            const projectData = [
-                { projectName: '2025 博士申请项目', classes: [
-                    { className: '计算机科学与技术', classCode: 'CS01', students: generateStudents(12, 'CS01') },
-                    { className: '人工智能', classCode: 'AI02', students: generateStudents(10, 'AI02') }
-                ] },
-                { projectName: '2025 硕士推免项目', classes: [
-                    { className: '电子工程', classCode: 'EE03', students: generateStudents(14, 'EE03') }
-                ] },
-                { projectName: '2024 秋季补录', classes: [
-                    { className: '工商管理', classCode: 'MBA04', students: generateStudents(9, 'MBA04') }
-                ] }
-            ];
-
-            let activeClassCode = 'CS01';
-            let currentPage = 1;
-            const pageSize = 5;
-
-            let filters = {
-                name: '',
-                status: '',
-                writtenMin: '',
-                writtenMax: '',
-                interviewQual: '',
-                admissionResult: ''
-            };
-
-            // 辅助函数：根据班级代码获取项目名称
-            function getProjectNameByClassCode(classCode) {
-                for (let proj of projectData) {
-                    for (let cls of proj.classes) {
-                        if (cls.classCode === classCode) return proj.projectName;
-                    }
-                }
-                return '未知项目';
-            }
-
-            function getCurrentClassStudents() {
-                for (let proj of projectData) {
-                    for (let cls of proj.classes) {
-                        if (cls.classCode === activeClassCode) return cls.students;
-                    }
-                }
-                return [];
-            }
-
-            function getClassInfo(classCode) {
-                for (let proj of projectData) {
-                    for (let cls of proj.classes) {
-                        if (cls.classCode === classCode) return { projectName: proj.projectName, className: cls.className };
-                    }
-                }
-                return { projectName: '', className: '' };
-            }
-
-            function filterStudents(students) {
-                return students.filter(s => {
-                    if (filters.name && !s.name.includes(filters.name)) return false;
-                    if (filters.status && s.status !== filters.status) return false;
-                    if (filters.writtenMin !== '' && s.writtenScore < parseInt(filters.writtenMin)) return false;
-                    if (filters.writtenMax !== '' && s.writtenScore > parseInt(filters.writtenMax)) return false;
-                    if (filters.interviewQual === 'yes' && !s.interviewQual) return false;
-                    if (filters.interviewQual === 'no' && s.interviewQual) return false;
-                    if (filters.admissionResult && s.admissionResult !== filters.admissionResult) return false;
-                    return true;
+        function generateStudents(count, classCode) {
+            const firstNames = ['张','王','李','赵','陈','刘','周','吴','郑','孙'];
+            const lastNames = ['思睿','敏','启航','小冉','一鸣','安妮','凯','茜','逸','泽'];
+            const statusList = ['待审核','初审通过','复审通过','退回修改','不通过'];
+            const batches = ['第一批','第二批','第三批'];
+            const results = ['录取','不录取','待定'];
+            const students = [];
+            for (let i = 1; i <= count; i++) {
+                const name = firstNames[Math.floor(Math.random() * firstNames.length)] + 
+                             lastNames[Math.floor(Math.random() * lastNames.length)] + (i%2===0?'':i);
+                const status = statusList[Math.floor(Math.random() * statusList.length)];
+                const hasInterview = Math.random() > 0.3;
+                students.push({
+                    id: `${classCode}-${100 + i}`,
+                    name: name,
+                    classCode: classCode,
+                    status: status,
+                    batch: batches[Math.floor(Math.random() * batches.length)],
+                    writtenScore: Math.floor(Math.random() * 41) + 60,
+                    interviewQual: hasInterview,
+                    interviewScore: hasInterview ? Math.floor(Math.random() * 41) + 60 : null,
+                    admissionResult: results[Math.floor(Math.random() * results.length)]
                 });
             }
+            return students;
+        }
 
-            function renderApp() {
-                const container = document.getElementById('appContainer');
-                container.innerHTML = '';
+        const projectData = [
+            { projectName: '2025 博士申请', classes: [
+                { className: '计算机科学', classCode: 'CS01', students: generateStudents(12, 'CS01') },
+                { className: '人工智能', classCode: 'AI02', students: generateStudents(10, 'AI02') }
+            ] },
+            { projectName: '2025 硕士推免', classes: [
+                { className: '电子工程', classCode: 'EE03', students: generateStudents(14, 'EE03') }
+            ] },
+            { projectName: '2024 秋季补录', classes: [
+                { className: '工商管理', classCode: 'MBA04', students: generateStudents(9, 'MBA04') }
+            ] }
+        ];
 
-                const sidebar = document.createElement('div');
-                sidebar.className = 'sidebar';
-                const main = document.createElement('div');
-                main.className = 'main';
+        // 当前激活的班级代码
+        let activeClassCode = 'CS01';
+        let currentPage = 1;
+        const pageSize = 5;
 
-                container.appendChild(sidebar);
-                container.appendChild(main);
+        let filters = {
+            name: '',
+            status: '',
+            writtenMin: '',
+            writtenMax: '',
+            interviewQual: '',
+            admissionResult: ''
+        };
 
-                renderSidebar(sidebar);
-                renderMain(main);
+        // 存储当前正在编辑的学生
+        let editingStudent = null;
+
+        // ---------- 辅助函数 ----------
+        function getCurrentClassStudents() {
+            for (let proj of projectData) {
+                for (let cls of proj.classes) {
+                    if (cls.classCode === activeClassCode) return cls.students;
+                }
             }
+            return [];
+        }
 
-            function renderSidebar(container) {
-                container.innerHTML = `
-                    <div class="sidebar-title"><i class="fas fa-sitemap"></i> 按项目分类</div>
-                    <ul class="project-tree" id="projectTree"></ul>
-                    <div style="margin-top:auto; padding-top:1.5rem; font-size:0.8rem; color:#566981;">
-                        <i class="fas fa-archive"></i> 公共资源库 (${publicPool.length}人)
-                    </div>
-                `;
-                const treeUl = document.getElementById('projectTree');
-                projectData.forEach(proj => {
-                    const projLi = document.createElement('li');
-                    projLi.className = 'project-item';
-                    projLi.innerHTML = `<div class="project-header"><i class="fas fa-folder-open"></i> ${proj.projectName}</div>`;
-                    const classUl = document.createElement('ul');
-                    classUl.className = 'class-list';
+        function getClassInfo(classCode) {
+            for (let proj of projectData) {
+                for (let cls of proj.classes) {
+                    if (cls.classCode === classCode) return { projectName: proj.projectName, className: cls.className };
+                }
+            }
+            return { projectName: '', className: '' };
+        }
 
-                    proj.classes.forEach(cls => {
-                        const students = cls.students;
-                        const total = students.length;
-                        const pending = students.filter(s => s.status === '待审核').length;
-                        const approved = students.filter(s => s.status === '初审通过' || s.status === '复审通过').length;
+        function filterStudents(students) {
+            return students.filter(s => {
+                if (filters.name && !s.name.includes(filters.name)) return false;
+                if (filters.status && s.status !== filters.status) return false;
+                if (filters.writtenMin !== '' && s.writtenScore < parseInt(filters.writtenMin)) return false;
+                if (filters.writtenMax !== '' && s.writtenScore > parseInt(filters.writtenMax)) return false;
+                if (filters.interviewQual === 'yes' && !s.interviewQual) return false;
+                if (filters.interviewQual === 'no' && s.interviewQual) return false;
+                return true;
+            });
+        }
 
-                        const classLi = document.createElement('li');
-                        classLi.className = `class-item ${cls.classCode === activeClassCode ? 'active-class' : ''}`;
-                        classLi.dataset.classCode = cls.classCode;
-                        classLi.innerHTML = `
-                            <div class="class-name">${cls.className} <span>${cls.classCode}</span></div>
-                            <div class="stats-grid">
-                                <span class="stat-item"><i class="fas fa-users"></i>总<b class="stat-total">${total}</b></span>
-                                <span class="stat-item"><i class="fas fa-check-circle"></i>已交<b class="stat-submitted">${total}</b></span>
-                                <span class="stat-item"><i class="fas fa-clock"></i>待审<b class="stat-pending">${pending}</b></span>
-                                <span class="stat-item"><i class="fas fa-check-double"></i>通过<b class="stat-approved">${approved}</b></span>
-                            </div>
-                        `;
-                        classLi.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const code = classLi.dataset.classCode;
-                            if (code === activeClassCode) return;
-                            activeClassCode = code;
-                            currentPage = 1;
-                            renderApp();
-                        });
-                        classUl.appendChild(classLi);
+        // 渲染左侧树
+        function renderSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            let html = `
+                <div class="sidebar-title"><i class="fas fa-sitemap"></i> 按项目分类</div>
+                <ul class="project-tree" id="projectTree"></ul>
+                <div style="margin-top:2rem; font-size:0.8rem; color:#4e6f8c;">
+                    <i class="fas fa-archive"></i> 公共资源库 (${publicPool.length}人)
+                </div>
+            `;
+            sidebar.innerHTML = html;
+            const treeUl = document.getElementById('projectTree');
+            projectData.forEach(proj => {
+                const projLi = document.createElement('li');
+                projLi.className = 'project-item';
+                projLi.innerHTML = `<div class="project-header"><i class="fas fa-folder-open"></i> ${proj.projectName}</div>`;
+                const classUl = document.createElement('ul');
+                classUl.className = 'class-list';
+
+                proj.classes.forEach(cls => {
+                    const students = cls.students;
+                    const total = students.length;
+                    const pending = students.filter(s => s.status === '待审核').length;
+
+                    const classLi = document.createElement('li');
+                    classLi.className = `class-item ${cls.classCode === activeClassCode ? 'active-class' : ''}`;
+                    classLi.dataset.classCode = cls.classCode;
+                    classLi.innerHTML = `
+                        <div class="class-name">${cls.className} <span>${cls.classCode}</span></div>
+                        <div class="stats-grid">
+                            <span class="stat-item"><i class="fas fa-users"></i>总<b class="stat-total">${total}</b></span>
+                            <span class="stat-item"><i class="fas fa-clock"></i>待审<b class="stat-total">${pending}</b></span>
+                        </div>
+                    `;
+                    classLi.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const code = classLi.dataset.classCode;
+                        if (code === activeClassCode) return;
+                        activeClassCode = code;
+                        currentPage = 1;
+                        renderSidebar();
+                        document.getElementById('activeClassDisplay').innerText = `${cls.className} (${cls.classCode})`;
+                        renderTable();
                     });
-                    projLi.appendChild(classUl);
-                    treeUl.appendChild(projLi);
+                    classUl.appendChild(classLi);
                 });
-            }
+                projLi.appendChild(classUl);
+                treeUl.appendChild(projLi);
+            });
+        }
 
-            function renderMain(container) {
-                const allStudents = getCurrentClassStudents();
-                const filtered = filterStudents(allStudents);
-                const totalFiltered = filtered.length;
-                const totalPages = Math.ceil(totalFiltered / pageSize);
-                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-                const start = (currentPage - 1) * pageSize;
-                const pageStudents = filtered.slice(start, start + pageSize);
+        // 渲染表格
+        function renderTable() {
+            const students = getCurrentClassStudents();
+            const filtered = filterStudents(students);
+            const totalFiltered = filtered.length;
+            const totalPages = Math.ceil(totalFiltered / pageSize);
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+            const start = (currentPage - 1) * pageSize;
+            const pageStudents = filtered.slice(start, start + pageSize);
 
-                container.innerHTML = `
-                    <!-- 筛选栏 -->
-                    <div class="filter-bar">
-                        <div class="filter-item"><i class="fas fa-search"></i> <input type="text" placeholder="姓名" id="filterName" value="${filters.name}"></div>
-                        <div class="filter-item">
-                            <select id="filterStatus">
-                                <option value="">全部状态</option>
-                                <option value="待审核" ${filters.status==='待审核'?'selected':''}>待审核</option>
-                                <option value="初审通过" ${filters.status==='初审通过'?'selected':''}>初审通过</option>
-                                <option value="复审通过" ${filters.status==='复审通过'?'selected':''}>复审通过</option>
-                                <option value="退回修改" ${filters.status==='退回修改'?'selected':''}>退回修改</option>
-                                <option value="不通过" ${filters.status==='不通过'?'selected':''}>不通过</option>
-                            </select>
-                        </div>
-                        <div class="filter-item">
-                            <input type="number" placeholder="笔试最低" id="filterWrittenMin" value="${filters.writtenMin}" style="width:80px;">
-                            ~
-                            <input type="number" placeholder="最高" id="filterWrittenMax" value="${filters.writtenMax}" style="width:80px;">
-                        </div>
-                        <div class="filter-item">
-                            <select id="filterInterview">
-                                <option value="">面试资格(全部)</option>
-                                <option value="yes" ${filters.interviewQual==='yes'?'selected':''}>已具备</option>
-                                <option value="no" ${filters.interviewQual==='no'?'selected':''}>未具备</option>
-                            </select>
-                        </div>
-                        <div class="filter-item">
-                            <select id="filterAdmission">
-                                <option value="">录取结果(全部)</option>
-                                <option value="录取" ${filters.admissionResult==='录取'?'selected':''}>录取</option>
-                                <option value="不录取" ${filters.admissionResult==='不录取'?'selected':''}>不录取</option>
-                                <option value="待定" ${filters.admissionResult==='待定'?'selected':''}>待定</option>
-                            </select>
-                        </div>
-                        <span class="btn" data-action="applyFilter"><i class="fas fa-filter"></i> 筛选</span>
-                        <span class="btn" data-action="resetFilter"><i class="fas fa-undo-alt"></i> 重置</span>
-                    </div>
-
-                    <!-- 工具栏 (包含批量下载) -->
-                    <div class="toolbar">
-                        <div class="btn-group">
-                            <span class="btn" data-action="batchDownload"><i class="fas fa-download"></i> 批量下载ZIP</span>
-                            <span class="btn" data-action="batchAudit"><i class="fas fa-users-cog"></i> 批量审核</span>
-                            <span class="btn" data-action="batchSetBatch"><i class="fas fa-calendar-alt"></i> 设置批次</span>
-                            <span class="btn" data-action="batchAdjustProject"><i class="fas fa-project-diagram"></i> 调整项目</span>
-                            <span class="btn" data-action="batchToPublic"><i class="fas fa-archive"></i> 转入公共库</span>
-                        </div>
-                        <div style="flex:1;"></div>
-                        <div class="btn-group">
-                            <span class="btn" data-action="sendEmail"><i class="fas fa-envelope"></i> 邮件</span>
-                            <span class="btn" data-action="sendSms"><i class="fas fa-sms"></i> 短信</span>
-                            <select class="select-tag" id="templateSelect" style="width:120px;">
-                                ${templates.map(t => `<option value="${t.name}">${t.name}</option>`).join('')}
-                            </select>
-                            <span class="btn" data-action="addTemplate"><i class="fas fa-plus-circle"></i> 新增</span>
-                            <span class="btn" data-action="viewHistory"><i class="fas fa-history"></i> 发送历史</span>
-                        </div>
-                    </div>
-
-                    <!-- 表格 -->
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th class="checkbox-col"><input type="checkbox" id="selectAll"></th>
-                                    <th>姓名/ID</th>
-                                    <th>班级/批次</th>
-                                    <th>材料</th>
-                                    <th>状态</th>
-                                    <th>笔试成绩</th>
-                                    <th>面试资格</th>
-                                    <th>面试成绩</th>
-                                    <th>录取结果</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody"></tbody>
-                        </table>
-                        <div class="pagination">
-                            <span class="btn" data-action="prevPage" ${currentPage<=1?'disabled style="opacity:0.5;"':''}><i class="fas fa-chevron-left"></i> 上一页</span>
-                            <span class="page-info">第 ${currentPage} / ${totalPages||1} 页</span>
-                            <span class="btn" data-action="nextPage" ${currentPage>=totalPages?'disabled style="opacity:0.5;"':''}>下一页 <i class="fas fa-chevron-right"></i></span>
-                            <span class="btn" data-action="refresh"><i class="fas fa-sync-alt"></i></span>
-                        </div>
-                    </div>
-                `;
-
-                const tbody = document.getElementById('tableBody');
+            const tbody = document.getElementById('tableBody');
+            if (!tbody) return;
+            let html = '';
+            if (pageStudents.length === 0) {
+                html = `<tr><td colspan="10" style="text-align:center; padding:3rem; color:#8899bb;"><i class="fas fa-file" style="font-size:2rem;"></i><br>暂无考生记录</td></tr>`;
+            } else {
                 pageStudents.forEach(s => {
                     const info = getClassInfo(s.classCode);
                     const statusClass = 
@@ -487,228 +667,436 @@
                         s.status === '初审通过' ? 'status-initial' :
                         s.status === '复审通过' ? 'status-review' :
                         s.status === '退回修改' ? 'status-rework' : 'status-reject';
-                    const row = document.createElement('tr');
-                    row.dataset.studentId = s.id;
-                    row.innerHTML = `
-                        <td class="checkbox-col"><input type="checkbox" class="student-check" value="${s.id}"></td>
-                        <td><b>${s.name}</b><br><span class="text-muted">ID:${s.id}</span></td>
-                        <td>${info.className}<br><small>批次:${s.batch}</small></td>
-                        <td><div class="action-icons">
-                            <i class="fas fa-eye" data-action="preview" data-id="${s.id}"></i>
-                            <i class="fas fa-download" data-action="download" data-id="${s.id}"></i>
-                            <i class="fas fa-paperclip" data-action="attachment" data-id="${s.id}"></i>
-                        </div></td>
-                        <td><span class="status-badge ${statusClass}">${s.status}</span></td>
-                        <td>${s.writtenScore}</td>
-                        <td>${s.interviewQual ? '是' : '否'}</td>
-                        <td>${s.interviewScore !== null ? s.interviewScore : '—'}</td>
-                        <td>${s.admissionResult}</td>
-                        <td><div class="action-icons">
-                            <i class="fas fa-check-circle" data-action="audit" data-id="${s.id}" title="初审通过"></i>
-                            <i class="fas fa-undo-alt" data-action="rework" data-id="${s.id}" title="退回修改"></i>
-                            <i class="fas fa-check-double" data-action="pass" data-id="${s.id}" title="复审通过"></i>
-                            <i class="fas fa-share-square" data-action="toPublic" data-id="${s.id}" title="转入公共库"></i>
-                            <i class="fas fa-edit" data-action="editStudent" data-id="${s.id}" title="编辑"></i>
-                        </div></td>
-                    `;
-                    tbody.appendChild(row);
+                    html += `<tr>`;
+                    html += `<td class="checkbox-col"><input type="checkbox" class="student-check" value="${s.id}"></td>`;
+                    html += `<td><span class="student-name">${s.name}</span><br><span style="font-size:0.7rem; color:#4f6f8f;">${s.id}</span></td>`;
+                    html += `<td>${info.projectName}<br><span class="project-badge">${info.className} / ${s.batch}</span></td>`;
+                    html += `<td><div class="action-icons">
+                        <i class="fas fa-eye icon-btn-sm" data-action="preview" data-id="${s.id}"></i>
+                        <i class="fas fa-download icon-btn-sm" data-action="download" data-id="${s.id}"></i>
+                        <i class="fas fa-paperclip icon-btn-sm" data-action="attachment" data-id="${s.id}"></i>
+                    </div></td>`;
+                    html += `<td><span class="badge-status ${statusClass}">${s.status}</span></td>`;
+                    html += `<td><span class="score-badge">${s.writtenScore}</span></td>`;
+                    html += `<td>${s.interviewQual ? '<i class="fas fa-check" style="color:#059669;"></i> 是' : '<i class="fas fa-times" style="color:#b91c1c;"></i> 否'}</td>`;
+                    html += `<td>${s.interviewScore !== null ? s.interviewScore : '—'}</td>`;
+                    html += `<td>${s.admissionResult}</td>`;
+                    html += `<td><div class="action-icons">
+                        <i class="fas fa-check-circle icon-btn-sm" data-action="audit" data-id="${s.id}" title="初审通过"></i>
+                        <i class="fas fa-undo-alt icon-btn-sm" data-action="rework" data-id="${s.id}" title="退回修改"></i>
+                        <i class="fas fa-check-double icon-btn-sm" data-action="pass" data-id="${s.id}" title="复审通过"></i>
+                        <i class="fas fa-share-square icon-btn-sm" data-action="toPublic" data-id="${s.id}" title="转公共库"></i>
+                        <i class="fas fa-edit icon-btn-sm" data-action="editStudent" data-id="${s.id}" title="编辑"></i>
+                    </div></td>`;
+                    html += `</tr>`;
                 });
+            }
+            tbody.innerHTML = html;
 
-                const selectAll = document.getElementById('selectAll');
-                if (selectAll) {
-                    selectAll.addEventListener('change', (e) => {
-                        document.querySelectorAll('.student-check').forEach(cb => cb.checked = e.target.checked);
-                    });
+            // 分页
+            renderPagination(totalPages);
+            // 更新激活班级显示
+            const activeInfo = getClassInfo(activeClassCode);
+            document.getElementById('activeClassDisplay').innerText = `${activeInfo.className} (${activeClassCode})`;
+        }
+
+        function renderPagination(totalPages) {
+            const container = document.getElementById('paginationContainer');
+            if (!container) return;
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+            let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${totalPages} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="prev"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" data-page="${i}">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} data-page="next"><i class="fas fa-chevron-right"></i></button>`;
+            container.innerHTML = html;
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // 显示自定义弹窗（可包含表单）
+        function showCustomModal(title, contentHtml, onConfirm) {
+            const modal = document.getElementById('globalModal');
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalBody').innerHTML = contentHtml;
+            
+            const modalConfirm = document.getElementById('modalConfirm');
+            const modalCancel = document.getElementById('modalCancel');
+            const modalClose = document.getElementById('modalClose');
+            
+            // 移除之前的事件监听
+            const newConfirm = modalConfirm.cloneNode(true);
+            const newCancel = modalCancel.cloneNode(true);
+            const newClose = modalClose.cloneNode(true);
+            modalConfirm.parentNode.replaceChild(newConfirm, modalConfirm);
+            modalCancel.parentNode.replaceChild(newCancel, modalCancel);
+            modalClose.parentNode.replaceChild(newClose, modalClose);
+            
+            newConfirm.addEventListener('click', function() {
+                modal.classList.remove('show');
+                onConfirm();
+            });
+            
+            newCancel.addEventListener('click', function() {
+                modal.classList.remove('show');
+            });
+            
+            newClose.addEventListener('click', function() {
+                modal.classList.remove('show');
+            });
+            
+            modal.classList.add('show');
+        }
+
+        // 显示确认弹窗
+        function showConfirmDialog(title, message, onConfirm) {
+            showCustomModal(`<i class="fas fa-question-circle"></i> ${title}`, `<p>${message}</p>`, onConfirm);
+        }
+
+        // 打开编辑弹窗
+        function openEditModal(studentId) {
+            // 查找学生
+            let student = null;
+            for (let proj of projectData) {
+                for (let cls of proj.classes) {
+                    const found = cls.students.find(s => s.id === studentId);
+                    if (found) {
+                        student = found;
+                        break;
+                    }
                 }
             }
+            if (!student) return;
 
-            // ---------- 事件处理 ----------
-            function handleDocumentClick(e) {
-                const target = e.target.closest('[data-action]');
-                if (!target) return;
-                const action = target.dataset.action;
-                e.preventDefault();
+            editingStudent = student;
 
-                const modal = document.getElementById('globalModal');
-                const modalTitle = document.getElementById('modalTitle');
-                const modalBody = document.getElementById('modalBody');
-                const modalConfirm = document.getElementById('modalConfirm');
-                const modalCancel = document.getElementById('modalCancel');
+            const statusOptions = ['待审核', '初审通过', '复审通过', '退回修改', '不通过'].map(s => 
+                `<option value="${s}" ${student.status === s ? 'selected' : ''}>${s}</option>`
+            ).join('');
 
-                // 筛选与分页（略，保持不变）
-                if (action === 'applyFilter') {
-                    filters.name = document.getElementById('filterName').value;
-                    filters.status = document.getElementById('filterStatus').value;
-                    filters.writtenMin = document.getElementById('filterWrittenMin').value;
-                    filters.writtenMax = document.getElementById('filterWrittenMax').value;
-                    filters.interviewQual = document.getElementById('filterInterview').value;
-                    filters.admissionResult = document.getElementById('filterAdmission').value;
-                    currentPage = 1;
-                    renderApp();
-                    return;
-                }
-                if (action === 'resetFilter') {
-                    filters = { name: '', status: '', writtenMin: '', writtenMax: '', interviewQual: '', admissionResult: '' };
-                    currentPage = 1;
-                    renderApp();
-                    return;
-                }
-                if (action === 'prevPage') {
-                    if (currentPage > 1) { currentPage--; renderApp(); }
-                    return;
-                }
-                if (action === 'nextPage') {
-                    const all = getCurrentClassStudents();
-                    const filtered = filterStudents(all);
-                    const totalPages = Math.ceil(filtered.length / pageSize);
-                    if (currentPage < totalPages) { currentPage++; renderApp(); }
-                    return;
-                }
-                if (action === 'refresh') {
-                    renderApp();
+            const batchOptions = ['第一批', '第二批', '第三批'].map(b => 
+                `<option value="${b}" ${student.batch === b ? 'selected' : ''}>${b}</option>`
+            ).join('');
+
+            const resultOptions = ['录取', '不录取', '待定'].map(r => 
+                `<option value="${r}" ${student.admissionResult === r ? 'selected' : ''}>${r}</option>`
+            ).join('');
+
+            const interviewChecked = student.interviewQual ? 'checked' : '';
+
+            const html = `
+                <div class="form-grid">
+                    <div class="input-group full-width">
+                        <label>姓名</label>
+                        <input type="text" class="input-field" id="editName" value="${student.name}">
+                    </div>
+                    <div class="input-group full-width">
+                        <label>学号/ID</label>
+                        <input type="text" class="input-field" id="editId" value="${student.id}" readonly style="background:#ecf2f9;">
+                    </div>
+                    <div class="input-group">
+                        <label>状态</label>
+                        <select class="input-field" id="editStatus">${statusOptions}</select>
+                    </div>
+                    <div class="input-group">
+                        <label>批次</label>
+                        <select class="input-field" id="editBatch">${batchOptions}</select>
+                    </div>
+                    <div class="input-group">
+                        <label>笔试成绩 (60-100)</label>
+                        <input type="number" class="input-field" id="editWritten" value="${student.writtenScore}" min="60" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label>面试成绩 (60-100)</label>
+                        <input type="number" class="input-field" id="editInterview" value="${student.interviewScore !== null ? student.interviewScore : ''}" min="60" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label>面试资格</label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem;">
+                            <input type="checkbox" id="editInterviewQual" ${interviewChecked}> 具备面试资格
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <label>录取结果</label>
+                        <select class="input-field" id="editAdmission">${resultOptions}</select>
+                    </div>
+                </div>
+            `;
+
+            showCustomModal('<i class="fas fa-user-edit"></i> 编辑考生信息', html, function() {
+                // 获取表单值并更新
+                const newName = document.getElementById('editName').value.trim();
+                const newStatus = document.getElementById('editStatus').value;
+                const newBatch = document.getElementById('editBatch').value;
+                const newWritten = parseInt(document.getElementById('editWritten').value);
+                const newInterviewScore = document.getElementById('editInterview').value;
+                const newInterviewQual = document.getElementById('editInterviewQual').checked;
+                const newAdmission = document.getElementById('editAdmission').value;
+
+                if (!newName) { alert('姓名不能为空'); return; }
+                if (isNaN(newWritten) || newWritten < 60 || newWritten > 100) {
+                    alert('笔试成绩必须为60-100之间的数字');
                     return;
                 }
 
-                // ========== 下载相关 ==========
-                // 批量下载 (ZIP)
-                if (action === 'batchDownload') {
-                    // 获取要下载的学生：优先勾选的，否则当前班级全部
-                    const checkedIds = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
-                    let studentsToDownload = [];
-                    if (checkedIds.length > 0) {
-                        // 从当前班级中找出被选中的学生
-                        const all = getCurrentClassStudents();
-                        studentsToDownload = all.filter(s => checkedIds.includes(s.id));
-                    } else {
-                        // 全部当前班级学生
-                        studentsToDownload = getCurrentClassStudents();
-                    }
-                    if (studentsToDownload.length === 0) {
-                        alert('没有可下载的学生');
+                // 更新学生对象
+                student.name = newName;
+                student.status = newStatus;
+                student.batch = newBatch;
+                student.writtenScore = newWritten;
+                student.admissionResult = newAdmission;
+                student.interviewQual = newInterviewQual;
+                
+                if (newInterviewScore !== '') {
+                    const intVal = parseInt(newInterviewScore);
+                    if (isNaN(intVal) || intVal < 60 || intVal > 100) {
+                        alert('面试成绩必须为60-100之间的数字或留空');
                         return;
                     }
+                    student.interviewScore = intVal;
+                    student.interviewQual = true; // 有分数自动具备资格
+                } else {
+                    student.interviewScore = null;
+                }
 
+                showToast('考生信息已更新');
+                renderTable();
+                renderSidebar(); // 更新左侧统计
+            });
+        }
+
+        // ---------- 事件绑定 ----------
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('[data-action]') || e.target.closest('.pagination-btn') || e.target.closest('#selectAll');
+            if (!target) return;
+
+            if (target.id === 'selectAll') {
+                document.querySelectorAll('.student-check').forEach(cb => cb.checked = target.checked);
+                return;
+            }
+
+            if (target.classList.contains('pagination-btn') && !target.hasAttribute('disabled')) {
+                const page = target.dataset.page;
+                const students = getCurrentClassStudents();
+                const filtered = filterStudents(students);
+                const totalPages = Math.ceil(filtered.length / pageSize);
+                if (page === 'prev') { if (currentPage > 1) currentPage--; }
+                else if (page === 'next') { if (currentPage < totalPages) currentPage++; } 
+                else { currentPage = parseInt(page); }
+                renderTable();
+                return;
+            }
+
+            const action = target.dataset.action;
+            if (!action) return;
+
+            // 筛选按钮直接执行
+            if (action === 'applyFilter') {
+                filters.name = document.getElementById('filterName').value;
+                filters.status = document.getElementById('filterStatus').value;
+                filters.writtenMin = document.getElementById('filterWrittenMin').value;
+                filters.writtenMax = document.getElementById('filterWrittenMax').value;
+                filters.interviewQual = document.getElementById('filterInterview').value;
+                currentPage = 1;
+                renderTable();
+                return;
+            }
+            if (action === 'resetFilter') {
+                document.getElementById('filterName').value = '';
+                document.getElementById('filterStatus').value = '';
+                document.getElementById('filterWrittenMin').value = '';
+                document.getElementById('filterWrittenMax').value = '';
+                document.getElementById('filterInterview').value = '';
+                filters = { name: '', status: '', writtenMin: '', writtenMax: '', interviewQual: '', admissionResult: '' };
+                currentPage = 1;
+                renderTable();
+                return;
+            }
+
+            // 批量下载
+            if (action === 'batchDownload') {
+                const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
+                let students = getCurrentClassStudents();
+                if (checked.length > 0) students = students.filter(s => checked.includes(s.id));
+                if (students.length === 0) { 
+                    showConfirmDialog('提示', '没有可下载的学生', () => {}); 
+                    return; 
+                }
+                
+                showConfirmDialog('批量下载', `确定下载 ${students.length} 位考生的材料吗？`, function() {
                     const zip = new JSZip();
                     const folder = zip.folder('考生材料');
-
-                    studentsToDownload.forEach(s => {
-                        const projectName = getProjectNameByClassCode(s.classCode);
-                        const baseName = `${s.name}_${projectName}`.replace(/[\\/:"*?<>|]/g, '_'); // 过滤非法字符
-                        // 报名表模拟文件
-                        folder.file(`${baseName}_报名表.txt`, `模拟报名表\n姓名：${s.name}\n项目：${projectName}\n班级：${s.classCode}\n状态：${s.status}\n笔试成绩：${s.writtenScore}\n面试成绩：${s.interviewScore !== null ? s.interviewScore : '无'}\n录取结果：${s.admissionResult}`);
-                        // 附件模拟文件
-                        folder.file(`${baseName}_附件.txt`, `模拟附件：推荐信及证明材料\n姓名：${s.name}\n项目：${projectName}\n说明：此文件为模拟下载。`);
+                    students.forEach(s => {
+                        const info = getClassInfo(s.classCode);
+                        const baseName = `${s.name}_${info.projectName}`.replace(/[\\/:*?"<>|]/g, '_');
+                        folder.file(`${baseName}_报名表.txt`, `模拟报名表\n姓名：${s.name}\n项目：${info.projectName}\n笔试：${s.writtenScore}`);
                     });
-
                     zip.generateAsync({ type: 'blob' }).then(blob => {
                         const link = document.createElement('a');
                         link.href = URL.createObjectURL(blob);
-                        link.download = `批量下载_${getProjectNameByClassCode(activeClassCode)}.zip`;
+                        link.download = `批量下载_${activeClassCode}.zip`;
                         link.click();
-                        URL.revokeObjectURL(link.href);
+                        showToast('下载已开始');
                     });
-                    return;
+                });
+                return;
+            }
+
+            // 单个下载/附件
+            if (action === 'download' || action === 'attachment') {
+                const id = target.dataset.id;
+                let student = null;
+                for (let proj of projectData) for (let cls of proj.classes) {
+                    const found = cls.students.find(s => s.id === id);
+                    if (found) student = found;
                 }
-
-                // 单个下载 (下载图标) - 生成报名表zip
-                if (action === 'download') {
-                    const id = target.dataset.id;
-                    let student = null;
-                    for (let proj of projectData) {
-                        for (let cls of proj.classes) {
-                            const found = cls.students.find(s => s.id === id);
-                            if (found) { student = found; break; }
-                        }
-                    }
-                    if (!student) return;
-
-                    const projectName = getProjectNameByClassCode(student.classCode);
-                    const baseName = `${student.name}_${projectName}`.replace(/[\\/:"*?<>|]/g, '_');
+                if (!student) return;
+                
+                const typeText = action === 'download' ? '报名表' : '附件';
+                showConfirmDialog('下载确认', `确定下载 ${student.name} 的${typeText}吗？`, function() {
+                    const info = getClassInfo(student.classCode);
+                    const baseName = `${student.name}_${info.projectName}`.replace(/[\\/:*?"<>|]/g, '_');
                     const zip = new JSZip();
-                    // 报名表文件
-                    zip.file(`${baseName}_报名表.txt`, `模拟报名表\n姓名：${student.name}\n项目：${projectName}\n班级：${student.classCode}\n状态：${student.status}\n笔试成绩：${student.writtenScore}\n面试成绩：${student.interviewScore !== null ? student.interviewScore : '无'}\n录取结果：${student.admissionResult}`);
-                    
+                    zip.file(`${baseName}_${typeText}.txt`, `模拟${typeText}\n姓名：${student.name}\n项目：${info.projectName}`);
                     zip.generateAsync({ type: 'blob' }).then(blob => {
                         const link = document.createElement('a');
                         link.href = URL.createObjectURL(blob);
-                        link.download = `${baseName}_报名表.zip`;
+                        link.download = `${baseName}_${typeText}.zip`;
                         link.click();
-                        URL.revokeObjectURL(link.href);
+                        showToast('下载已开始');
                     });
-                    return;
+                });
+                return;
+            }
+
+            // 预览
+            if (action === 'preview') {
+                const id = target.dataset.id;
+                let student = null;
+                for (let proj of projectData) for (let cls of proj.classes) {
+                    const found = cls.students.find(s => s.id === id);
+                    if (found) student = found;
                 }
+                showCustomModal('<i class="fas fa-file-alt"></i> 材料预览', 
+                    `<div style="background:#f5f9ff; padding:1rem; border-radius:16px; text-align:left;">
+                        <p><strong>考生：</strong>${student ? student.name : '未知'}</p>
+                        <p><strong>ID：</strong>${id}</p>
+                        <p><strong>状态：</strong>${student ? student.status : ''}</p>
+                        <hr style="margin:0.5rem 0;">
+                        <p>【模拟预览内容】</p>
+                        <p>此处展示PDF/图片预览占位。</p>
+                    </div>`, 
+                    function() {}
+                );
+                return;
+            }
 
-                // 附件下载 (paperclip) - 生成附件zip
-                if (action === 'attachment') {
-                    const id = target.dataset.id;
-                    let student = null;
-                    for (let proj of projectData) {
-                        for (let cls of proj.classes) {
-                            const found = cls.students.find(s => s.id === id);
-                            if (found) { student = found; break; }
-                        }
-                    }
-                    if (!student) return;
+            // 编辑考生
+            if (action === 'editStudent') {
+                const id = target.dataset.id;
+                openEditModal(id);
+                return;
+            }
 
-                    const projectName = getProjectNameByClassCode(student.classCode);
-                    const baseName = `${student.name}_${projectName}`.replace(/[\\/:"*?<>|]/g, '_');
-                    const zip = new JSZip();
-                    // 附件文件
-                    zip.file(`${baseName}_附件.txt`, `模拟附件：推荐信及证明材料\n姓名：${student.name}\n项目：${projectName}\n说明：此文件为模拟下载。`);
-                    
-                    zip.generateAsync({ type: 'blob' }).then(blob => {
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = `${baseName}_附件.zip`;
-                        link.click();
-                        URL.revokeObjectURL(link.href);
-                    });
-                    return;
-                }
+            // 邮件/短信 - 带模板选择
+            if (action === 'sendEmail' || action === 'sendSms') {
+                const type = action === 'sendEmail' ? '邮件' : '短信';
+                const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
+                const targetDesc = checked.length ? `已选 ${checked.length} 人` : '未选考生 (将发送给当前页)';
+                
+                const templateOptions = templates.map(t => 
+                    `<option value="${t.name}">${t.name}</option>`
+                ).join('');
 
-                // 预览 - 改为模拟预览 (不再使用iframe)
-                if (action === 'preview') {
-                    const id = target.dataset.id;
-                    let student = null;
-                    for (let proj of projectData) {
-                        for (let cls of proj.classes) {
-                            const found = cls.students.find(s => s.id === id);
-                            if (found) { student = found; break; }
-                        }
-                    }
-                    const name = student ? student.name : '未知';
-                    const projectName = student ? getProjectNameByClassCode(student.classCode) : '未知项目';
-                    modalTitle.innerText = '材料预览 (模拟)';
-                    modalBody.innerHTML = `
-                        <div class="preview-doc">
-                            <h4>${name} 的报名材料</h4>
-                            <p><strong>项目：</strong>${projectName}</p>
-                            <p><strong>状态：</strong>${student ? student.status : ''}</p>
-                            <hr>
-                            <p>【模拟预览】此处展示PDF/图片内容。</p>
-                            <p>--------------------------------</p>
-                            <p>报名表摘要：</p>
-                            <p>姓名：${name}</p>
-                            <p>笔试成绩：${student ? student.writtenScore : ''}</p>
-                            <p>面试资格：${student && student.interviewQual ? '是' : '否'}</p>
-                            <p>--------------------------------</p>
-                            <p>（实际系统中此处将显示真实PDF）</p>
+                const html = `
+                    <div style="margin-bottom:1rem;">
+                        <p><strong>接收者:</strong> ${targetDesc}</p>
+                        <div class="input-group" style="margin-top:1rem;">
+                            <label>选择模板</label>
+                            <select class="input-field" id="modalTemplateSelect">${templateOptions}</select>
                         </div>
-                    `;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => modal.classList.remove('active');
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
+                        <p style="margin-top:1rem; color:#4e6f8c;"><i class="fas fa-info-circle"></i> 模拟发送，将记录历史</p>
+                    </div>
+                `;
 
-                // ========== 其他操作 ==========
-                if (action === 'batchAudit') {
-                    const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
-                    if (!checked.length) { alert('请先勾选考生'); return; }
-                    modalTitle.innerText = '批量审核确认';
-                    modalBody.innerHTML = `<p>您已选中 ${checked.length} 位考生，确定要将他们的状态设为「初审通过」吗？</p>`;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
+                showCustomModal(`<i class="fas fa-${action === 'sendEmail' ? 'envelope' : 'sms'}"></i> 发送${type}`, html, function() {
+                    const templateName = document.getElementById('modalTemplateSelect').value;
+                    const time = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+                    histories.push({ time, target: targetDesc, template: templateName, type });
+                    showToast(`${type}发送模拟成功`);
+                });
+                return;
+            }
+
+            // 查看历史
+            if (action === 'viewHistory') {
+                let historyHtml = histories.map(h => 
+                    `<div style="padding:0.5rem; border-bottom:1px solid #edf2f7;">${h.time} ${h.type} → ${h.target} (${h.template})</div>`
+                ).join('');
+                if (!historyHtml) historyHtml = '<div style="color:#8899bb;">暂无发送记录</div>';
+                
+                showCustomModal('<i class="fas fa-history"></i> 发送历史', historyHtml, function() {});
+                return;
+            }
+
+            // 其他操作
+            const actionMessages = {
+                'batchAudit': { title: '批量初审', msg: '确定将选中考生状态设为「初审通过」吗？' },
+                'batchSetBatch': { title: '设置批次', msg: '确定修改选中考生的批次吗？' },
+                'batchAdjustProject': { title: '调整项目', msg: '确定将选中考生调整到其他项目吗？' },
+                'batchToPublic': { title: '转入公共库', msg: '确定将选中考生移入公共资源库吗？' },
+                'audit': { title: '初审通过', msg: '确定将该考生状态设为「初审通过」吗？' },
+                'rework': { title: '退回修改', msg: '确定将该考生状态设为「退回修改」吗？' },
+                'pass': { title: '复审通过', msg: '确定将该考生状态设为「复审通过」吗？' },
+                'toPublic': { title: '转入公共库', msg: '确定将该考生移入公共资源库吗？' }
+            };
+
+            const info = actionMessages[action];
+            if (info) {
+                showConfirmDialog(info.title, info.msg, function() {
+                    // 执行对应的操作
+                    if (action === 'audit' || action === 'rework' || action === 'pass') {
+                        const id = target.dataset.id;
+                        for (let proj of projectData) {
+                            for (let cls of proj.classes) {
+                                const student = cls.students.find(s => s.id === id);
+                                if (student) {
+                                    if (action === 'audit') student.status = '初审通过';
+                                    else if (action === 'rework') student.status = '退回修改';
+                                    else if (action === 'pass') student.status = '复审通过';
+                                    break;
+                                }
+                            }
+                        }
+                        showToast('状态已更新');
+                        renderTable();
+                        renderSidebar();
+                    }
+                    else if (action === 'toPublic') {
+                        const id = target.dataset.id;
+                        for (let proj of projectData) {
+                            for (let cls of proj.classes) {
+                                const index = cls.students.findIndex(s => s.id === id);
+                                if (index !== -1) {
+                                    const removed = cls.students.splice(index, 1)[0];
+                                    publicPool.push(removed);
+                                    break;
+                                }
+                            }
+                        }
+                        showToast('已转入公共库');
+                        renderSidebar();
+                        renderTable();
+                    }
+                    else if (action === 'batchAudit') {
+                        const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
                         for (let proj of projectData) {
                             for (let cls of proj.classes) {
                                 cls.students.forEach(s => {
@@ -716,90 +1104,54 @@
                                 });
                             }
                         }
-                        modal.classList.remove('active');
-                        renderApp();
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'batchSetBatch') {
-                    const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
-                    if (!checked.length) { alert('请先勾选考生'); return; }
-                    modalTitle.innerText = '设置批次';
-                    modalBody.innerHTML = `
-                        <p>已选中 ${checked.length} 位考生</p>
-                        <select id="modalBatchSelect" class="select-tag" style="width:100%;">
-                            <option value="第一批">第一批</option>
-                            <option value="第二批">第二批</option>
-                            <option value="第三批">第三批</option>
-                        </select>
-                    `;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
-                        const newBatch = document.getElementById('modalBatchSelect').value;
+                        showToast('批量初审完成');
+                        renderTable();
+                        renderSidebar();
+                    }
+                    else if (action === 'batchSetBatch') {
+                        const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
                         for (let proj of projectData) {
                             for (let cls of proj.classes) {
                                 cls.students.forEach(s => {
-                                    if (checked.includes(s.id)) s.batch = newBatch;
+                                    if (checked.includes(s.id)) s.batch = '第二批';
                                 });
                             }
                         }
-                        modal.classList.remove('active');
-                        renderApp();
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'batchAdjustProject') {
-                    const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
-                    if (!checked.length) { alert('请先勾选考生'); return; }
-                    const allClasses = [];
-                    projectData.forEach(p => p.classes.forEach(c => allClasses.push({ code: c.classCode, name: c.className })));
-                    modalTitle.innerText = '调整报考项目';
-                    modalBody.innerHTML = `
-                        <p>已选中 ${checked.length} 位考生</p>
-                        <select id="modalClassSelect" class="select-tag" style="width:100%;">
-                            ${allClasses.map(cls => `<option value="${cls.code}">${cls.name} (${cls.code})</option>`).join('')}
-                        </select>
-                    `;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
-                        const newClassCode = document.getElementById('modalClassSelect').value;
+                        showToast('批次已更新');
+                        renderTable();
+                    }
+                    else if (action === 'batchAdjustProject') {
+                        const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
                         let targetClass = null;
                         for (let proj of projectData) {
                             for (let cls of proj.classes) {
-                                if (cls.classCode === newClassCode) targetClass = cls;
+                                if (cls.classCode !== activeClassCode) {
+                                    targetClass = cls;
+                                    break;
+                                }
+                            }
+                            if (targetClass) break;
+                        }
+                        if (targetClass) {
+                            for (let proj of projectData) {
+                                for (let cls of proj.classes) {
+                                    cls.students = cls.students.filter(s => {
+                                        if (checked.includes(s.id)) {
+                                            s.classCode = targetClass.classCode;
+                                            targetClass.students.push(s);
+                                            return false;
+                                        }
+                                        return true;
+                                    });
+                                }
                             }
                         }
-                        if (!targetClass) { alert('班级不存在'); modal.classList.remove('active'); return; }
-                        for (let proj of projectData) {
-                            for (let cls of proj.classes) {
-                                cls.students = cls.students.filter(s => {
-                                    if (checked.includes(s.id)) {
-                                        s.classCode = newClassCode;
-                                        targetClass.students.push(s);
-                                        return false;
-                                    }
-                                    return true;
-                                });
-                            }
-                        }
-                        modal.classList.remove('active');
-                        renderApp();
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'batchToPublic') {
-                    const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
-                    if (!checked.length) { alert('请先勾选考生'); return; }
-                    modalTitle.innerText = '转入公共资源库';
-                    modalBody.innerHTML = `<p>确定将选中的 ${checked.length} 位考生移入公共资源库吗？</p>`;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
+                        showToast('项目已调整');
+                        renderSidebar();
+                        renderTable();
+                    }
+                    else if (action === 'batchToPublic') {
+                        const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
                         for (let proj of projectData) {
                             for (let cls of proj.classes) {
                                 cls.students = cls.students.filter(s => {
@@ -811,190 +1163,50 @@
                                 });
                             }
                         }
-                        modal.classList.remove('active');
-                        renderApp();
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'sendEmail' || action === 'sendSms') {
-                    const type = action === 'sendEmail' ? '邮件' : '短信';
-                    const checked = Array.from(document.querySelectorAll('.student-check:checked')).map(cb => cb.value);
-                    let targetStr = checked.length ? `已选 ${checked.length} 人` : '未选考生 (将发送给当前页)';
-                    modalTitle.innerText = `发送${type}`;
-                    modalBody.innerHTML = `
-                        <p>接收者: ${targetStr}</p>
-                        <p>选择模板:</p>
-                        <select id="modalTemplateSelect" class="select-tag" style="width:100%;">
-                            ${templates.map(t => `<option value="${t.name}">${t.name}</option>`).join('')}
-                        </select>
-                        <p style="margin-top:0.8rem;"><i class="fas fa-info-circle"></i> 模拟发送，将记录历史</p>
-                    `;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
-                        const templateName = document.getElementById('modalTemplateSelect').value;
-                        const time = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
-                        histories.push({ time, target: targetStr, template: templateName, type });
-                        modal.classList.remove('active');
-                        alert(`模拟发送${type}成功，模板：${templateName}`);
-                        renderApp();
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'addTemplate') {
-                    modalTitle.innerText = '新增模板';
-                    modalBody.innerHTML = `
-                        <div style="margin-bottom:1rem;">
-                            <label>模板名称</label>
-                            <input type="text" id="newTemplateName" class="select-tag" style="width:100%; margin-top:0.3rem;" placeholder="例如: 面试通知">
-                        </div>
-                        <div>
-                            <label>模板内容</label>
-                            <textarea id="newTemplateContent" rows="4" class="select-tag" style="width:100%; margin-top:0.3rem; resize:vertical;" placeholder="模板内容..."></textarea>
-                        </div>
-                    `;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
-                        const name = document.getElementById('newTemplateName').value.trim();
-                        const content = document.getElementById('newTemplateContent').value.trim();
-                        if (name && content) {
-                            templates.push({ name, content });
-                            modal.classList.remove('active');
-                            renderApp();
-                        } else {
-                            alert('名称和内容不能为空');
-                        }
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'viewHistory') {
-                    modalTitle.innerText = '发送历史';
-                    modalBody.innerHTML = histories.map(h => `<div>${h.time} ${h.type} → ${h.target} (${h.template})</div>`).join('') || '<div>暂无记录</div>';
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => modal.classList.remove('active');
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'audit' || action === 'rework' || action === 'pass') {
-                    const id = target.dataset.id;
-                    for (let proj of projectData) {
-                        for (let cls of proj.classes) {
-                            const student = cls.students.find(s => s.id === id);
-                            if (student) {
-                                if (action === 'audit') student.status = '初审通过';
-                                else if (action === 'rework') student.status = '退回修改';
-                                else if (action === 'pass') student.status = '复审通过';
-                                break;
-                            }
-                        }
+                        showToast('已转入公共库');
+                        renderSidebar();
+                        renderTable();
                     }
-                    renderApp();
-                    return;
-                }
-
-                if (action === 'toPublic') {
-                    const id = target.dataset.id;
-                    modalTitle.innerText = '确认转入';
-                    modalBody.innerHTML = `<p>确定将该考生移入公共资源库吗？</p>`;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
-                        for (let proj of projectData) {
-                            for (let cls of proj.classes) {
-                                const index = cls.students.findIndex(s => s.id === id);
-                                if (index !== -1) {
-                                    const removed = cls.students.splice(index, 1)[0];
-                                    publicPool.push(removed);
-                                    break;
-                                }
-                            }
-                        }
-                        modal.classList.remove('active');
-                        renderApp();
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
-
-                if (action === 'editStudent') {
-                    const id = target.dataset.id;
-                    let student = null;
-                    for (let proj of projectData) {
-                        for (let cls of proj.classes) {
-                            const found = cls.students.find(s => s.id === id);
-                            if (found) { student = found; break; }
-                        }
-                    }
-                    if (!student) return;
-                    modalTitle.innerText = '编辑考生数据';
-                    modalBody.innerHTML = `
-                        <div style="margin-bottom:0.8rem;">
-                            <label>笔试成绩 (60-100)</label>
-                            <input type="number" id="editWritten" class="select-tag" value="${student.writtenScore}" min="60" max="100" style="width:100%;">
-                        </div>
-                        <div style="margin-bottom:0.8rem;">
-                            <label>面试成绩 (或留空)</label>
-                            <input type="number" id="editInterview" class="select-tag" value="${student.interviewScore !== null ? student.interviewScore : ''}" min="60" max="100" style="width:100%;">
-                        </div>
-                        <div style="margin-bottom:0.8rem;">
-                            <label>录取结果</label>
-                            <select id="editAdmission" class="select-tag" style="width:100%;">
-                                <option value="录取" ${student.admissionResult==='录取'?'selected':''}>录取</option>
-                                <option value="不录取" ${student.admissionResult==='不录取'?'selected':''}>不录取</option>
-                                <option value="待定" ${student.admissionResult==='待定'?'selected':''}>待定</option>
-                            </select>
-                        </div>
-                    `;
-                    modal.classList.add('active');
-                    modalConfirm.onclick = () => {
-                        const newWritten = parseInt(document.getElementById('editWritten').value);
-                        const newInterview = document.getElementById('editInterview').value;
-                        const newAdmission = document.getElementById('editAdmission').value;
-                        if (isNaN(newWritten) || newWritten < 60 || newWritten > 100) {
-                            alert('笔试成绩必须为60-100之间的数字');
-                            return;
-                        }
-                        student.writtenScore = newWritten;
-                        if (newInterview !== '') {
-                            const intVal = parseInt(newInterview);
-                            if (isNaN(intVal) || intVal < 60 || intVal > 100) {
-                                alert('面试成绩必须为60-100之间的数字或留空');
-                                return;
-                            }
-                            student.interviewScore = intVal;
-                            if (!student.interviewQual) student.interviewQual = true;
-                        } else {
-                            student.interviewScore = null;
-                            student.interviewQual = false;
-                        }
-                        student.admissionResult = newAdmission;
-                        modal.classList.remove('active');
-                        renderApp();
-                    };
-                    modalCancel.onclick = () => modal.classList.remove('active');
-                    return;
-                }
+                });
+                return;
             }
+        });
 
-            // 关闭模态框
-            document.getElementById('modalClose').addEventListener('click', ()=>{
-                document.getElementById('globalModal').classList.remove('active');
+        // 关闭弹窗的全局处理
+        window.addEventListener('click', (e)=>{
+            if (e.target === document.getElementById('globalModal')) {
+                document.getElementById('globalModal').classList.remove('show');
+            }
+        });
+
+        // 初始化
+        function init() {
+            renderSidebar();
+            document.getElementById('applyFilterBtn').addEventListener('click', ()=>{
+                filters.name = document.getElementById('filterName').value;
+                filters.status = document.getElementById('filterStatus').value;
+                filters.writtenMin = document.getElementById('filterWrittenMin').value;
+                filters.writtenMax = document.getElementById('filterWrittenMax').value;
+                filters.interviewQual = document.getElementById('filterInterview').value;
+                currentPage = 1;
+                renderTable();
             });
-            window.addEventListener('click', (e)=>{
-                if (e.target === document.getElementById('globalModal')) {
-                    document.getElementById('globalModal').classList.remove('active');
-                }
+            document.getElementById('resetFilterBtn').addEventListener('click', ()=>{
+                document.getElementById('filterName').value = '';
+                document.getElementById('filterStatus').value = '';
+                document.getElementById('filterWrittenMin').value = '';
+                document.getElementById('filterWrittenMax').value = '';
+                document.getElementById('filterInterview').value = '';
+                filters = { name: '', status: '', writtenMin: '', writtenMax: '', interviewQual: '', admissionResult: '' };
+                currentPage = 1;
+                renderTable();
             });
 
-            document.addEventListener('click', handleDocumentClick);
+            renderTable();
+        }
 
-            renderApp();
-        })();
-    </script>
+        init();
+    })();
+</script>
 </body>
 </html>

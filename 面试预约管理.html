@@ -2,153 +2,136 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>材料评审 · 面试预约管理（纯管理）</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>面试预约管理 · 材料评审</title>
+    <!-- 引入与“学生分数变动记录”一致的字体和图标库 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+        /* 完全沿用学生分数变动记录页面的风格，适配面试预约管理场景 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #f3f6fc;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
-            padding: 2rem 1rem;
+            flex-direction: column;
         }
-        .app-container {
-            max-width: 1400px;
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
             width: 100%;
         }
-        .header {
-            margin-bottom: 2rem;
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
         }
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            color: #0b2942;
+        .section-title {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-        }
-        .header h1 span {
-            background: #d4e2f0;
-            color: #1e4a76;
-            font-size: 1rem;
-            padding: 0.25rem 1rem;
-            border-radius: 30px;
-            font-weight: 500;
-            margin-left: 1rem;
-        }
-        .badge-important {
-            background: #f3b229;
-            color: #1e3a5f;
-            font-size: 0.8rem;
-            padding: 0.2rem 0.8rem;
-            border-radius: 20px;
+            gap: 0.6rem;
+            font-size: 1.3rem;
             font-weight: 600;
-            margin-left: 1rem;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
         }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 控制面板三列网格 (沿用之前布局但套用新卡片风格) */
         .control-panel {
             display: grid;
             grid-template-columns: 1.2fr 2fr 1.5fr;
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
-        .card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(0,20,50,0.06);
-            padding: 1.5rem 1.2rem;
-            transition: all 0.1s ease;
-            border: 1px solid rgba(0,53,102,0.08);
+        @media (max-width: 1000px) {
+            .control-panel { grid-template-columns: 1fr; }
         }
-        .card h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1a3b5c;
-            margin-bottom: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            border-bottom: 1px dashed #bdd3e8;
-            padding-bottom: 0.7rem;
-        }
-        .card h3 i {
-            font-style: normal;
-            background: #eef3fc;
-            padding: 0.1rem 0.6rem;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            color: #256bb0;
-        }
+
+        /* 卡片内部样式微调 */
         .datetime-row {
             margin-bottom: 1rem;
         }
         .datetime-row label {
             display: block;
-            font-size: 0.85rem;
-            color: #446688;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
             margin-bottom: 0.3rem;
-            font-weight: 500;
         }
         .datetime-row input {
             width: 100%;
-            padding: 0.6rem 1rem;
-            border: 1px solid #b9d1e9;
-            border-radius: 14px;
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
-            background: #f9fcff;
             transition: 0.15s;
         }
         .datetime-row input:focus {
             outline: none;
-            border-color: #1e6ec7;
-            box-shadow: 0 0 0 3px rgba(30,110,199,0.15);
+            border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15);
+            background: white;
         }
+
         .period-list {
-            margin-top: 1.5rem;
+            margin-top: 1rem;
         }
         .period-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #f0f7ff;
-            border-radius: 16px;
-            padding: 0.8rem 1rem;
+            background: #f8fafd;
+            border-radius: 20px;
+            padding: 0.8rem 1.2rem;
             margin-bottom: 0.7rem;
+            border: 1px solid #dde3ea;
         }
         .period-name {
             font-weight: 600;
-            color: #154872;
-            min-width: 110px;
+            color: #1d4b6e;
         }
         .capacity-control {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
+            gap: 1rem;
         }
         .capacity-control button {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             border-radius: 30px;
-            border: none;
+            border: 1px solid #cbd5e1;
             background: white;
-            color: #1e6ec7;
+            color: #1e4a6f;
             font-size: 1.4rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,50,100,0.1);
-            border: 1px solid #c8dbf0;
             transition: 0.1s;
         }
         .capacity-control button:hover {
             background: #e3efff;
-            border-color: #7fabdf;
+            border-color: #9bb0c5;
         }
         .capacity-control span {
             font-weight: 700;
@@ -157,6 +140,22 @@
             text-align: center;
             color: #0b2942;
         }
+
+        /* 状态卡片（当前状态模拟） */
+        .status-pill {
+            background: #ecf5fe;
+            border-radius: 20px;
+            padding: 0.8rem;
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            color: #11517c;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* 考生列表（复选框区域） */
         .candidate-list {
             max-height: 300px;
             overflow-y: auto;
@@ -165,8 +164,8 @@
         .candidate-item {
             display: flex;
             align-items: center;
-            padding: 0.5rem 0.3rem;
-            border-bottom: 1px solid #e1edfb;
+            padding: 0.6rem 0.3rem;
+            border-bottom: 1px solid #e2eaf3;
         }
         .candidate-item input[type="checkbox"] {
             width: 18px;
@@ -187,77 +186,81 @@
         }
         .status-tag {
             font-size: 0.7rem;
-            padding: 0.2rem 0.6rem;
+            padding: 0.2rem 0.8rem;
             border-radius: 30px;
-            background: #deecfc;
-            color: #1f5b9e;
+            background: #e3f0fa;
+            color: #11517c;
         }
         .status-tag.booked {
-            background: #c9e3c0;
+            background: #d9f0d9;
             color: #1f6533;
         }
         .status-tag.waiting {
             background: #fff0cf;
             color: #aa7130;
         }
+
+        /* 时间段卡片 (适配分数变动卡片风格) */
         .period-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 1.5rem;
             margin: 2rem 0 1.5rem;
         }
         .time-card {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem 1.2rem;
-            box-shadow: 0 6px 16px rgba(0,30,70,0.05);
-            border: 1px solid #dae8f5;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 30px rgba(0,20,40,0.05);
+            padding: 1.8rem 1.8rem;
+            border: 1px solid #e9eef4;
         }
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
         }
         .card-header h2 {
             font-size: 1.4rem;
             font-weight: 600;
-            color: #1d3f62;
+            color: #1e3a5f;
         }
         .capacity-badge {
-            background: #e1f0fa;
-            padding: 0.3rem 1rem;
-            border-radius: 30px;
+            background: #eaf1f9;
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
             font-weight: 600;
-            color: #154872;
+            color: #1d4b6e;
+            font-size: 0.9rem;
         }
         .list-section {
-            margin: 1rem 0;
+            margin: 1.2rem 0;
         }
         .sub-title {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            color: #547c9e;
-            margin-bottom: 0.4rem;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+            margin-bottom: 0.6rem;
         }
         .name-list {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-bottom: 1rem;
-            min-height: 40px;
-            background: #f8fcff;
+            background: #f8fafd;
             border-radius: 20px;
-            padding: 0.8rem;
+            padding: 1rem;
+            min-height: 60px;
+            border: 1px solid #e2eaf3;
         }
         .name-tag {
             background: white;
-            border-radius: 30px;
-            padding: 0.2rem 1rem 0.2rem 1.2rem;
+            border-radius: 40px;
+            padding: 0.3rem 1rem 0.3rem 1.3rem;
             font-size: 0.9rem;
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            border: 1px solid #c1daf5;
+            border: 1px solid #cbd5e1;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -266,10 +269,11 @@
             background: none;
             border: none;
             font-size: 1rem;
-            color: #9aabbc;
+            color: #8ba5c2;
             cursor: pointer;
-            padding: 0 2px;
+            padding: 0 4px;
             font-weight: 600;
+            transition: 0.1s;
         }
         .name-tag .cancel:hover {
             color: #c43e3e;
@@ -280,14 +284,13 @@
         }
         .action-buttons {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1.2rem;
         }
         .btn-sm {
             background: white;
-            border: 1px solid #b7d3f0;
-            padding: 0.5rem 1rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1.2rem;
             border-radius: 40px;
             font-size: 0.85rem;
             font-weight: 500;
@@ -296,11 +299,11 @@
             transition: 0.1s;
             display: inline-flex;
             align-items: center;
-            gap: 0.2rem;
+            gap: 0.4rem;
         }
         .btn-sm:hover {
-            background: #e3efff;
-            border-color: #6d9fd1;
+            background: #f1f7fd;
+            border-color: #9bb0c5;
         }
         .btn-sm.primary {
             background: #1f6dc7;
@@ -310,13 +313,15 @@
         .btn-sm.primary:hover {
             background: #195bb3;
         }
+
+        /* 导出按钮 (与分数变动页“新增记录”风格一致) */
         .export-area {
             display: flex;
             justify-content: flex-end;
-            margin: 1rem 0 0.5rem;
+            margin: 1.5rem 0 0.5rem;
         }
         .btn-export {
-            background: #1e3a5f;
+            background: #1e4a6f;
             color: white;
             border: none;
             padding: 0.7rem 2rem;
@@ -324,90 +329,106 @@
             font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,60,130,0.2);
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.6rem;
+            transition: 0.15s;
         }
         .btn-export:hover {
-            background: #14324e;
+            background: #123a58;
+            transform: translateY(-2px);
         }
-        .footer-note {
-            color: #6682a0;
-            font-size: 0.85rem;
-            border-top: 1px solid #cfdff0;
-            padding-top: 1rem;
-            margin-top: 1rem;
-            text-align: center;
+
+        /* Toast 提示 */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+
+        /* 额外的卡片内标题 */
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            border-bottom: 1px dashed #bdd3e8;
+            padding-bottom: 0.7rem;
+        }
+        .card h3 i {
+            font-style: normal;
+            background: #eef3fc;
+            padding: 0.1rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #256bb0;
         }
     </style>
 </head>
 <body>
-<div class="app-container" style="max-width:100%">
-    <!-- <div class="header">
-        <h1>
-            📋 材料评审与面试管理
-            <span class="badge-important">重点功能 ▲</span>
-        </h1>
-        <p style="color:#38658f; margin-top:0.3rem;">面试预约管理 · 实时看板（候补机制演示，已移除模拟预约）</p>
-    </div> -->
-
-    <!-- 三块控制面板 -->
+<div class="full-screen">
+    <!-- 时间安排、开放控制、考生关联 三卡 (完全保留原功能，样式适配) -->
     <div class="control-panel">
         <!-- 时间安排卡 -->
         <div class="card">
-            <h3>⏰ 时间安排 <i>批次设置</i></h3>
+            <h3><i class="fas fa-calendar-alt" style="margin-right:6px;"></i> 时间安排 <i>批次设置</i></h3>
             <div class="datetime-row">
-                <label>面试日期</label>
+                <label><i class="fas fa-calendar-day"></i> 面试日期</label>
                 <input type="date" id="interviewDate" value="2025-06-15">
             </div>
             <div class="period-list">
-                <div style="margin-bottom:0.8rem; color:#31679e; font-weight:500;">每日时间段 & 人数上限</div>
+                <div style="margin-bottom:0.8rem; color:#1d4b6e; font-weight:500;">每日时间段 & 人数上限</div>
                 <div id="periodCapacities"></div>
             </div>
         </div>
 
         <!-- 开放控制卡 -->
         <div class="card">
-            <h3>🔓 开放控制 <i>预约窗口</i></h3>
+            <h3><i class="fas fa-lock-open"></i> 开放控制 <i>预约窗口</i></h3>
             <div class="datetime-row">
-                <label>预约开放时间</label>
+                <label><i class="fas fa-play-circle"></i> 预约开放时间</label>
                 <input type="datetime-local" id="openTime" value="2025-06-01T08:00">
             </div>
             <div class="datetime-row">
-                <label>预约关闭时间</label>
+                <label><i class="fas fa-stop-circle"></i> 预约关闭时间</label>
                 <input type="datetime-local" id="closeTime" value="2025-06-14T20:00">
             </div>
-            <div style="background:#ecf5fe; border-radius:16px; padding:0.8rem; margin-top:0.8rem;">
-                ⏱️ 当前状态: <span style="font-weight:600; color:#1b5a9c;">开放预约中 (模拟)</span>
+            <div class="status-pill">
+                <i class="fas fa-info-circle"></i> 当前状态: <span style="font-weight:600;">开放预约中 (模拟)</span>
             </div>
         </div>
 
         <!-- 考生关联卡 -->
         <div class="card">
-            <h3>👥 考生关联 <i>可选范围</i></h3>
-            <div style="margin-bottom:0.8rem; color:#2b6190; font-size:0.9rem;">勾选即可参与本批次面试</div>
+            <h3><i class="fas fa-users"></i> 考生关联 <i>可选范围</i></h3>
+            <div style="margin-bottom:1rem; color:#1d4b6e; font-size:0.9rem;"><i class="fas fa-check-circle"></i> 勾选即可参与本批次面试</div>
             <div id="candidateCheckboxList" class="candidate-list">
                 <!-- 动态生成候选人列表 -->
             </div>
         </div>
     </div>
 
-    <!-- 时间段预约卡片 (由js动态渲染，已无模拟预约按钮) -->
+    <!-- 时间段预约卡片 (由js动态渲染，已无模拟预约按钮，保留递补功能) -->
     <div id="periodCardsContainer" class="period-cards"></div>
 
-    <!-- 导出及全局操作 -->
+    <!-- 导出按钮 (与新增记录按钮同风格) -->
     <div class="export-area">
-        <button class="btn-export" id="exportBtn">📎 导出预约名单 (CSV)</button>
+        <button class="btn-export" id="exportBtn"><i class="fas fa-download"></i> 导出预约名单 (CSV)</button>
     </div>
-    <!-- <div class="footer-note">
-        * 点击预约/候补名单旁的“✕”可取消；释放名额后自动从候补按序递补 (仅限选中考生)
-    </div> -->
 </div>
+
+<!-- Toast 提示 -->
+<div id="toast" class="toast-message">操作成功</div>
 
 <script>
     (function() {
-        // --- 初始化数据模型 ---
+        // --- 复用原面试预约管理的核心逻辑，只调整视觉，并加入toast ---
         const CANDIDATE_NAMES = [
             "张明轩", "陈思睿", "王宛宜", "李泽言", "赵子琪",
             "周晓阳", "林思怡", "吴俊豪", "郑秋怡", "唐雅静",
@@ -418,18 +439,25 @@
             id: `c${index}`,
             name: name,
             selected: true,          // 默认全选
-            status: 'free',           // 'free', 'booked-period0', 'waiting-period0' ...
+            status: 'free',
             periodId: null
         }));
 
-        // 时间段定义 (固定3个)
         const periods = [
             { id: 0, name: '09:00 - 10:00', capacity: 2, booked: [], waitlist: [] },
             { id: 1, name: '10:00 - 11:00', capacity: 2, booked: [], waitlist: [] },
             { id: 2, name: '11:00 - 12:00', capacity: 2, booked: [], waitlist: [] }
         ];
 
-        // 重建periods数据与candidates状态同步
+        // Toast 函数
+        const toast = document.getElementById('toast');
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        // 重建 periods 与 candidates 同步
         function rebuildPeriodsFromCandidates() {
             periods.forEach(p => { p.booked = []; p.waitlist = []; });
             candidates.forEach(c => {
@@ -443,23 +471,6 @@
             });
         }
 
-        // 初始化演示数据 (包含预约与候补)
-        function initMockData() {
-            candidates.forEach(c => { c.status = 'free'; c.periodId = null; });
-            // 时段0: 已预约张明轩(c0), 陈思睿(c1) -> 满；候补: 王宛宜(c2)
-            setCandidateStatus('c0', 'booked', 0);
-            setCandidateStatus('c1', 'booked', 0);
-            setCandidateStatus('c2', 'waiting', 0);
-            // 时段1: 已预约李泽言(c3) ; 候补: 赵子琪(c4), 周晓阳(c5)
-            setCandidateStatus('c3', 'booked', 1);
-            setCandidateStatus('c4', 'waiting', 1);
-            setCandidateStatus('c5', 'waiting', 1);
-            // 时段2: 无预约, 候补: 林思怡(c6), 吴俊豪(c7)
-            setCandidateStatus('c6', 'waiting', 2);
-            setCandidateStatus('c7', 'waiting', 2);
-            // 其余都是free
-            rebuildPeriodsFromCandidates();
-        }
         function setCandidateStatus(cId, type, periodId) {
             const c = candidates.find(c => c.id === cId);
             if (c) {
@@ -467,9 +478,21 @@
                 c.periodId = periodId;
             }
         }
+
+        function initMockData() {
+            candidates.forEach(c => { c.status = 'free'; c.periodId = null; });
+            setCandidateStatus('c0', 'booked', 0);
+            setCandidateStatus('c1', 'booked', 0);
+            setCandidateStatus('c2', 'waiting', 0);
+            setCandidateStatus('c3', 'booked', 1);
+            setCandidateStatus('c4', 'waiting', 1);
+            setCandidateStatus('c5', 'waiting', 1);
+            setCandidateStatus('c6', 'waiting', 2);
+            setCandidateStatus('c7', 'waiting', 2);
+            rebuildPeriodsFromCandidates();
+        }
         initMockData();
 
-        // 从periods同步回candidates (确保一致)
         function syncCandidatesFromPeriods() {
             candidates.forEach(c => { if (c.status !== 'free') { c.status = 'free'; c.periodId = null; } });
             periods.forEach(p => {
@@ -484,7 +507,6 @@
             });
         }
 
-        // ---- 核心候补递补逻辑 ----
         function promoteFromWaitlist(periodId) {
             const period = periods[periodId];
             if (!period) return false;
@@ -510,6 +532,7 @@
                 candidate.periodId = periodId;
                 changed = true;
             }
+            if (changed) showToast(`⏫ 候补递补成功`);
             return changed;
         }
 
@@ -534,12 +557,12 @@
             promoteFromWaitlist(periodId);
         }
 
-        // ---- 操作函数 ----
         function increaseCapacity(periodId) {
             periods[periodId].capacity++;
             rebalancePeriod(periodId);
             syncCandidatesFromPeriods();
             render();
+            showToast(`⬆️ 容量增加至 ${periods[periodId].capacity}`);
         }
         function decreaseCapacity(periodId) {
             if (periods[periodId].capacity <= 0) return;
@@ -547,9 +570,9 @@
             rebalancePeriod(periodId);
             syncCandidatesFromPeriods();
             render();
+            showToast(`⬇️ 容量减少至 ${periods[periodId].capacity}`);
         }
 
-        // 取消预约 (从booked移除)
         function cancelBooking(periodId, candidateId) {
             const period = periods[periodId];
             const idx = period.booked.indexOf(candidateId);
@@ -560,10 +583,10 @@
                 promoteFromWaitlist(periodId);
                 syncCandidatesFromPeriods();
                 render();
+                showToast(`❌ 已取消预约`);
             }
         }
 
-        // 取消候补 (从waitlist移除)
         function cancelWait(periodId, candidateId) {
             const period = periods[periodId];
             const idx = period.waitlist.indexOf(candidateId);
@@ -573,10 +596,10 @@
                 if (c) { c.status = 'free'; c.periodId = null; }
                 syncCandidatesFromPeriods();
                 render();
+                showToast(`⏳ 已移出候补`);
             }
         }
 
-        // 切换考生选中状态 (候补中未选中的立即移除)
         function toggleCandidateSelection(candidateId, checked) {
             const candidate = candidates.find(c => c.id === candidateId);
             if (!candidate) return;
@@ -590,6 +613,7 @@
                         period.waitlist.splice(idx, 1);
                         candidate.status = 'free';
                         candidate.periodId = null;
+                        showToast(`⚡ 取消选中，移出候补`);
                     }
                 }
             }
@@ -597,14 +621,10 @@
             render();
         }
 
-        // 导出预约名单CSV
         function exportToCsv() {
             let csv = "考生姓名,面试时间段,状态\n";
             candidates.forEach(c => {
-                let periodName = '';
-                if (c.periodId !== null) {
-                    periodName = periods[c.periodId].name;
-                }
+                let periodName = c.periodId !== null ? periods[c.periodId].name : '';
                 let statusText = '未预约';
                 if (c.status.startsWith('booked')) statusText = '已预约';
                 else if (c.status.startsWith('waiting')) statusText = '候补中';
@@ -615,15 +635,15 @@
             link.href = URL.createObjectURL(blob);
             link.download = '面试预约名单.csv';
             link.click();
+            showToast('📎 名单已导出');
         }
 
-        // ------- 渲染函数 -------
+        // 渲染函数
         function render() {
-            // 容量控件
             const capDiv = document.getElementById('periodCapacities');
             capDiv.innerHTML = periods.map(p => `
                 <div class="period-item">
-                    <span class="period-name">${p.name}</span>
+                    <span class="period-name"><i class="far fa-clock"></i> ${p.name}</span>
                     <div class="capacity-control">
                         <button class="cap-dec" data-period-id="${p.id}">−</button>
                         <span>${p.capacity}</span>
@@ -632,7 +652,6 @@
                 </div>
             `).join('');
 
-            // 考生复选框
             const candidateDiv = document.getElementById('candidateCheckboxList');
             candidateDiv.innerHTML = candidates.map(c => {
                 let statusText = '空闲';
@@ -648,7 +667,6 @@
                 </div>
             `}).join('');
 
-            // 时间段卡片（已移除“模拟预约”按钮，仅保留“尝试递补”）
             const container = document.getElementById('periodCardsContainer');
             container.innerHTML = periods.map(p => {
                 const bookedNames = p.booked.map(id => candidates.find(c => c.id === id)?.name || '?');
@@ -657,28 +675,28 @@
                 <div class="time-card" data-period-id="${p.id}">
                     <div class="card-header">
                         <h2>${p.name}</h2>
-                        <div class="capacity-badge">👥 ${p.booked.length}/${p.capacity}  · 候补 ${p.waitlist.length}</div>
+                        <div class="capacity-badge"><i class="fas fa-user-check"></i> ${p.booked.length}/${p.capacity}  · <i class="fas fa-hourglass-half"></i> ${p.waitlist.length}</div>
                     </div>
                     <div class="list-section">
-                        <div class="sub-title">✅ 已预约</div>
+                        <div class="sub-title"><i class="fas fa-check-circle" style="color:#2a7f4a;"></i> 已预约</div>
                         <div class="name-list" id="booked-list-${p.id}">
                             ${bookedNames.map((name, idx) => `
-                                <span class="name-tag">${name} <button class="cancel" data-action="cancelBook" data-period="${p.id}" data-cand="${p.booked[idx]}">✕</button></span>
+                                <span class="name-tag">${name} <button class="cancel" data-action="cancelBook" data-period="${p.id}" data-cand="${p.booked[idx]}"><i class="fas fa-times"></i></button></span>
                             `).join('')}
                             ${bookedNames.length === 0 ? '<span style="color:#9ab2cf;">暂无</span>' : ''}
                         </div>
                     </div>
                     <div class="list-section">
-                        <div class="sub-title">⏳ 候补队列</div>
+                        <div class="sub-title"><i class="fas fa-hourglass-start" style="color:#b9761e;"></i> 候补队列</div>
                         <div class="name-list">
                             ${waitlistNames.map((name, idx) => `
-                                <span class="name-tag waitlist-name">${name} <button class="cancel" data-action="cancelWait" data-period="${p.id}" data-cand="${p.waitlist[idx]}">✕</button></span>
+                                <span class="name-tag waitlist-name">${name} <button class="cancel" data-action="cancelWait" data-period="${p.id}" data-cand="${p.waitlist[idx]}"><i class="fas fa-times"></i></button></span>
                             `).join('')}
                             ${waitlistNames.length === 0 ? '<span style="color:#9ab2cf;">空</span>' : ''}
                         </div>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn-sm" data-action="forcePromote" data-period="${p.id}">⏫ 尝试递补</button>
+                        <button class="btn-sm" data-action="forcePromote" data-period="${p.id}"><i class="fas fa-arrow-up"></i> 尝试递补</button>
                     </div>
                 </div>
             `}).join('');
@@ -688,7 +706,6 @@
 
         // 事件绑定
         function bindEvents() {
-            // 容量增减
             document.querySelectorAll('.cap-inc').forEach(btn => {
                 btn.removeEventListener('click', incHandler);
                 btn.addEventListener('click', incHandler);
@@ -697,20 +714,14 @@
                 btn.removeEventListener('click', decHandler);
                 btn.addEventListener('click', decHandler);
             });
-
-            // 候选人复选框
             document.querySelectorAll('#candidateCheckboxList input[type=checkbox]').forEach(chk => {
                 chk.removeEventListener('change', checkHandler);
                 chk.addEventListener('change', checkHandler);
             });
-
-            // 尝试递补按钮
             document.querySelectorAll('[data-action="forcePromote"]').forEach(btn => {
                 btn.removeEventListener('click', promoteHandler);
                 btn.addEventListener('click', promoteHandler);
             });
-
-            // 取消预约/候补
             document.querySelectorAll('[data-action="cancelBook"]').forEach(btn => {
                 btn.removeEventListener('click', cancelBookHandler);
                 btn.addEventListener('click', cancelBookHandler);
@@ -719,19 +730,16 @@
                 btn.removeEventListener('click', cancelWaitHandler);
                 btn.addEventListener('click', cancelWaitHandler);
             });
-
-            // 导出
             document.getElementById('exportBtn').removeEventListener('click', exportToCsv);
             document.getElementById('exportBtn').addEventListener('click', exportToCsv);
         }
 
-        // handlers
         function incHandler(e) {
-            const periodId = e.target.dataset.periodId;
+            const periodId = e.target.closest('button')?.dataset.periodId;
             if (periodId !== undefined) increaseCapacity(parseInt(periodId));
         }
         function decHandler(e) {
-            const periodId = e.target.dataset.periodId;
+            const periodId = e.target.closest('button')?.dataset.periodId;
             if (periodId !== undefined) decreaseCapacity(parseInt(periodId));
         }
         function checkHandler(e) {
@@ -739,23 +747,22 @@
             toggleCandidateSelection(candidateId, e.target.checked);
         }
         function promoteHandler(e) {
-            const periodId = parseInt(e.target.dataset.period);
+            const periodId = parseInt(e.target.closest('button')?.dataset.period);
             promoteFromWaitlist(periodId);
             syncCandidatesFromPeriods();
             render();
         }
         function cancelBookHandler(e) {
-            const periodId = e.target.dataset.period;
-            const candId = e.target.dataset.cand;
+            const periodId = e.target.closest('button')?.dataset.period;
+            const candId = e.target.closest('button')?.dataset.cand;
             cancelBooking(parseInt(periodId), candId);
         }
         function cancelWaitHandler(e) {
-            const periodId = e.target.dataset.period;
-            const candId = e.target.dataset.cand;
+            const periodId = e.target.closest('button')?.dataset.period;
+            const candId = e.target.closest('button')?.dataset.cand;
             cancelWait(parseInt(periodId), candId);
         }
 
-        // 启动渲染
         render();
     })();
 </script>

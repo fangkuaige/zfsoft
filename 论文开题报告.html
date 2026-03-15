@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生论文开题管理 · 完整版</title>
+    <!-- Inter 字体 + Font Awesome 6 (风格同参考文件) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 完全沿用参考风格的样式体系，并适配开题管理字段 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 筛选栏 + 快捷操作 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        .excel-group {
+            display: flex;
+            gap: 0.6rem;
+            margin-left: auto;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 900px) {
+            .excel-group { margin-left: 0; width: 100%; justify-content: flex-start; }
+        }
+
+        /* 表格区域 (适配开题字段) */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;  /* 保证评审意见等字段完整 */
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .student-name { font-weight: 600; color: #0b2b40; }
+        .badge-review {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .status-badge {
+            background: #e2f0e2;
+            color: #1d6e2d;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: capitalize;
+        }
+        .status-badge.pending { background: #fdf0d8; color: #9e6d0b; }
+        .status-badge.rejected { background: #ffe8e8; color: #b13e3e; }
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.8rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+
+        /* 分页 */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 弹窗 (完全复用参考风格，适配开题字段) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 800px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .readonly-field {
+            background: #ecf2f9; color: #2a4e6e; font-weight: 500;
+        }
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 卡片：筛选栏 + 新增 / Excel 导入导出 (满足需求) -->
+    <div class="card">
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-user"></i> 姓名</label>
+                <input type="text" class="filter-input" id="filterName" placeholder="学生姓名">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-id-card"></i> 学号</label>
+                <input type="text" class="filter-input" id="filterStudentId" placeholder="学号">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-chalkboard-teacher"></i> 导师</label>
+                <input type="text" class="filter-input" id="filterSupervisor" placeholder="导师姓名">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-tag"></i> 班级</label>
+                <input type="text" class="filter-input" id="filterClass" placeholder="如 硕2101">
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="openAddModalBtn"><i class="fas fa-plus-circle"></i> 新增开题</button>
+            </div>
+        </div>
+        <!-- Excel 导入/导出专用行 (紧贴功能需求) -->
+        <div style="display: flex; gap: 1rem; margin-top: 1.2rem; flex-wrap: wrap;">
+            <button class="btn btn-outline" id="importExcelBtn"><i class="fas fa-file-import"></i> 导入Excel</button>
+            <button class="btn btn-outline" id="exportExcelBtn"><i class="fas fa-file-export"></i> 导出Excel</button>
+            <span style="font-size:0.75rem; color:#6f8fae; align-self:center;"><i class="fas fa-info-circle"></i> 支持姓名、学号、班级、导师、评审意见等字段</span>
+        </div>
+    </div>
+
+    <!-- 论文开题列表卡片 -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fas fa-file-signature"></i> 研究生论文开题信息
+        </div>
+        <div class="table-wrapper">
+            <table id="thesisTable">
+                <thead>
+                    <tr>
+                        <th>姓名</th><th>学号</th><th>班级</th><th>导师</th><th>论文题目</th><th>开题时间</th><th>评审意见</th><th>状态</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <!-- 分页 -->
+        <div class="pagination-bar" id="paginationContainer"></div>
+    </div>
+</div>
+
+<!-- 新增/编辑 弹窗 (包含所有开题字段) -->
+<div class="modal-overlay" id="thesisModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-pen"></i> 论文开题</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="thesisForm" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label><i class="fas fa-user"></i> 姓名 *</label>
+                    <input type="text" class="input-field" id="modalName" required placeholder="张明">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-id-card"></i> 学号 *</label>
+                    <input type="text" class="input-field" id="modalStudentId" required placeholder="20231001">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-users"></i> 班级</label>
+                    <input type="text" class="input-field" id="modalClass" placeholder="硕2101">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-chalkboard"></i> 导师 *</label>
+                    <input type="text" class="input-field" id="modalSupervisor" required placeholder="王建">
+                </div>
+                <div class="input-group full-width">
+                    <label><i class="fas fa-book"></i> 论文题目</label>
+                    <input type="text" class="input-field" id="modalTitle" placeholder="基于深度学习的...">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-calendar"></i> 开题时间</label>
+                    <input type="date" class="input-field" id="modalDate">
+                </div>
+                <div class="input-group full-width">
+                    <label><i class="fas fa-comment"></i> 评审意见</label>
+                    <textarea class="input-field" rows="2" id="modalReview" placeholder="同意开题 / 修改后开题 / 建议补充..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-flag"></i> 评审状态</label>
+                    <select class="filter-select" id="modalStatus">
+                        <option value="pending">待审核</option>
+                        <option value="approved">通过</option>
+                        <option value="rejected">退回修改</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>登记人(只读)</label>
+                    <input type="text" class="input-field readonly-field" id="modalAdjustedBy" readonly value="教务员">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 导入Excel的虚拟input (隐藏) -->
+<input type="file" id="excelUpload" accept=".xlsx, .xls, .csv" style="display: none;">
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // ---------- 模拟初始数据 (论文开题记录，包含所有需求字段) ----------
+        let allTheses = [
+            { id: 't1', name: '欧阳雪', studentId: 'G202401', className: '硕2101', supervisor: '刘建国', title: '基于对比学习的少样本学习研究', openDate: '2026-03-10', review: '同意开题，文献综述扎实。', status: 'approved', recorder: '教务李' },
+            { id: 't2', name: '王博文', studentId: 'G202402', className: '硕2102', supervisor: '陈敏', title: '动态图神经网络在交通预测中的应用', openDate: '2026-03-09', review: '建议补充实验对比，修改后开题', status: 'rejected', recorder: '教务李' },
+            { id: 't3', name: '李思睿', studentId: 'G202403', className: '博2101', supervisor: '张华', title: '高维统计推断的渐近理论', openDate: '2026-03-08', review: '同意开题，理论深度足够。', status: 'approved', recorder: '张华' },
+            { id: 't4', name: '赵一凡', studentId: 'G202404', className: '硕2101', supervisor: '王建', title: '面向医疗图像的联邦学习优化', openDate: '2026-03-07', review: '待导师最终确认', status: 'pending', recorder: '教务员' },
+            { id: 't5', name: '陈果', studentId: 'G202405', className: '硕2103', supervisor: '李卫东', title: '强化学习在机器人操控中的 sim2real', openDate: '2026-03-06', review: '同意开题，选题有价值。', status: 'approved', recorder: '李卫东' },
+            { id: 't6', name: '周明', studentId: 'G202406', className: '硕2102', supervisor: '陈敏', title: '多模态情感分析中的模态互补机制', openDate: '2026-03-05', review: '修改意见：增加数据集描述', status: 'rejected', recorder: '教务李' },
+            { id: 't7', name: '郑青', studentId: 'G202407', className: '博2102', supervisor: '刘建国', title: '复杂网络上的传播动力学', openDate: '2026-03-04', review: '同意开题', status: 'approved', recorder: '刘建国' },
+            { id: 't8', name: '林溪', studentId: 'G202408', className: '硕2101', supervisor: '王建', title: '知识图谱推理的可解释性研究', openDate: '2026-03-03', review: '尚未提交评审意见', status: 'pending', recorder: '教务员' },
+            { id: 't9', name: '徐远', studentId: 'G202409', className: '硕2103', supervisor: '李卫东', title: '小样本场景下的持续学习算法', openDate: '2026-03-02', review: '同意开题', status: 'approved', recorder: '李卫东' },
+            { id: 't10', name: '沈梦', studentId: 'G202410', className: '硕2102', supervisor: '陈敏', title: '基于对比学习的推荐系统冷启动', openDate: '2026-03-01', review: '修改后开题 (方法需更具体)', status: 'rejected', recorder: '教务李' }
+        ];
+
+        // 分页配置
+        const pageSize = 5;
+        let currentPage = 1;
+        let filters = { name: '', studentId: '', supervisor: '', className: '' };
+
+        // DOM 元素
+        const tbody = document.getElementById('tableBody');
+        const toast = document.getElementById('toast');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const filterName = document.getElementById('filterName');
+        const filterStudentId = document.getElementById('filterStudentId');
+        const filterSupervisor = document.getElementById('filterSupervisor');
+        const filterClass = document.getElementById('filterClass');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const openAddModalBtn = document.getElementById('openAddModalBtn');
+
+        // 导入导出
+        const importBtn = document.getElementById('importExcelBtn');
+        const exportBtn = document.getElementById('exportExcelBtn');
+        const excelUpload = document.getElementById('excelUpload');
+
+        // 弹窗元素
+        const modal = document.getElementById('thesisModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalForm = document.getElementById('thesisForm');
+        const modalName = document.getElementById('modalName');
+        const modalStudentId = document.getElementById('modalStudentId');
+        const modalClass = document.getElementById('modalClass');
+        const modalSupervisor = document.getElementById('modalSupervisor');
+        const modalThesisTitle = document.getElementById('modalTitle');
+        const modalDate = document.getElementById('modalDate');
+        const modalReview = document.getElementById('modalReview');
+        const modalStatus = document.getElementById('modalStatus');
+        const modalAdjustedBy = document.getElementById('modalAdjustedBy');
+
+        // 当前编辑ID
+        let editingId = null;
+
+        // 辅助函数
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // 筛选逻辑 (支持姓名、学号、导师、班级模糊)
+        function filterList() {
+            return allTheses.filter(item => {
+                if (filters.name && !item.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
+                if (filters.studentId && !item.studentId.includes(filters.studentId)) return false;
+                if (filters.supervisor && !item.supervisor.toLowerCase().includes(filters.supervisor.toLowerCase())) return false;
+                if (filters.className && !(item.className || '').toLowerCase().includes(filters.className.toLowerCase())) return false;
+                return true;
+            });
+        }
+        function getFiltered() { return filterList(); }
+        function getPaginated() {
+            const filtered = getFiltered();
+            const start = (currentPage - 1) * pageSize;
+            return filtered.slice(start, start + pageSize);
+        }
+        function totalPages() { return Math.ceil(getFiltered().length / pageSize); }
+        function goToPage(page) {
+            const total = totalPages();
+            if (page < 1) page = 1;
+            if (total > 0 && page > total) page = total;
+            if (page === currentPage) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        }
+        window.pageGo = goToPage;
+
+        // 渲染分页
+        function renderPagination() {
+            const total = totalPages();
+            if (total <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationContainer.innerHTML = html;
+        }
+
+        // 删除记录
+        function deleteThesis(id) {
+            allTheses = allTheses.filter(t => t.id !== id);
+            const filtered = getFiltered();
+            if (filtered.length === 0 && currentPage > 1) currentPage--;
+            showToast('开题记录已删除');
+            renderTable();
+            renderPagination();
+        }
+
+        // 打开新增弹窗
+        function openAddModal() {
+            editingId = null;
+            modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> 新增论文开题';
+            modalName.value = '';
+            modalStudentId.value = '';
+            modalClass.value = '';
+            modalSupervisor.value = '';
+            modalThesisTitle.value = '';
+            // 默认开题时间为今天
+            const today = new Date().toISOString().slice(0,10);
+            modalDate.value = today;
+            modalReview.value = '';
+            modalStatus.value = 'pending';
+            modalAdjustedBy.value = '当前教务员';
+            modal.classList.add('show');
+        }
+
+        // 打开编辑弹窗
+        function openEditModal(id) {
+            const item = allTheses.find(t => t.id === id);
+            if (!item) return;
+            editingId = id;
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑开题';
+            modalName.value = item.name || '';
+            modalStudentId.value = item.studentId || '';
+            modalClass.value = item.className || '';
+            modalSupervisor.value = item.supervisor || '';
+            modalThesisTitle.value = item.title || '';
+            modalDate.value = item.openDate || '';
+            modalReview.value = item.review || '';
+            modalStatus.value = item.status || 'pending';
+            modalAdjustedBy.value = item.recorder || '教务员';
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            editingId = null;
+        }
+
+        // 保存记录
+        function saveThesis() {
+            const name = modalName.value.trim();
+            const studentId = modalStudentId.value.trim();
+            const supervisor = modalSupervisor.value.trim();
+            if (!name || !studentId || !supervisor) {
+                showToast('姓名、学号、导师为必填项', 1500);
+                return;
+            }
+
+            const data = {
+                name, studentId,
+                className: modalClass.value.trim() || '',
+                supervisor,
+                title: modalThesisTitle.value.trim() || null,
+                openDate: modalDate.value || new Date().toISOString().slice(0,10),
+                review: modalReview.value.trim() || '',
+                status: modalStatus.value,
+                recorder: modalAdjustedBy.value.trim() || '教务员',
+            };
+
+            if (editingId) {
+                const index = allTheses.findIndex(t => t.id === editingId);
+                if (index !== -1) { allTheses[index] = { ...allTheses[index], ...data }; }
+                showToast('开题信息已更新');
+            } else {
+                const newItem = { id: generateId(), ...data };
+                allTheses.push(newItem);
+                showToast('新开题记录已添加');
+                // 跳转到最后一页以便看见新增
+                const filtered = getFiltered();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+            closeModal();
+            renderTable();
+            renderPagination();
+        }
+
+        // 渲染表格 (包含所有字段)
+        function renderTable() {
+            const paginated = getPaginated();
+            let html = '';
+            if (paginated.length === 0) {
+                html = `<tr><td colspan="9" style="text-align:center; padding:3rem; color:#8899bb;"><i class="fas fa-file" style="font-size:2rem; opacity:0.5;"></i><br>暂无论文开题记录</td></tr>`;
+            } else {
+                paginated.forEach(item => {
+                    let statusClass = 'status-badge';
+                    if (item.status === 'pending') statusClass += ' pending';
+                    else if (item.status === 'rejected') statusClass += ' rejected';
+                    const statusText = item.status === 'approved' ? '通过' : (item.status === 'rejected' ? '退回' : '待审核');
+                    html += `<tr>`;
+                    html += `<td class="student-name">${escapeHtml(item.name)}</td>`;
+                    html += `<td>${escapeHtml(item.studentId)}</td>`;
+                    html += `<td>${escapeHtml(item.className || '—')}</td>`;
+                    html += `<td>${escapeHtml(item.supervisor)}</td>`;
+                    html += `<td>${escapeHtml(item.title || '—')}</td>`;
+                    html += `<td>${item.openDate || '—'}</td>`;
+                    html += `<td><span class="badge-review" title="${escapeHtml(item.review)}">${escapeHtml(item.review) || '—'}</span></td>`;
+                    html += `<td><span class="${statusClass}">${statusText}</span></td>`;
+                    html += `<td><div class="action-btns">`;
+                    html += `<button class="icon-btn" onclick="window.editHandler('${item.id}')"><i class="fas fa-pen"></i> 编辑</button>`;
+                    html += `<button class="icon-btn delete-btn" onclick="window.deleteHandler('${item.id}')"><i class="fas fa-trash"></i> 删除</button>`;
+                    html += `</div></td></tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        // 筛选事件
+        function applyFilters() {
+            filters.name = filterName.value;
+            filters.studentId = filterStudentId.value;
+            filters.supervisor = filterSupervisor.value;
+            filters.className = filterClass.value;
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        function resetFilters() {
+            filterName.value = '';
+            filterStudentId.value = '';
+            filterSupervisor.value = '';
+            filterClass.value = '';
+            filters = { name: '', studentId: '', supervisor: '', className: '' };
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        // 模拟导入 (弹窗提示 + 虚拟增加一条)
+        function simulateImport() {
+            showToast('演示：点击导入可上传Excel（此处模拟添加一条记录）', 2500);
+            // 模拟增加一条从Excel导入的数据
+            const dummy = {
+                id: generateId(),
+                name: '张子轩(导入)',
+                studentId: 'I202411',
+                className: '硕2104',
+                supervisor: '王建',
+                title: '导入示例: 迁移学习研究',
+                openDate: new Date().toISOString().slice(0,10),
+                review: '从Excel批量导入，评审意见待补充',
+                status: 'pending',
+                recorder: '导入器'
+            };
+            allTheses.push(dummy);
+            const filtered = getFiltered();
+            currentPage = Math.ceil(filtered.length / pageSize);
+            renderTable(); renderPagination();
+            showToast('已模拟导入一条记录 (实际可对接XLSX库)', 2500);
+        }
+
+        // 模拟导出 (生成类似csv)
+        function simulateExport() {
+            const fields = ['姓名','学号','班级','导师','论文题目','开题时间','评审意见','状态','登记人'];
+            const rows = allTheses.map(t => [
+                t.name, t.studentId, t.className, t.supervisor, t.title, t.openDate, t.review, t.status, t.recorder
+            ]);
+            let csv = fields.join(',') + '\n' + rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '论文开题记录.csv';
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('已导出CSV (Excel可打开)', 1500);
+        }
+
+        // 挂载全局方法
+        window.deleteHandler = deleteThesis;
+        window.editHandler = openEditModal;
+
+        // 事件绑定
+        filterName.addEventListener('input', applyFilters);
+        filterStudentId.addEventListener('input', applyFilters);
+        filterSupervisor.addEventListener('input', applyFilters);
+        filterClass.addEventListener('input', applyFilters);
+        resetFilterBtn.addEventListener('click', resetFilters);
+        openAddModalBtn.addEventListener('click', openAddModal);
+        importBtn.addEventListener('click', ()=> excelUpload.click());
+        excelUpload.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                simulateImport();
+                excelUpload.value = ''; // 清空以便再次选择
+            }
+        });
+        exportBtn.addEventListener('click', simulateExport);
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        modalForm.addEventListener('submit', (e) => { e.preventDefault(); saveThesis(); });
+
+        // 初始化
+        renderTable();
+        renderPagination();
+    })();
+</script>
+</body>
+</html>

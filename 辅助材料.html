@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生辅助材料复用 · 智能材料中心</title>
+    <!-- Inter 字体 + 图标库 (沿用参考风格) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 完全继承原风格，并适配新的材料管理场景 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 筛选 + 快速入口 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 170px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 场景卡片 —— 快速复用入口 */
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .scene-card {
+            background: #f5faff;
+            border-radius: 24px;
+            padding: 1.2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            border: 1px solid #dae8f3;
+            transition: all 0.1s;
+            cursor: pointer;
+        }
+        .scene-card:hover {
+            background: #e1effc;
+            border-color: #a0c1de;
+        }
+        .scene-icon {
+            background: white;
+            width: 48px; height: 48px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #1e4a6f;
+            border: 1px solid #c4d7ed;
+        }
+        .scene-title { font-weight: 600; color: #0b2d4b; }
+        .scene-desc { font-size: 0.75rem; color: #527a9e; }
+
+        /* 表格 —— 材料库 */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;  /* 足够显示材料字段 */
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .material-title { font-weight: 600; color: #0b2b40; max-width: 220px; white-space: normal; word-break: break-word; }
+        .badge-type {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-tag {
+            background: #e0f0fa;
+            color: #005e8c;
+            padding: 0.2rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            margin: 0.15rem 0.15rem;
+        }
+        .file-badge {
+            background: #ddeeff;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.8rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+
+        /* 分页 */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 弹窗 (复用结构, 添加材料字段) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 800px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .readonly-field {
+            background: #ecf2f9; color: #2a4e6e; font-weight: 500;
+        }
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+
+        /* 辅助标签区域 */
+        .tag-group { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+        .tag {
+            background: #e8f0fd; border-radius: 40px; padding: 0.2rem 1rem;
+            font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem;
+        }
+        .tag i { color: #6f8faf; cursor: pointer; }
+
+        /* 生成材料预览小卡片 */
+        .preview-banner {
+            background: #e2edfa; border-radius: 20px; padding: 1rem 1.5rem;
+            margin: 1.5rem 0 0.5rem; display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem;
+        }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 材料库头部 + 场景快速复用卡片 (类似材料复用入口) -->
+    <div class="card">
+        <!-- <div class="section-title"><i class="fas fa-cubes"></i> 智能材料复用 · 日常管理</div> -->
+        <div class="scene-grid">
+            <div class="scene-card" onclick="window.applyScene('奖学金')">
+                <div class="scene-icon"><i class="fas fa-trophy"></i></div>
+                <span class="scene-title">奖学金申请</span>
+                <span class="scene-desc">自动组装成绩/论文/奖项</span>
+            </div>
+            <div class="scene-card" onclick="window.applyScene('开题')">
+                <div class="scene-icon"><i class="fas fa-feather"></i></div>
+                <span class="scene-title">开题报告</span>
+                <span class="scene-desc">提取成果+模板</span>
+            </div>
+            <div class="scene-card" onclick="window.applyScene('中期')">
+                <div class="scene-icon"><i class="fas fa-chart-line"></i></div>
+                <span class="scene-title">中期考核</span>
+                <span class="scene-desc">论文/项目列表</span>
+            </div>
+            <div class="scene-card" onclick="window.applyScene('评优')">
+                <div class="scene-icon"><i class="fas fa-star"></i></div>
+                <span class="scene-title">优秀毕业生</span>
+                <span class="scene-desc">荣誉一键复用</span>
+            </div>
+            <div class="scene-card" onclick="openGenerateModal()">
+                <div class="scene-icon"><i class="fas fa-file-pdf"></i></div>
+                <span class="scene-title">自定义生成</span>
+                <span class="scene-desc">勾选材料→PDF</span>
+            </div>
+        </div>
+
+        <!-- 筛选栏 + 新增材料按钮 -->
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-tag"></i> 材料类型</label>
+                <select class="filter-select" id="typeFilter">
+                    <option value="">全部类型</option>
+                    <option value="论文">论文</option>
+                    <option value="专利">专利</option>
+                    <option value="荣誉">荣誉/获奖</option>
+                    <option value="项目">项目</option>
+                    <option value="成绩单">成绩单</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-search"></i> 关键词/标题</label>
+                <input type="text" class="filter-input" id="keywordFilter" placeholder="标题/作者/期刊">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-calendar"></i> 起始日期</label>
+                <input type="date" class="filter-input" id="dateFrom">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-calendar"></i> 结束日期</label>
+                <input type="date" class="filter-input" id="dateTo">
+            </div>
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="openAddMaterialBtn"><i class="fas fa-upload"></i> 上传材料</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 材料库列表卡片 -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fas fa-database"></i> 我的材料银行
+            <span style="font-size:0.8rem; margin-left: auto; background:#edf4fb; padding:0.2rem 1rem; border-radius:40px;">支持复用·OCR检索</span>
+        </div>
+        <div class="table-wrapper">
+            <table id="materialTable">
+                <thead>
+                    <tr><th>材料标题</th><th>类型</th><th>归属/作者</th><th>关键信息</th><th>标签</th><th>上传时间</th><th>操作</th></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <!-- 分页 -->
+        <div class="pagination-bar" id="paginationContainer"></div>
+        <!-- 快速生成预览区 (模拟生成材料) -->
+        <div class="preview-banner" id="previewBanner" style="display: none;">
+            <span><i class="fas fa-file-alt"></i> <span id="previewText">已勾选 3 项成果</span></span>
+            <button class="btn btn-primary btn-sm" onclick="simulateGenerate()"><i class="fas fa-file-pdf"></i> 一键生成PDF</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新增/编辑材料 弹窗 (涵盖辅助材料字段) -->
+<div class="modal-overlay" id="materialModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-pen"></i> 材料详情</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="materialForm" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="input-group full-width">
+                    <label><i class="fas fa-heading"></i> 材料标题 *</label>
+                    <input type="text" class="input-field" id="modalTitleInput" required placeholder="例如：基于深度学习的医学影像分析">
+                </div>
+                <div class="input-group">
+                    <label>材料类型 *</label>
+                    <select class="filter-select" id="modalType">
+                        <option value="论文">论文</option>
+                        <option value="专利">专利</option>
+                        <option value="荣誉">荣誉/获奖</option>
+                        <option value="项目">项目</option>
+                        <option value="成绩单">成绩单</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>归属/作者</label>
+                    <input type="text" class="input-field" id="modalAuthor" placeholder="第一作者：张三">
+                </div>
+                <div class="input-group full-width">
+                    <label>关键信息 (期刊/等级/编号)</label>
+                    <input type="text" class="input-field" id="modalKeyInfo" placeholder="SCI 二区 / 专利号ZL2023...">
+                </div>
+                <div class="input-group">
+                    <label>上传日期</label>
+                    <input type="date" class="input-field" id="modalDate">
+                </div>
+                <div class="input-group">
+                    <label>标签 (逗号分隔)</label>
+                    <input type="text" class="input-field" id="modalTags" placeholder="奖学金, 核分, 检索">
+                </div>
+                <div class="input-group full-width">
+                    <label>OCR原文 / 备注</label>
+                    <textarea class="input-field" rows="2" id="modalOcr" placeholder="可粘贴扫描件识别文字，方便检索"></textarea>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> 保存到材料库</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 生成材料勾选弹窗 (模拟复用) -->
+<div class="modal-overlay" id="generateModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fas fa-object-group"></i> 勾选复用材料</h3>
+            <button class="modal-close" onclick="document.getElementById('generateModal').classList.remove('show')">&times;</button>
+        </div>
+        <div style="margin: 1rem 0;" id="checklistContainer">
+            <!-- 动态生成复选框列表 -->
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="document.getElementById('generateModal').classList.remove('show')">取消</button>
+            <button class="btn btn-primary" onclick="confirmGenerate()"><i class="fas fa-file-export"></i> 生成材料包</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // 模拟初始材料库 (符合辅助材料)
+        let allMaterials = [
+            { id: 'm1', title: '基于注意力的情感分析', type: '论文', author: '王思睿', keyInfo: 'ACL 2026, CCF-A', tags: ['NLP','奖学金'], uploadDate: '2026-02-10', ocrText: 'transformer attention' },
+            { id: 'm2', title: '一种轻量化目标检测方法', type: '专利', author: '张明/李芳', keyInfo: '专利申请号2025101234', tags: ['专利','实审'], uploadDate: '2026-01-15', ocrText: '发明专利' },
+            { id: 'm3', title: '国家奖学金证书', type: '荣誉', author: '欧阳雪', keyInfo: '2025年本硕国奖', tags: ['奖学金','国家级'], uploadDate: '2025-12-01', ocrText: '教育部' },
+            { id: 'm4', title: '博士生创新基金', type: '荣誉', author: '赵一凡', keyInfo: '校长奖学金', tags: ['奖学金','校级'], uploadDate: '2026-03-01', ocrText: '创新奖' },
+            { id: 'm5', title: '成绩单-研一上', type: '成绩单', author: '研究生院', keyInfo: 'GPA 3.8/4.0', tags: ['成绩','必修'], uploadDate: '2026-02-20', ocrText: '数值分析 92' },
+            { id: 'm6', title: '国自然面上项目', type: '项目', author: '导师陈', keyInfo: '项目号6227XXX', tags: ['科研','纵向'], uploadDate: '2025-11-05', ocrText: '人工智能' },
+            { id: 'm7', title: 'IEEE TPAMI论文', type: '论文', author: '刘薇', keyInfo: '2026, 影响因子24', tags: ['SCI','一区'], uploadDate: '2026-03-12', ocrText: 'few-shot' },
+            { id: 'm8', title: '挑战杯省一等奖', type: '荣誉', author: '周明等', keyInfo: '省级一等奖', tags: ['竞赛','省级'], uploadDate: '2025-09-20', ocrText: '挑战杯' },
+            { id: 'm9', title: '软著-图像处理软件', type: '专利', author: '郑青', keyInfo: '2026SR123456', tags: ['软著','已授权'], uploadDate: '2026-02-28', ocrText: '图像处理' },
+            { id: 'm10', title: '开题报告文献综述', type: '论文', author: '林溪', keyInfo: '开题材料', tags: ['综述'], uploadDate: '2026-01-10', ocrText: 'transformer' }
+        ];
+
+        const pageSize = 5;
+        let currentPage = 1;
+        let filters = { type: '', keyword: '', dateFrom: '', dateTo: '' };
+        let selectedForGenerate = []; // 暂存勾选id
+
+        // DOM
+        const tbody = document.getElementById('tableBody');
+        const toast = document.getElementById('toast');
+        const paginationDiv = document.getElementById('paginationContainer');
+        const typeFilter = document.getElementById('typeFilter');
+        const keywordFilter = document.getElementById('keywordFilter');
+        const dateFrom = document.getElementById('dateFrom');
+        const dateTo = document.getElementById('dateTo');
+        const resetBtn = document.getElementById('resetFilterBtn');
+        const openAddBtn = document.getElementById('openAddMaterialBtn');
+        const previewBanner = document.getElementById('previewBanner');
+        const previewText = document.getElementById('previewText');
+
+        // 弹窗
+        const modal = document.getElementById('materialModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancel = document.getElementById('modalCancelBtn');
+        const modalForm = document.getElementById('materialForm');
+        const modalTitleInput = document.getElementById('modalTitleInput');
+        const modalType = document.getElementById('modalType');
+        const modalAuthor = document.getElementById('modalAuthor');
+        const modalKeyInfo = document.getElementById('modalKeyInfo');
+        const modalDate = document.getElementById('modalDate');
+        const modalTags = document.getElementById('modalTags');
+        const modalOcr = document.getElementById('modalOcr');
+
+        let editingId = null;
+
+        // 通用函数
+        function showToast(text) { toast.textContent = text; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2000); }
+        function generateId() { return Date.now()+'-'+Math.random().toString(36).substring(2,8); }
+        function escapeHtml(unsafe) { if(!unsafe) return ''; return unsafe.replace(/[&<>"]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; if(m==='"') return '&quot;'; }); }
+
+        // 筛选
+        function getFiltered() {
+            return allMaterials.filter(m => {
+                if (filters.type && m.type !== filters.type) return false;
+                if (filters.keyword) {
+                    const kw = filters.keyword.toLowerCase();
+                    if (!m.title.toLowerCase().includes(kw) && !(m.author && m.author.toLowerCase().includes(kw)) && !(m.ocrText && m.ocrText.toLowerCase().includes(kw)) && !(m.keyInfo && m.keyInfo.toLowerCase().includes(kw))) return false;
+                }
+                if (filters.dateFrom && m.uploadDate < filters.dateFrom) return false;
+                if (filters.dateTo && m.uploadDate > filters.dateTo) return false;
+                return true;
+            });
+        }
+
+        function getPaginated() { let f = getFiltered(); let start=(currentPage-1)*pageSize; return f.slice(start, start+pageSize); }
+        function totalPages() { return Math.ceil(getFiltered().length / pageSize); }
+
+        function renderTable() {
+            let items = getPaginated();
+            let html = '';
+            if(items.length===0) html = '<tr><td colspan="7" style="text-align:center; padding:3rem;">暂无材料，请上传</td></tr>';
+            else {
+                items.forEach(m => {
+                    let tagsHtml = (m.tags||[]).map(t => `<span class="badge-tag">${escapeHtml(t)}</span>`).join('');
+                    html += `<tr>
+                        <td class="material-title">${escapeHtml(m.title)}</td>
+                        <td><span class="badge-type">${escapeHtml(m.type)}</span></td>
+                        <td>${escapeHtml(m.author||'—')}</td>
+                        <td>${escapeHtml(m.keyInfo||'')}</td>
+                        <td><div class="tag-group">${tagsHtml}</div></td>
+                        <td>${m.uploadDate||''}</td>
+                        <td><div class="action-btns">
+                            <button class="icon-btn" onclick="window.editHandler('${m.id}')"><i class="fas fa-pen"></i> 编辑</button>
+                            <button class="icon-btn" onclick="window.toggleSelect('${m.id}')"><i class="fas fa-check-square"></i> 勾选</button>
+                            <button class="icon-btn delete-btn" onclick="window.deleteHandler('${m.id}')"><i class="fas fa-trash"></i> 删除</button>
+                        </div></td>
+                    </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+            renderPagination();
+        }
+
+        function renderPagination() {
+            let total = totalPages();
+            if(total<=1) { paginationDiv.innerHTML=''; return; }
+            let html = `<span class="page-info">第 ${currentPage} / ${total} 页</span>
+                <button class="pagination-btn" ${currentPage===1?'disabled':''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for(let i=1;i<=total;i++) {
+                if(i===currentPage) html+=`<span class="pagination-btn active">${i}</span>`;
+                else html+=`<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html+=`<button class="pagination-btn" ${currentPage===total?'disabled':''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationDiv.innerHTML = html;
+        }
+
+        window.pageGo = function(p) { currentPage = p; renderTable(); };
+        window.deleteHandler = function(id) { allMaterials = allMaterials.filter(m => m.id !== id); showToast('已删除'); if(getFiltered().length===0 && currentPage>1) currentPage--; renderTable(); };
+        window.editHandler = function(id) {
+            let m = allMaterials.find(m=>m.id===id); if(!m) return;
+            editingId = id;
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑材料';
+            modalTitleInput.value = m.title || '';
+            modalType.value = m.type || '论文';
+            modalAuthor.value = m.author || '';
+            modalKeyInfo.value = m.keyInfo || '';
+            modalDate.value = m.uploadDate || '';
+            modalTags.value = (m.tags||[]).join(', ');
+            modalOcr.value = m.ocrText || '';
+            modal.classList.add('show');
+        };
+
+        window.toggleSelect = function(id) {
+            if(selectedForGenerate.includes(id)) {
+                selectedForGenerate = selectedForGenerate.filter(i => i!==id);
+            } else {
+                selectedForGenerate.push(id);
+            }
+            if(selectedForGenerate.length>0) {
+                previewBanner.style.display = 'flex';
+                previewText.innerText = `已勾选 ${selectedForGenerate.length} 项成果`;
+            } else { previewBanner.style.display = 'none'; }
+            showToast(selectedForGenerate.includes(id)?'已加入生成列表':'已移除');
+        };
+
+        // 新增打开
+        function openAddModal() {
+            editingId = null; modalTitle.innerHTML = '<i class="fas fa-upload"></i> 新增辅助材料';
+            modalTitleInput.value = ''; modalType.value = '论文'; modalAuthor.value = ''; modalKeyInfo.value = '';
+            let today = new Date().toISOString().slice(0,10); modalDate.value = today;
+            modalTags.value = ''; modalOcr.value = '';
+            modal.classList.add('show');
+        }
+
+        // 保存材料
+        function saveMaterial() {
+            let title = modalTitleInput.value.trim(); if(!title) { showToast('请输入标题'); return; }
+            let type = modalType.value;
+            let author = modalAuthor.value.trim();
+            let keyInfo = modalKeyInfo.value.trim();
+            let uploadDate = modalDate.value || new Date().toISOString().slice(0,10);
+            let tags = modalTags.value.split(',').map(s=>s.trim()).filter(Boolean);
+            let ocrText = modalOcr.value.trim();
+
+            let data = { title, type, author, keyInfo, tags, uploadDate, ocrText };
+            if(editingId) {
+                let idx = allMaterials.findIndex(m=>m.id===editingId);
+                if(idx!==-1) allMaterials[idx] = { ...allMaterials[idx], ...data };
+                showToast('已更新');
+            } else {
+                let newM = { id: generateId(), ...data };
+                allMaterials.push(newM);
+                showToast('材料已入库');
+                let filtered = getFiltered();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+            modal.classList.remove('show');
+            renderTable();
+        }
+
+        // 生成弹窗相关
+        window.openGenerateModal = function() {
+            let container = document.getElementById('checklistContainer');
+            let items = allMaterials.map(m => {
+                let checked = selectedForGenerate.includes(m.id) ? 'checked' : '';
+                return `<div style="margin-bottom:0.5rem;"><label><input type="checkbox" class="gen-check" value="${m.id}" ${checked}> [${escapeHtml(m.type)}] ${escapeHtml(m.title)} (${escapeHtml(m.author||'')})</label></div>`;
+            }).join('');
+            container.innerHTML = items || '<p>暂无材料</p>';
+            document.getElementById('generateModal').classList.add('show');
+        };
+
+        window.confirmGenerate = function() {
+            let checks = document.querySelectorAll('.gen-check:checked');
+            selectedForGenerate = Array.from(checks).map(c => c.value);
+            if(selectedForGenerate.length>0) {
+                previewBanner.style.display = 'flex';
+                previewText.innerText = `已勾选 ${selectedForGenerate.length} 项成果`;
+            } else { previewBanner.style.display = 'none'; }
+            document.getElementById('generateModal').classList.remove('show');
+            showToast('已确认待生成材料');
+        };
+
+        window.simulateGenerate = function() {
+            if(selectedForGenerate.length===0) { showToast('请先勾选材料'); return; }
+            showToast(`正在生成PDF，包含${selectedForGenerate.length}份材料附件`);
+        };
+
+        window.applyScene = function(scene) {
+            if(scene === '奖学金') {
+                selectedForGenerate = allMaterials.filter(m => m.tags && (m.tags.includes('奖学金')||m.type==='成绩单')).map(m=>m.id).slice(0,3);
+            } else if(scene === '开题') {
+                selectedForGenerate = allMaterials.filter(m => m.type==='论文' || m.title.includes('综述')).map(m=>m.id).slice(0,4);
+            } else if(scene === '中期') {
+                selectedForGenerate = allMaterials.filter(m => m.type==='项目' || m.type==='论文').map(m=>m.id).slice(0,3);
+            } else if(scene === '评优') {
+                selectedForGenerate = allMaterials.filter(m => m.tags && m.tags.includes('国家级')).map(m=>m.id);
+            }
+            if(selectedForGenerate.length) {
+                previewBanner.style.display = 'flex';
+                previewText.innerText = `已勾选 ${selectedForGenerate.length} 项成果 (${scene}场景)`;
+            } else previewBanner.style.display = 'none';
+            showToast(`应用${scene}模板，已预选${selectedForGenerate.length}项`);
+        };
+
+        // 筛选事件
+        function applyFilters() {
+            filters.type = typeFilter.value;
+            filters.keyword = keywordFilter.value;
+            filters.dateFrom = dateFrom.value;
+            filters.dateTo = dateTo.value;
+            currentPage = 1;
+            renderTable();
+        }
+        typeFilter.addEventListener('change', applyFilters);
+        keywordFilter.addEventListener('input', applyFilters);
+        dateFrom.addEventListener('change', applyFilters);
+        dateTo.addEventListener('change', applyFilters);
+        resetBtn.addEventListener('click', ()=>{
+            typeFilter.value=''; keywordFilter.value=''; dateFrom.value=''; dateTo.value='';
+            filters={type:'', keyword:'', dateFrom:'', dateTo:''};
+            currentPage=1; renderTable();
+        });
+
+        openAddBtn.addEventListener('click', openAddModal);
+
+        // 弹窗关闭
+        function closeModalFn() { modal.classList.remove('show'); }
+        closeModalBtn.addEventListener('click', closeModalFn);
+        modalCancel.addEventListener('click', closeModalFn);
+        modal.addEventListener('click', (e) => { if(e.target===modal) closeModalFn(); });
+        modalForm.addEventListener('submit', (e) => { e.preventDefault(); saveMaterial(); });
+
+        // 初始化
+        renderTable();
+    })();
+</script>
+</body>
+</html>

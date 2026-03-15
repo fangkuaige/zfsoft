@@ -3,385 +3,353 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>高管教育 · 动态模块管理</title>
+  <title>高管教育 · 动态模块 · 弹窗增删 · 分页统一</title>
+  <!-- 完全移植学生分数变动记录的字体/样式/弹窗体系 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    }
-    html, body {
-      width: 100%;
-      height: 100%;
-      background-color: #f0f4f8;
-    }
-    #app {
-      height: 100%;
-      width: 100%;
-      overflow-y: auto;
-      padding: 1rem;
+    /* === 基础 & 全局样式 完全复制分数变动记录 === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #eef3f8;
+      color: #1e293b;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-    .page-header {
-      margin-bottom: 1.2rem;
-      flex-shrink: 0;
+    .full-screen {
+      width: 100%;
+      padding: 1.5rem 1.8rem;
+      flex: 1;
     }
-    .page-header h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      color: #0b2b4a;
-      border-left: 6px solid #2563eb;
-      padding-left: 1rem;
+    @media (max-width: 640px) { .full-screen { padding: 1rem 1rem; } }
+
+    /* 卡片 (与分数变动记录 .card 一致) */
+    .card {
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+      padding: 1.8rem 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid #e9eef4;
+      width: 100%;
     }
-    .page-header h2 {
-      font-size: 1.2rem;
-      font-weight: 500;
-      color: #1e3a5f;
-      margin-top: 0.2rem;
-      padding-left: 1.2rem;
+    @media (max-width: 640px) { .card { padding: 1.5rem 1.2rem; } }
+
+    /* 区块标题 */
+    .section-title {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1e3a5f;
+      margin-bottom: 1.5rem;
     }
-    /* 全局工具栏 */
+    .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+    /* 筛选/工具栏 (沿用分数变动筛选条) */
     .global-toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      background: white;
-      padding: 1rem 1.2rem;
-      border-radius: 40px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-      border: 1px solid #e2e8f0;
-    }
-    .global-search {
-      flex: 2 1 250px;
-      display: flex;
-      align-items: center;
-      background: #f9fcff;
-      border: 1.5px solid #d9e2ef;
-      border-radius: 60px;
-      padding: 0.1rem 0.1rem 0.1rem 1.5rem;
-    }
-    .global-search i {
-      color: #64748b;
-      font-size: 1rem;
-    }
-    .global-search input {
-      border: none;
-      background: transparent;
-      padding: 0.7rem 0.7rem 0.7rem 0.5rem;
-      width: 100%;
-      outline: none;
-      font-size: 0.95rem;
-    }
-    .add-module-section {
-      display: flex;
-      flex: 1 1 300px;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    .add-module-section input {
-      flex: 1;
-      background: #ffffff;
-      border: 1.5px solid #dce3eb;
-      border-radius: 60px;
-      padding: 0.7rem 1.2rem;
-      font-size: 0.95rem;
-      outline: none;
-    }
-    .add-module-section input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
-    }
-    .primary-btn {
-      background: #2563eb;
-      border: none;
-      color: white;
-      padding: 0.7rem 1.5rem;
-      border-radius: 60px;
-      font-size: 0.95rem;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      white-space: nowrap;
-      box-shadow: 0 4px 8px rgba(37,99,235,0.2);
-      transition: 0.15s;
-      border: 1px solid #2563eb;
-    }
-    .primary-btn:hover {
-      background: #1d4ed8;
-    }
-    /* 全局分页 */
-    .global-pagination {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 1rem;
-      margin: 1rem 0 0.5rem;
-      flex-shrink: 0;
-    }
-    .pagination-controls {
-      display: flex;
-      gap: 0.5rem;
-    }
-    .page-btn {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 30px;
-      padding: 0.4rem 1.2rem;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #1e3a8a;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .page-btn:disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-    .page-info {
-      font-size: 0.95rem;
-      color: #334155;
-    }
-    /* 模块网格 */
-    .modules-grid {
-      display: grid;
-      grid-template-columns: 1fr;
+      align-items: flex-end;
       gap: 1.2rem;
-      flex: 1 1 auto;
-      align-content: start;
+      margin-bottom: 0;
     }
-    @media (min-width: 640px) {
-      .modules-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    /* 卡片 (模块) */
-    .card {
-      background: #ffffff;
-      border-radius: 24px;
-      box-shadow: 0 8px 20px rgba(0,20,50,0.04);
-      padding: 1rem 1rem 1rem;
-      border: 1px solid #e6edf4;
+    .filter-item {
       display: flex;
       flex-direction: column;
-      position: relative;
+      gap: 0.5rem;
+      min-width: 170px;
+      flex: 1 1 160px;
     }
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.8rem;
-      border-bottom: 2px solid #eef2f6;
-      padding-bottom: 0.5rem;
-    }
-    .card-title {
-      font-size: 1.2rem;
+    .filter-item label {
+      font-size: 0.75rem;
       font-weight: 600;
-      color: #0f2b45;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: #4e6f8c;
     }
-    .card-title i {
-      color: #3b82f6;
-      width: 1.6rem;
-    }
-    .delete-module-btn {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      width: 2.2rem;
-      height: 2.2rem;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      transition: 0.1s;
-    }
-    .delete-module-btn:hover {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-    /* 模块内搜索 */
-    .inner-search {
-      margin-bottom: 0.8rem;
-    }
-    .inner-search input {
+    .filter-input {
+      background: #f8fafd;
+      border: 1px solid #dde3ea;
+      border-radius: 16px;
+      padding: 0.65rem 1.2rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
       width: 100%;
-      background: #f9fcff;
-      border: 1.5px solid #d9e2ef;
-      border-radius: 60px;
-      padding: 0.5rem 1rem;
-      font-size: 0.85rem;
-      outline: none;
     }
+    .filter-input:focus {
+      outline: none; border-color: #2f6e9e;
+      box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+    }
+
+    /* 按钮体系 (完全复用) */
+    .btn {
+      border: none; background: transparent; font-weight: 500; padding: 0.7rem 1.6rem;
+      border-radius: 40px; font-size: 0.9rem; display: inline-flex; align-items: center;
+      justify-content: center; gap: 0.5rem; cursor: pointer; transition: 0.15s;
+      border: 1px solid transparent; white-space: nowrap;
+    }
+    .btn-primary {
+      background: #1e4a6f; color: white; box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+    }
+    .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+    .btn-outline {
+      background: white; border-color: #cbd5e1; color: #2c455d;
+    }
+    .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+
+    /* 模块网格 (2列) */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 700px) { .modules-grid { grid-template-columns: 1fr; } }
+
+    /* 模块卡片 */
+    .module-card {
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+      padding: 1.5rem 1.5rem;
+      border: 1px solid #e9eef4;
+      display: flex;
+      flex-direction: column;
+    }
+    .module-card .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem; border-bottom: 2px solid #eef2f6; padding-bottom: 0.6rem;
+    }
+    .module-card .card-title {
+      font-size: 1.2rem; font-weight: 600; color: #0b2b4a;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .module-card .card-title i { color: #2f6e9e; }
+    .delete-module-btn {
+      background: transparent; border: none; color: #94a3b8; width: 2.2rem; height: 2.2rem;
+      border-radius: 50%; cursor: pointer; font-size: 1rem; transition: 0.1s;
+    }
+    .delete-module-btn:hover { background: #fee2e2; color: #b91c1c; }
+
+    /* 内部搜索 (条目搜索) */
+    .inner-search { margin-bottom: 1rem; }
+    .inner-search input {
+      background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+      padding: 0.6rem 1.2rem; font-family: 'Inter', sans-serif; font-size: 0.9rem; width: 100%;
+    }
+    .inner-search input:focus {
+      outline: none; border-color: #2f6e9e;
+      box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+    }
+
     /* 条目网格 (一行四项) */
     .items-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.4rem;
-      margin: 0.3rem 0 0.6rem;
-      max-height: 200px;
-      overflow-y: auto;
-      padding: 0.2rem 0;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
+      margin: 0.5rem 0 0.8rem; max-height: 200px; overflow-y: auto; padding: 0.2rem 0;
     }
-    @media (max-width: 500px) {
-      .items-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
+    @media (max-width: 500px) { .items-grid { grid-template-columns: repeat(2, 1fr); } }
     .grid-item {
-      background: #f8fafd;
-      border: 1px solid #dde5ef;
-      border-radius: 40px;
-      padding: 0.3rem 0.2rem 0.3rem 0.8rem;
-      font-size: 0.85rem;
-      color: #1e293b;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      background: #f2f8ff; border: 1px solid #dde5ef; border-radius: 40px;
+      padding: 0.3rem 0.2rem 0.3rem 1rem; font-size: 0.85rem; color: #1e293b;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .grid-item span {
-      flex: 1;
-      word-break: break-word;
-    }
+    .grid-item span { flex: 1; word-break: break-word; }
     .item-delete {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      width: 2rem;
-      height: 2rem;
-      border-radius: 50%;
-      cursor: pointer;
-      flex-shrink: 0;
+      background: transparent; border: none; color: #94a3b8; width: 2rem; height: 2rem;
+      border-radius: 50%; cursor: pointer;
     }
-    .item-delete:hover {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
+    .item-delete:hover { background: #fee2e2; color: #b91c1c; }
     .empty-grid-msg {
-      grid-column: 1 / -1;
-      text-align: center;
-      color: #94a3b8;
-      font-style: italic;
-      padding: 0.6rem;
-      background: #f1f5f9;
-      border-radius: 40px;
-      border: 1px dashed #cbd5e1;
+      grid-column: 1 / -1; text-align: center; color: #64748b; font-style: italic;
+      padding: 0.6rem; background: #f1f5f9; border-radius: 40px;
     }
-    /* 模块内部分页 */
+
+    /* 内部分页控件 (完全分数变动的风格) 小型 */
     .inner-pagination {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 0.2rem 0 0.6rem;
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 0.5rem 0 1rem;
     }
     .inner-page-btn {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 30px;
-      padding: 0.2rem 1rem;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: #1e3a8a;
-      cursor: pointer;
+      background: white; border: 1px solid #cbd5e1; border-radius: 30px;
+      padding: 0.25rem 1.2rem; font-size: 0.8rem; font-weight: 500;
+      color: #1e4a6f; cursor: pointer;
     }
-    .inner-page-btn:disabled {
-      opacity: 0.4;
-      pointer-events: none;
+    .inner-page-btn:disabled { opacity: 0.4; pointer-events: none; }
+    .inner-page-info { font-size: 0.8rem; color: #466585; }
+
+    /* 模块内添加条目按钮（现在改为打开弹窗） */
+    .add-item-trigger-btn {
+      background: #1e4a6f; border: none; color: white; padding: 0.5rem 1.3rem;
+      border-radius: 40px; font-size: 0.8rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;
+      width: fit-content; margin-top: 0.2rem;
     }
-    .inner-page-info {
-      font-size: 0.8rem;
-      color: #475569;
+    .add-item-trigger-btn:hover { background: #123a58; }
+
+    /* 全局分页 (完全复制分数变动记录的 .pagination-bar / .pagination-btn) */
+    .global-pagination {
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
     }
-    /* 添加条目区域 */
-    .add-item-section {
-      display: flex;
-      gap: 0.3rem;
-      margin-top: 0.2rem;
+    .pagination-btn {
+      background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+      width: 38px; height: 38px; border-radius: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 500; cursor: pointer; transition: 0.1s;
     }
-    .item-input {
-      flex: 1;
-      background: #ffffff;
-      border: 1.5px solid #dce3eb;
-      border-radius: 60px;
-      padding: 0.5rem 1rem;
-      font-size: 0.85rem;
-      outline: none;
-    }
-    .add-item-btn {
-      background: #2563eb;
-      border: none;
-      color: white;
-      padding: 0.5rem 1.2rem;
-      border-radius: 60px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.2rem;
-      white-space: nowrap;
-    }
-    /* 无模块提示 */
+    .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+    .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+    .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+    /* 无模块占位 */
     .no-modules {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 3rem;
-      background: white;
-      border-radius: 40px;
-      color: #64748b;
-      border: 2px dashed #cbd5e1;
+      grid-column: 1 / -1; text-align: center; padding: 3rem; background: white;
+      border-radius: 40px; color: #64748b; border: 2px dashed #cbd5e1;
     }
+
+    /* ========== 弹窗 (完全复用分数变动记录的模态框) ========== */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+    }
+    .modal-overlay.show { visibility: visible; opacity: 1; }
+    .modal-card {
+      background: white; border-radius: 32px; width: 90%; max-width: 600px;
+      padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+      transform: scale(0.95); transition: transform 0.2s ease;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.show .modal-card { transform: scale(1); }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+    .modal-close {
+      background: none; border: none; font-size: 2.2rem; cursor: pointer;
+      color: #8ba5c2; line-height: 1;
+    }
+    .modal-close:hover { color: #1e3a5f; }
+
+    .form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+    }
+    .full-width { grid-column: span 2; }
+    .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .input-group label {
+      font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .input-field {
+      background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+      padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+    }
+    .input-field:focus {
+      outline: none; border-color: #2f6e9e;
+      box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+    }
+    .readonly-field { background: #ecf2f9; color: #2a4e6e; font-weight: 500; }
+
+    .modal-actions {
+      display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+    }
+
+    /* Toast */
+    .toast-message {
+      background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+      border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+      position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+      opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+    }
+    .toast-message.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
-<div id="app">
-  <!-- <div class="page-header">
-    <h1>2. 高管教育招生线索管理</h1>
-    <h2><i class="fas fa-angle-up"></i> 2.1 基础设置 · 可动态增删模块</h2>
-  </div> -->
-
-  <!-- 全局工具栏 -->
-  <div class="global-toolbar">
-    <div class="global-search">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="globalModuleSearch" placeholder="搜索模块名称..." autocomplete="off">
-    </div>
-    <div class="add-module-section">
-      <input type="text" id="newModuleName" placeholder="新模块名称, 如: 线索阶段">
-      <button class="primary-btn" id="addModuleBtn"><i class="fa-solid fa-plus"></i> 新增模块</button>
+<div class="full-screen">
+  <!-- 卡片1：全局搜索 + 新增模块按钮 (改为弹窗触发) -->
+  <div class="card">
+    <div class="global-toolbar">
+      <div class="filter-item" style="flex:2;">
+        <label><i class="fas fa-search"></i> 搜索模块</label>
+        <input type="text" class="filter-input" id="globalModuleSearch" placeholder="模块名称..." autocomplete="off">
+      </div>
+      <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+        <button class="btn btn-primary" id="openAddModuleModalBtn"><i class="fas fa-plus-circle"></i> 新增模块</button>
+      </div>
     </div>
   </div>
 
-  <!-- 模块网格容器 -->
-  <div id="modulesGrid" class="modules-grid"></div>
+  <!-- 卡片2：模块列表 + 全局分页 -->
+  <div class="card" style="padding: 1.8rem 1.8rem;">
+    <div class="section-title">
+      <i class="fas fa-puzzle-piece"></i> 招生线索 · 字典模块
+    </div>
+    <div id="modulesGrid" class="modules-grid"></div>
 
-  <!-- 全局分页控件 -->
-  <div class="global-pagination" id="globalPagination">
-    <span class="page-info" id="globalPageInfo"></span>
-    <div class="pagination-controls">
-      <button class="page-btn" id="globalPrevBtn" disabled><i class="fa-solid fa-chevron-left"></i> 上一页</button>
-      <button class="page-btn" id="globalNextBtn" disabled>下一页 <i class="fa-solid fa-chevron-right"></i></button>
+    <!-- 全局分页 (完全分数变动风格) -->
+    <div class="global-pagination" id="globalPagination">
+      <span class="page-info" id="globalPageInfo"></span>
+      <button class="pagination-btn" id="globalPrevBtn" disabled><i class="fas fa-chevron-left"></i></button>
+      <button class="pagination-btn" id="globalNextBtn" disabled><i class="fas fa-chevron-right"></i></button>
     </div>
   </div>
 </div>
 
+<!-- 弹窗1: 新增模块 -->
+<div class="modal-overlay" id="moduleModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3><i class="fas fa-layer-group"></i> 新增模块</h3>
+      <button class="modal-close" id="closeModuleModalBtn">&times;</button>
+    </div>
+    <div class="form-grid">
+      <div class="input-group full-width">
+        <label><i class="fas fa-tag"></i> 模块名称</label>
+        <input type="text" class="input-field" id="modalModuleName" placeholder="例如: 线索阶段" autofocus>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelModuleBtn"><i class="fas fa-times"></i> 取消</button>
+      <button class="btn btn-primary" id="saveModuleBtn"><i class="fas fa-save"></i> 保存模块</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗2: 新增条目 (动态传入模块id) -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3><i class="fas fa-plus-circle"></i> 新增条目</h3>
+      <button class="modal-close" id="closeItemModalBtn">&times;</button>
+    </div>
+    <div class="form-grid">
+      <div class="input-group full-width">
+        <label><i class="fas fa-list-ul"></i> 条目内容</label>
+        <input type="text" class="input-field" id="modalItemValue" placeholder="例如: 公开课" autofocus>
+      </div>
+      <input type="hidden" id="modalItemModuleId">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelItemBtn"><i class="fas fa-times"></i> 取消</button>
+      <button class="btn btn-primary" id="saveItemBtn"><i class="fas fa-save"></i> 保存条目</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast-message">操作成功</div>
+
 <script>
   (function() {
-    // ---------- 初始模块数据 (七个基础设置) ----------
+    // --- 初始数据 ---
     let modules = [
       { id: 'm1', name: '线索类别', icon: 'fa-tag', items: ['公开课', '内训', '高管研修', '峰会', 'MBA', 'DBA', '短期课程', '企业内训', '在线讲座', '体验营'] },
       { id: 'm2', name: '咨询类别', icon: 'fa-headset', items: ['课程咨询', '项目咨询', '合作咨询', '定制咨询', '学位咨询', '企业团报', '师资咨询'] },
@@ -392,54 +360,57 @@
       { id: 'm7', name: '线索途径', icon: 'fa-road', items: ['搜索', '朋友介绍', '广告', '自媒体', '邮件推送', '短信'] }
     ];
 
-    // 每个模块内部的搜索分页状态 (key: moduleId)
     let innerStates = {};
-    modules.forEach(m => {
-      innerStates[m.id] = { search: '', page: 1 };
-    });
+    modules.forEach(m => { innerStates[m.id] = { search: '', page: 1 }; });
 
-    // 全局状态
-    let globalSearchTerm = '';               // 模块名称搜索词
-    const GLOBAL_PAGE_SIZE = 4;              // 每页显示4个模块
+    let globalSearchTerm = '';
+    const GLOBAL_PAGE_SIZE = 4;
     let globalPage = 1;
 
-    // 获取过滤后的模块列表
+    // Toast
+    function showToast(text, duration = 2000) {
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
     function getFilteredModules() {
       if (!globalSearchTerm.trim()) return modules;
       const term = globalSearchTerm.trim().toLowerCase();
       return modules.filter(m => m.name.toLowerCase().includes(term));
     }
 
-    // 根据全局分页获取当前页模块
     function getCurrentPageModules() {
       const filtered = getFilteredModules();
       const start = (globalPage - 1) * GLOBAL_PAGE_SIZE;
-      const end = start + GLOBAL_PAGE_SIZE;
-      return filtered.slice(start, end);
+      return filtered.slice(start, start + GLOBAL_PAGE_SIZE);
     }
 
-    // 更新全局分页控件状态
     function updateGlobalPagination() {
       const filtered = getFilteredModules();
       const totalPages = Math.max(1, Math.ceil(filtered.length / GLOBAL_PAGE_SIZE));
       if (globalPage > totalPages) globalPage = totalPages;
       if (globalPage < 1) globalPage = 1;
-
       document.getElementById('globalPageInfo').innerText = `第 ${globalPage} / ${totalPages} 页 (共 ${filtered.length} 个模块)`;
-      const prevBtn = document.getElementById('globalPrevBtn');
-      const nextBtn = document.getElementById('globalNextBtn');
-      prevBtn.disabled = globalPage <= 1;
-      nextBtn.disabled = globalPage >= totalPages;
+      document.getElementById('globalPrevBtn').disabled = globalPage <= 1;
+      document.getElementById('globalNextBtn').disabled = globalPage >= totalPages;
     }
 
-    // 渲染所有模块 (当前页)
+    function escapeHtml(unsafe) {
+      return String(unsafe).replace(/[&<>"]/g, function(m) {
+        if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; if (m === '"') return '&quot;'; return m;
+      });
+    }
+
+    // 渲染模块
     function renderModules() {
       const grid = document.getElementById('modulesGrid');
       const currentModules = getCurrentPageModules();
       updateGlobalPagination();
 
       if (currentModules.length === 0) {
-        grid.innerHTML = `<div class="no-modules"><i class="fa-regular fa-folder-open"></i> 没有匹配的模块，请修改搜索词或新增模块</div>`;
+        grid.innerHTML = `<div class="no-modules"><i class="fa-regular fa-folder-open"></i> 没有匹配的模块</div>`;
         return;
       }
 
@@ -447,24 +418,20 @@
       currentModules.forEach(module => {
         const state = innerStates[module.id] || { search: '', page: 1 };
         const items = module.items || [];
-
-        // 过滤内部条目
         let filteredItems = items;
         if (state.search.trim()) {
           const term = state.search.trim().toLowerCase();
           filteredItems = items.filter(it => it.toLowerCase().includes(term));
         }
-        const totalInnerPages = Math.max(1, Math.ceil(filteredItems.length / 8)); // 每页8项
+        const totalInnerPages = Math.max(1, Math.ceil(filteredItems.length / 8));
         let currentInnerPage = state.page;
         if (currentInnerPage > totalInnerPages) currentInnerPage = totalInnerPages;
         if (currentInnerPage < 1) currentInnerPage = 1;
-        state.page = currentInnerPage; // 同步
+        state.page = currentInnerPage;
 
         const start = (currentInnerPage - 1) * 8;
-        const end = start + 8;
-        const currentItems = filteredItems.slice(start, end);
+        const currentItems = filteredItems.slice(start, start + 8);
 
-        // 构建内部条目网格
         let itemsGridHtml = '';
         if (currentItems.length === 0) {
           itemsGridHtml = `<div class="empty-grid-msg"><i class="fa-regular fa-eye-slash"></i> 暂无条目</div>`;
@@ -475,221 +442,210 @@
             itemsGridHtml += `
               <div class="grid-item">
                 <span>${escapeHtml(item)}</span>
-                <button class="item-delete" type="button" data-module-id="${module.id}" data-item-value="${safeValue}" title="删除条目"><i class="fa-solid fa-trash-can"></i></button>
+                <button class="item-delete" data-module-id="${module.id}" data-item-value="${safeValue}" title="删除条目"><i class="fas fa-trash-can"></i></button>
               </div>
             `;
           });
           itemsGridHtml += '</div>';
         }
 
-        // 内部翻页
-        const innerPrevDisabled = currentInnerPage <= 1 ? 'disabled' : '';
-        const innerNextDisabled = currentInnerPage >= totalInnerPages ? 'disabled' : '';
-
-        // 卡片完整 html
         html += `
-          <div class="card" data-module-id="${module.id}">
+          <div class="module-card" data-module-id="${module.id}">
             <div class="card-header">
               <div class="card-title"><i class="fas ${module.icon || 'fa-tag'}"></i> ${escapeHtml(module.name)}</div>
-              <button class="delete-module-btn" type="button" data-module-id="${module.id}" title="删除模块"><i class="fa-regular fa-trash-can"></i></button>
+              <button class="delete-module-btn" data-module-id="${module.id}" title="删除模块"><i class="fas fa-trash"></i></button>
             </div>
             <div class="inner-search">
               <input type="text" class="inner-search-input" data-module-id="${module.id}" placeholder="搜索条目..." value="${escapeHtml(state.search)}" />
             </div>
             ${itemsGridHtml}
             <div class="inner-pagination">
-              <button class="inner-page-btn inner-prev" data-module-id="${module.id}" ${innerPrevDisabled}><i class="fa-solid fa-chevron-left"></i> 上一页</button>
+              <button class="inner-page-btn inner-prev" data-module-id="${module.id}" ${currentInnerPage <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i> 上一页</button>
               <span class="inner-page-info">${currentInnerPage}/${totalInnerPages}</span>
-              <button class="inner-page-btn inner-next" data-module-id="${module.id}" ${innerNextDisabled}>下一页 <i class="fa-solid fa-chevron-right"></i></button>
+              <button class="inner-page-btn inner-next" data-module-id="${module.id}" ${currentInnerPage >= totalInnerPages ? 'disabled' : ''}>下一页 <i class="fas fa-chevron-right"></i></button>
             </div>
-            <div class="add-item-section">
-              <input type="text" class="item-input" placeholder="新条目..." />
-              <button class="add-item-btn" data-module-id="${module.id}"><i class="fa-solid fa-plus"></i> 添加</button>
-            </div>
+            <!-- 新增条目按钮 改为打开弹窗 -->
+            <button class="add-item-trigger-btn" data-module-id="${module.id}"><i class="fas fa-plus-circle"></i> 新增条目</button>
           </div>
         `;
       });
       grid.innerHTML = html;
     }
 
-    // 辅助转义
-    function escapeHtml(unsafe) {
-      return String(unsafe).replace(/[&<>"]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        if (m === '"') return '&quot;';
-        return m;
-      });
-    }
+    // --- 弹窗控制: 新增模块 ---
+    const moduleModal = document.getElementById('moduleModal');
+    const openModuleBtn = document.getElementById('openAddModuleModalBtn');
+    const closeModuleBtn = document.getElementById('closeModuleModalBtn');
+    const cancelModuleBtn = document.getElementById('cancelModuleBtn');
+    const saveModuleBtn = document.getElementById('saveModuleBtn');
+    const moduleNameInput = document.getElementById('modalModuleName');
 
-    // 重置全局页码并重新渲染
-    function refreshGlobal(keepPage = false) {
-      if (!keepPage) globalPage = 1;
+    function openModuleModal() {
+      moduleNameInput.value = '';
+      moduleModal.classList.add('show');
+    }
+    function closeModuleModal() { moduleModal.classList.remove('show'); }
+
+    openModuleBtn.addEventListener('click', openModuleModal);
+    closeModuleBtn.addEventListener('click', closeModuleModal);
+    cancelModuleBtn.addEventListener('click', closeModuleModal);
+    moduleModal.addEventListener('click', (e) => { if (e.target === moduleModal) closeModuleModal(); });
+
+    saveModuleBtn.addEventListener('click', () => {
+      const name = moduleNameInput.value.trim();
+      if (!name) { alert('请输入模块名称'); return; }
+      const newId = 'mod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+      modules.unshift({ id: newId, name: name, icon: 'fa-tag', items: [] });
+      innerStates[newId] = { search: '', page: 1 };
+      // 重置全局搜索
+      globalSearchTerm = '';
+      document.getElementById('globalModuleSearch').value = '';
+      globalPage = 1;
+      closeModuleModal();
       renderModules();
-    }
+      showToast('模块已添加');
+    });
 
-    // ---------- 事件绑定 ----------
-    // 全局搜索模块
+    // --- 弹窗: 新增条目 ---
+    const itemModal = document.getElementById('itemModal');
+    const closeItemBtn = document.getElementById('closeItemModalBtn');
+    const cancelItemBtn = document.getElementById('cancelItemBtn');
+    const saveItemBtn = document.getElementById('saveItemBtn');
+    const itemValueInput = document.getElementById('modalItemValue');
+    const itemModuleIdField = document.getElementById('modalItemModuleId');
+
+    function openItemModal(moduleId) {
+      itemValueInput.value = '';
+      itemModuleIdField.value = moduleId;
+      itemModal.classList.add('show');
+    }
+    function closeItemModal() { itemModal.classList.remove('show'); }
+
+    closeItemBtn.addEventListener('click', closeItemModal);
+    cancelItemBtn.addEventListener('click', closeItemModal);
+    itemModal.addEventListener('click', (e) => { if (e.target === itemModal) closeItemModal(); });
+
+    saveItemBtn.addEventListener('click', () => {
+      const moduleId = itemModuleIdField.value;
+      const newVal = itemValueInput.value.trim();
+      if (!newVal) { alert('请输入条目内容'); return; }
+      const module = modules.find(m => m.id === moduleId);
+      if (module) {
+        module.items.unshift(newVal);
+        innerStates[moduleId].search = '';
+        innerStates[moduleId].page = 1;
+        closeItemModal();
+        renderModules();
+        showToast('条目已添加');
+      }
+    });
+
+    // --- 全局搜索 ---
     document.getElementById('globalModuleSearch').addEventListener('input', function(e) {
       globalSearchTerm = e.target.value;
       globalPage = 1;
       renderModules();
     });
 
-    // 新增模块
-    document.getElementById('addModuleBtn').addEventListener('click', function() {
-      const input = document.getElementById('newModuleName');
-      const name = input.value.trim();
-      if (!name) {
-        alert('请输入模块名称');
-        return;
-      }
-      // 生成唯一id
-      const newId = 'mod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-      modules.unshift({ 
-        id: newId, 
-        name: name, 
-        icon: 'fa-tag',   // 默认图标
-        items: [] 
-      });
-      innerStates[newId] = { search: '', page: 1 };
-      // 清空搜索框，并重置全局搜索为空白，以便看到新模块
-      globalSearchTerm = '';
-      document.getElementById('globalModuleSearch').value = '';
-      globalPage = 1;
-      input.value = '';
-      renderModules();
-    });
-
-    // 全局上一页/下一页
+    // 全局分页
     document.getElementById('globalPrevBtn').addEventListener('click', function() {
-      if (globalPage > 1) {
-        globalPage--;
-        renderModules();
-      }
+      if (globalPage > 1) { globalPage--; renderModules(); }
     });
     document.getElementById('globalNextBtn').addEventListener('click', function() {
       const filtered = getFilteredModules();
       const totalPages = Math.ceil(filtered.length / GLOBAL_PAGE_SIZE);
-      if (globalPage < totalPages) {
-        globalPage++;
-        renderModules();
-      }
+      if (globalPage < totalPages) { globalPage++; renderModules(); }
     });
 
-    // 利用事件代理监听网格内所有动态事件
+    // 网格事件代理 (删除模块, 删除条目, 内部搜索, 内部分页, 新增条目按钮)
     const grid = document.getElementById('modulesGrid');
     grid.addEventListener('click', function(e) {
       const target = e.target;
 
-      // 1. 删除模块
+      // 新增条目按钮 (触发弹窗)
+      const addTrigger = target.closest('.add-item-trigger-btn');
+      if (addTrigger) {
+        e.preventDefault();
+        const moduleId = addTrigger.dataset.moduleId;
+        if (moduleId) openItemModal(moduleId);
+        return;
+      }
+
+      // 删除模块
       const deleteModuleBtn = target.closest('.delete-module-btn');
       if (deleteModuleBtn) {
         e.preventDefault();
         const moduleId = deleteModuleBtn.dataset.moduleId;
         if (!moduleId) return;
-        if (confirm('确定删除该模块吗？其所有条目也会被删除。')) {
+        if (confirm('确定删除该模块吗？')) {
           modules = modules.filter(m => m.id !== moduleId);
           delete innerStates[moduleId];
-          // 调整全局页码
           const filtered = getFilteredModules();
           const totalPages = Math.ceil(filtered.length / GLOBAL_PAGE_SIZE);
           if (globalPage > totalPages) globalPage = totalPages || 1;
           renderModules();
+          showToast('模块已删除');
         }
         return;
       }
 
-      // 2. 添加条目
-      const addItemBtn = target.closest('.add-item-btn');
-      if (addItemBtn) {
-        e.preventDefault();
-        const moduleId = addItemBtn.dataset.moduleId;
-        const card = addItemBtn.closest('.card');
-        const input = card.querySelector('.item-input');
-        const newVal = input.value.trim();
-        if (!newVal) { alert('请输入条目内容'); return; }
-        const module = modules.find(m => m.id === moduleId);
-        if (module) {
-          module.items.unshift(newVal);  // 插入最前
-          // 重置该模块内部搜索和页码，以便看到新条目
-          innerStates[moduleId].search = '';
-          innerStates[moduleId].page = 1;
-          // 需要同步清除内部搜索框的值（下次渲染时会重置）
-          renderModules();
-        }
-        return;
-      }
-
-      // 3. 删除条目
+      // 删除条目
       const deleteItemBtn = target.closest('.item-delete');
       if (deleteItemBtn) {
         e.preventDefault();
         const moduleId = deleteItemBtn.dataset.moduleId;
-        const itemValue = deleteItemBtn.dataset.itemValue; // 原始字符串
-        if (!moduleId || !itemValue) return;
+        const itemValue = deleteItemBtn.dataset.itemValue;
         const module = modules.find(m => m.id === moduleId);
         if (module) {
           const idx = module.items.findIndex(v => v === itemValue);
           if (idx !== -1) {
             module.items.splice(idx, 1);
-            // 内部页码自适应（保持当前页，但可能页变少）
             const state = innerStates[moduleId];
             const filtered = module.items.filter(it => !state.search || it.toLowerCase().includes(state.search.toLowerCase()));
             const totalInnerPages = Math.ceil(filtered.length / 8);
             if (state.page > totalInnerPages) state.page = totalInnerPages || 1;
             renderModules();
+            showToast('条目已删除');
           }
         }
         return;
       }
 
-      // 4. 内部上一页
+      // 内部上一页
       const innerPrev = target.closest('.inner-prev');
       if (innerPrev) {
         e.preventDefault();
         const moduleId = innerPrev.dataset.moduleId;
-        if (!moduleId) return;
         const state = innerStates[moduleId];
-        if (state && state.page > 1) {
-          state.page--;
-          renderModules();
-        }
+        if (state && state.page > 1) { state.page--; renderModules(); }
         return;
       }
 
-      // 5. 内部下一页
+      // 内部下一页
       const innerNext = target.closest('.inner-next');
       if (innerNext) {
         e.preventDefault();
         const moduleId = innerNext.dataset.moduleId;
-        if (!moduleId) return;
         const state = innerStates[moduleId];
         const module = modules.find(m => m.id === moduleId);
         if (module && state) {
           const filtered = module.items.filter(it => !state.search || it.toLowerCase().includes(state.search.toLowerCase()));
           const totalInnerPages = Math.ceil(filtered.length / 8);
-          if (state.page < totalInnerPages) {
-            state.page++;
-            renderModules();
-          }
+          if (state.page < totalInnerPages) { state.page++; renderModules(); }
         }
         return;
       }
     });
 
-    // 内部搜索输入 (使用input事件代理)
+    // 内部搜索输入
     grid.addEventListener('input', function(e) {
       const target = e.target;
       if (target.classList.contains('inner-search-input')) {
         const moduleId = target.dataset.moduleId;
-        if (!moduleId) return;
-        const newSearch = target.value;
         const state = innerStates[moduleId];
         if (state) {
-          state.search = newSearch;
-          state.page = 1;  // 重置为第一页
+          state.search = target.value;
+          state.page = 1;
           renderModules();
         }
       }

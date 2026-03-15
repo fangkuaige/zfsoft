@@ -3,197 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>研究生问卷模板 · Font Awesome 图标版</title>
-    <!-- Font Awesome 5 图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>研究生问卷模板 · 功能完全修复版</title>
+    <!-- Inter 字体 + Font Awesome 6 (与第二个页面统一) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* 完全采用第二个页面视觉体系，卡片柔和，阴影精致 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f6f9; color: #1e293b; height: 100vh; overflow: hidden; }
-        .app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
-
-        /* 左侧模板库 */
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            padding: 1rem;
+            gap: 1rem;
+        }
+        /* 左侧模板库卡片 */
         .template-sidebar {
-            width: 300px; background: #ffffff; border-right: 1px solid #e2e8f0;
-            display: flex; flex-direction: column; overflow: hidden;
+            width: 300px;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            border: 1px solid #e9eef4;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         .sidebar-header {
-            padding: 20px 16px 12px; display: flex; justify-content: space-between;
-            align-items: center; border-bottom: 1px solid #edf2f7;
+            padding: 1.2rem 1.5rem 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .sidebar-header h2 { font-size: 1.2rem; font-weight: 600; color: #0f3b5e; }
+        .sidebar-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
         .btn-primary {
-            background: #2563eb; color: white; border: none; border-radius: 30px;
-            padding: 8px 14px; font-size: 0.85rem; font-weight: 500; cursor: pointer;
-            transition: 0.15s; border: none; display: inline-flex; align-items: center; gap: 6px;
+            background: #1e4a6f;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.15s;
         }
-        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
 
-        .search-filter { padding: 12px 16px 8px; }
-        .search-box { position: relative; margin-bottom: 12px; }
-        .search-box input {
-            width: 100%; padding: 10px 10px 10px 12px; border: 1px solid #e2e8f0;
-            border-radius: 30px; font-size: 0.9rem; background: #f8fafc; outline: none;
+        .btn-outline {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 0.5rem 1.4rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #2c455d;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: 0.1s;
         }
-        .search-box input:focus { border-color: #2563eb; background: #ffffff; }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+
+        .search-filter { padding: 0.8rem 1.5rem 0.5rem; }
+        .search-box { position: relative; margin-bottom: 12px; }
+        .search-box i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: #94a3b8; font-size: 0.9rem;
+        }
+        .search-box input {
+            width: 100%; padding: 0.65rem 1.2rem 0.65rem 2.5rem;
+            border: 1px solid #dde3ea; border-radius: 30px; font-size: 0.9rem;
+            background: #f8fafd; outline: none;
+        }
+        .search-box input:focus { border-color: #2f6e9e; background: white; box-shadow: 0 0 0 3px rgba(47,110,158,0.15); }
 
         .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-tab {
-            background: #f1f5f9; border: none; border-radius: 20px; padding: 6px 12px;
-            font-size: 0.8rem; font-weight: 500; color: #475569; cursor: pointer;
+            background: #f1f5f9; border: none; border-radius: 30px; padding: 0.3rem 1rem;
+            font-size: 0.75rem; font-weight: 600; color: #4e6f8c; cursor: pointer; text-transform: uppercase;
         }
-        .filter-tab.active { background: #2563eb; color: white; }
+        .filter-tab.active { background: #1e4a6f; color: white; }
 
-        .template-list { flex: 1; overflow-y: auto; padding: 8px 16px 20px; }
+        .template-list { flex: 1; overflow-y: auto; padding: 0.5rem 1.2rem 1.5rem; }
         .template-card {
-            background: #f9fbfd; border: 1px solid #e9edf2; border-radius: 16px;
-            padding: 16px; margin-bottom: 12px; transition: 0.15s; cursor: pointer;
+            background: #f9fbfd; border: 1px solid #e2eaf3; border-radius: 20px;
+            padding: 1rem 1.2rem; margin-bottom: 12px; transition: 0.1s; cursor: pointer;
         }
-        .template-card:hover { background: #ffffff; border-color: #cbd5e1; }
-        .template-card.selected { border-left: 4px solid #2563eb; background: #f0f7ff; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .template-name { font-weight: 600; font-size: 1rem; color: #0b2b44; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 30px; background: #e6f0ff; color: #1e4f8a; }
+        .template-card:hover { background: #ffffff; border-color: #b6cae0; }
+        .template-card.selected { border-left: 5px solid #1e4a6f; background: #f2f8ff; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .template-name { font-weight: 600; color: #0b2b40; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .status-badge {
+            font-size: 0.65rem; padding: 0.2rem 0.8rem; border-radius: 40px;
+            background: #e3f0fa; color: #11517c; font-weight: 500;
+        }
         .status-badge.published { background: #dcfce7; color: #166534; }
         .status-badge.archived { background: #f1f5f9; color: #475569; }
-        .template-meta { display: flex; gap: 16px; font-size: 0.75rem; color: #64748b; margin-bottom: 12px; }
+        .template-meta { display: flex; gap: 1rem; font-size: 0.7rem; color: #64748b; margin: 8px 0; }
         .card-actions {
-            display: flex; justify-content: flex-end; gap: 12px; font-size: 0.9rem;
+            display: flex; justify-content: flex-end; gap: 1rem; font-size: 0.8rem;
             color: #5e718d; border-top: 1px dashed #dce3ec; padding-top: 10px; margin-top: 6px;
         }
         .card-actions i { cursor: pointer; transition: 0.1s; }
-        .card-actions i:hover { color: #2563eb; }
-        .card-actions .fa-trash-alt:hover { color: #dc2626; }
+        .card-actions i:hover { color: #1e4a6f; }
+        .card-actions .fa-trash-alt:hover { color: #b13e3e; }
 
-        /* 右侧主编辑区 */
+        /* 右侧主编辑区卡片 */
         .main-editor {
-            flex: 1; background: #ffffff; overflow-y: auto; display: flex; flex-direction: column;
+            flex: 1;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            border: 1px solid #e9eef4;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .editor-toolbar {
-            padding: 16px 24px; border-bottom: 1px solid #eef2f6; display: flex;
-            justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #ffffff;
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: #ffffff;
         }
-        .template-title-section { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .template-title-section h1 { font-size: 1.5rem; font-weight: 600; color: #0b2b44; }
-        .version-tag { background: #eef2ff; color: #384b6d; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
-        .action-buttons { display: flex; gap: 10px; }
-
-        .btn-outline {
-            background: white; border: 1px solid #cbd5e1; border-radius: 30px; padding: 8px 16px;
-            font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 6px; transition: 0.1s;
+        .template-title-section { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+        .template-title-section h1 { font-size: 1.3rem; font-weight: 600; color: #1e3a5f; }
+        .version-tag {
+            background: #eef2ff; color: #384b6d; padding: 0.2rem 1rem; border-radius: 40px;
+            font-size: 0.7rem; font-weight: 500;
         }
-        .btn-outline:hover { background: #f8fafc; border-color: #94a3b8; }
+        .action-buttons { display: flex; gap: 0.6rem; }
 
         .basic-info-panel {
-            background: #fafcff; margin: 16px 24px; padding: 20px 24px; border-radius: 24px;
-            border: 1px solid #e6edf5; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-            gap: 20px 32px;
+            background: #f8fafd; margin: 1.2rem 2rem; padding: 1.2rem 2rem;
+            border-radius: 24px; border: 1px solid #dde3ea;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+            gap: 1rem 2rem;
         }
         .info-item { display: flex; flex-direction: column; gap: 4px; }
-        .info-label { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; color: #62748e; }
+        .info-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: #4e6f8c; }
         .info-value { font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .edit-icon { color: #7c8ba5; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
-        .edit-icon i { font-size: 0.9rem; }
+        .edit-icon { color: #7c8ba5; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
 
-        .question-bank { margin: 8px 24px 16px; }
-        .bank-label { font-size: 0.8rem; font-weight: 600; color: #415a77; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-        .bank-items { display: flex; flex-wrap: wrap; gap: 12px; }
+        .question-bank { margin: 0 2rem 1rem; }
+        .bank-label { font-size: 0.7rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+        .bank-items { display: flex; flex-wrap: wrap; gap: 0.6rem; }
         .bank-item {
-            background: #f1f5f9; border-radius: 40px; padding: 8px 18px; font-size: 0.85rem;
-            color: #1f3a5f; cursor: pointer; border: 1px solid transparent;
-            display: inline-flex; align-items: center; gap: 6px;
+            background: #f1f7fd; border-radius: 40px; padding: 0.4rem 1.4rem;
+            font-size: 0.8rem; color: #1e4a6f; cursor: pointer; border: 1px solid transparent;
+            display: inline-flex; align-items: center; gap: 6px; transition: 0.1s;
         }
-        .bank-item:hover { background: #e0e9f5; border-color: #2563eb; }
+        .bank-item:hover { background: #e0eaf5; border-color: #1e4a6f; }
 
         .questions-container {
-            flex: 1; padding: 8px 24px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+            flex: 1; padding: 0.5rem 2rem 2rem; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 1rem;
         }
-
         .question-card {
-            background: white; border: 1px solid #e9edf4; border-radius: 20px; padding: 18px 22px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            background: white; border: 1px solid #e2eaf3; border-radius: 24px;
+            padding: 1.2rem 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
         .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .q-type {
-            background: #dbeafe; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem;
-            font-weight: 600; color: #1e4e7a;
+            background: #e3f0fa; padding: 0.2rem 1rem; border-radius: 40px;
+            font-size: 0.65rem; font-weight: 600; color: #11517c; text-transform: uppercase;
         }
-        .q-actions { display: flex; gap: 12px; }
+        .q-actions { display: flex; gap: 1rem; }
         .q-actions i { color: #6f7f9a; cursor: pointer; font-size: 0.9rem; }
-        .q-actions i:hover { color: #2563eb; }
+        .q-actions i:hover { color: #1e4a6f; }
 
         .q-title {
-            font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            font-weight: 600; margin-bottom: 12px; display: flex;
+            align-items: center; gap: 12px; flex-wrap: wrap;
         }
-        .required-star { color: #dc2626; font-size: 1.2rem; }
-        .q-weight { background: #f1f4f9; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; }
+        .required-star { color: #b13e3e; font-size: 1.2rem; }
+        .q-weight { background: #ecf2f9; padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.7rem; }
 
         .options-container { margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
         .option-row {
             display: flex; align-items: center; gap: 12px; background: #f8fafc;
-            padding: 8px 12px; border-radius: 40px; border: 1px solid #e2e8f0;
+            padding: 0.5rem 1rem; border-radius: 40px; border: 1px solid #e2e8f0;
         }
-        .option-row span { flex: 1; }
-        .option-score { background: #e6f0ff; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; }
+        .option-score { background: #e6f0ff; padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.7rem; }
 
-        .matrix-preview { background: #f8fafc; border-radius: 14px; padding: 12px; border: 1px solid #dee7f2; }
-        .matrix-row { display: flex; gap: 16px; margin: 5px 0; font-size: 0.85rem; }
-        .attach-demo { background: #f0f4fe; padding: 8px 14px; border-radius: 30px; display: inline-flex; gap: 10px; }
-        .table-demo { border: 1px solid #dbe1ec; border-radius: 14px; overflow: hidden; }
-        .table-demo td { padding: 8px 12px; border: 1px solid #e2e8f0; background: white; }
+        .matrix-preview { background: #f8fafc; border-radius: 16px; padding: 0.8rem; border: 1px solid #dee7f2; }
+        .matrix-row { display: flex; gap: 1rem; margin: 5px 0; font-size: 0.8rem; }
+
         .logic-tag {
-            margin-top: 10px; background: #fef9e6; border-left: 3px solid #f5b042;
-            padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; color: #7b5e2e;
+            margin-top: 10px; background: #fef9e6; border-left: 4px solid #f5b042;
+            padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 12px; color: #7b5e2e;
             display: flex; align-items: center; gap: 6px;
         }
 
         .footer-actions {
-            padding: 20px 24px 28px; border-top: 1px solid #eef2f6; display: flex; gap: 16px;
-            flex-wrap: wrap;
+            padding: 1.5rem 2rem 2rem; border-top: 1px solid #eef2f6;
+            display: flex; gap: 1rem; flex-wrap: wrap;
         }
 
-        /* 模态框通用 */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;
+        /* 模态框风格(采用第二个页面的弹窗) */
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
         }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: white; width: 90%; max-width: 600px; border-radius: 32px;
-            padding: 28px; box-shadow: 0 20px 30px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 700px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 85vh; overflow-y: auto;
         }
-        .modal-header { font-size: 1.4rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-        .modal-field { margin-bottom: 16px; }
-        .modal-field label { display: block; font-weight: 500; margin-bottom: 6px; }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.5rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .modal-field { margin-bottom: 1.2rem; }
+        .modal-field label { font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase; display: flex; align-items: center; gap: 4px; margin-bottom: 0.3rem; }
         .modal-field input, .modal-field select, .modal-field textarea {
-            width: 100%; padding: 10px 14px; border: 1px solid #ced8e6; border-radius: 30px; font-family: inherit;
+            width: 100%; padding: 0.7rem 1.2rem; border: 1px solid #dde3ea; border-radius: 30px;
+            font-family: 'Inter', sans-serif; background: #f8fafd; outline: none;
         }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+        .modal-field input:focus, .modal-field select:focus { border-color: #2f6e9e; background: white; box-shadow: 0 0 0 3px rgba(47,110,158,0.15); }
 
-        .option-list { border: 1px solid #e2e8f0; border-radius: 20px; padding: 16px; }
-        .option-edit-item {
-            display: flex; gap: 12px; align-items: center; margin-bottom: 12px;
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;
         }
+
+        .option-list { border: 1px solid #e2e8f0; border-radius: 20px; padding: 1rem; }
+        .option-edit-item { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
         .option-edit-item input[type="text"] { flex: 1; }
-        .option-edit-item input[type="number"] { width: 80px; }
-        .remove-opt { color: #dc2626; cursor: pointer; font-weight: bold; }
+        .option-edit-item input[type="number"] { width: 90px; }
+        .remove-opt { color: #b13e3e; cursor: pointer; font-weight: bold; }
 
-        .rule-item {
-            background: #f8fafc; border-radius: 16px; padding: 15px; margin-bottom: 12px;
-            border: 1px solid #e2e8f0;
-        }
+        .rule-item { background: #f8fafd; border-radius: 20px; padding: 1rem; margin-bottom: 12px; border: 1px solid #dde3ea; }
 
         .score-item {
-            display: flex; align-items: center; gap: 12px; padding: 8px; border-bottom: 1px solid #edf2f7;
+            display: flex; align-items: center; gap: 1rem; padding: 0.6rem; border-bottom: 1px solid #edf2f7;
         }
         .score-item span:first-child { width: 200px; font-weight: 500; }
-        .score-item input { width: 80px; }
+        .score-item input { width: 100px; padding: 0.4rem 1rem; border-radius: 30px; border:1px solid #dde3ea; }
 
-        @media (max-width: 720px) {
-            .app { flex-direction: column; }
-            .template-sidebar { width: 100%; height: 280px; border-right: none; border-bottom: 1px solid #ddd; }
-            .main-editor { height: calc(100vh - 280px); }
-            .basic-info-panel { grid-template-columns: 1fr; }
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem; border-radius: 60px;
+            font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+
+        @media (max-width:720px){
+            .app{ flex-direction: column; padding:0.5rem; }
+            .template-sidebar{ width:100%; height: 280px; }
+            .main-editor{ height: calc(100vh - 280px); }
+            .basic-info-panel{ grid-template-columns:1fr; }
         }
     </style>
 </head>
@@ -202,13 +296,13 @@
     <!-- 左侧模板库 -->
     <div class="template-sidebar">
         <div class="sidebar-header">
-            <h2><i class="fas fa-layer-group" style="color:#2b5f9e;"></i> 模板库</h2>
+            <h2><i class="fas fa-layer-group" style="color:#1e4a6f;"></i> 模板库</h2>
             <button class="btn-primary" id="newTemplateBtn"><i class="fas fa-plus"></i> 新建</button>
         </div>
         <div class="search-filter">
             <div class="search-box">
-                <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
-                <input type="text" id="searchInput" placeholder="搜索模板..." style="padding-left:36px;">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜索模板...">
             </div>
             <div class="filter-tabs" id="filterTabs">
                 <button class="filter-tab active" data-filter="all">全部</button>
@@ -238,27 +332,15 @@
 
         <!-- 基础信息卡片 -->
         <div class="basic-info-panel" id="basicInfoPanel">
-            <div class="info-item">
-                <span class="info-label">模板名称</span>
-                <span class="info-value" id="infoName">奖学金申请表 (2025) <span class="edit-icon" data-field="name"><i class="fas fa-pen"></i> 编辑</span></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">分类</span>
-                <span class="info-value" id="infoCategory">申请 <span class="edit-icon" data-field="category"><i class="fas fa-pen"></i> 编辑</span></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">适用对象</span>
-                <span class="info-value" id="infoAudience">硕士、博士 <span class="edit-icon" data-field="audience"><i class="fas fa-pen"></i> 编辑</span></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">有效期限</span>
-                <span class="info-value" id="infoDate">2025-03-01 ~ 2025-04-01 <span class="edit-icon" data-field="date"><i class="fas fa-pen"></i> 编辑</span></span>
-            </div>
+            <div class="info-item"><span class="info-label">模板名称</span><span class="info-value" id="infoName">奖学金申请表 (2025) <span class="edit-icon" data-field="name"><i class="fas fa-pen"></i> 编辑</span></span></div>
+            <div class="info-item"><span class="info-label">分类</span><span class="info-value" id="infoCategory">申请 <span class="edit-icon" data-field="category"><i class="fas fa-pen"></i> 编辑</span></span></div>
+            <div class="info-item"><span class="info-label">适用对象</span><span class="info-value" id="infoAudience">硕士、博士 <span class="edit-icon" data-field="audience"><i class="fas fa-pen"></i> 编辑</span></span></div>
+            <div class="info-item"><span class="info-label">有效期限</span><span class="info-value" id="infoDate">2025-03-01 ~ 2025-04-01 <span class="edit-icon" data-field="date"><i class="fas fa-pen"></i> 编辑</span></span></div>
         </div>
 
-        <!-- 题型库快速添加 -->
+        <!-- 题型库 -->
         <div class="question-bank">
-            <div class="bank-label"><i class="fas fa-cubes"></i> 题型库 (点击添加)</div>
+            <div class="bank-label"><i class="fas fa-cubes"></i> 题型库</div>
             <div class="bank-items" id="questionBank">
                 <div class="bank-item" data-type="单选"><i class="fas fa-dot-circle"></i> 单选</div>
                 <div class="bank-item" data-type="多选"><i class="fas fa-check-square"></i> 多选</div>
@@ -270,7 +352,7 @@
             </div>
         </div>
 
-        <!-- 题目列表 (动态渲染) -->
+        <!-- 题目列表 -->
         <div class="questions-container" id="questionsContainer"></div>
 
         <!-- 底部全局动作 -->
@@ -282,92 +364,84 @@
     </div>
 </div>
 
-<!-- 新建/编辑模板模态框 -->
-<div class="modal" id="templateModal">
-    <div class="modal-content">
-        <div class="modal-header"><i class="fas fa-edit"></i> <span id="modalTitle">新建问卷模板</span></div>
+<!-- 所有弹窗 (modal-overlay 结构) -->
+<div class="modal-overlay" id="templateModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3 id="modalTitle"><i class="fas fa-edit"></i> 新建问卷模板</h3><button class="modal-close" id="closeModalBtn">&times;</button></div>
         <div class="modal-field"><label>模板名称</label><input type="text" id="modalTmplName"></div>
         <div class="modal-field"><label>分类</label><select id="modalCategory"><option>评价</option><option>申请</option><option>投票</option><option>宿舍</option></select></div>
         <div class="modal-field"><label>适用对象</label><select multiple size="3" id="modalAudience"><option value="硕士">硕士</option><option value="博士">博士</option><option value="导师">导师</option></select><small>按住ctrl多选</small></div>
         <div class="modal-field"><label>有效期限</label><input type="text" id="modalDate" placeholder="2025-03-01 ~ 2025-04-01"></div>
-        <div class="modal-actions"><button class="btn-outline" id="closeModalBtn"><i class="fas fa-times"></i> 取消</button><button class="btn-primary" id="saveTemplateBtnModal"><i class="fas fa-save"></i> 保存</button></div>
+        <div class="modal-actions"><button class="btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button><button class="btn-primary" id="saveTemplateBtnModal"><i class="fas fa-save"></i> 保存</button></div>
     </div>
 </div>
 
-<!-- 预览模态框 -->
-<div class="modal" id="previewModal">
-    <div class="modal-content" style="max-width:700px;">
-        <div class="modal-header"><i class="fas fa-eye"></i> 预览问卷 · <span id="previewTitle"></span></div>
-        <div style="max-height:500px; overflow:auto; padding:8px 12px; background:#f9fafc; border-radius:24px;" id="previewContent"></div>
-        <div class="modal-actions"><button class="btn-outline" id="closePreviewBtn"><i class="fas fa-times"></i> 关闭</button></div>
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-card" style="max-width:750px;">
+        <div class="modal-header"><h3><i class="fas fa-eye"></i> 预览问卷 · <span id="previewTitle"></span></h3><button class="modal-close" id="closePreviewBtn">&times;</button></div>
+        <div style="max-height:500px; overflow:auto; background:#f9fafc; border-radius:24px; padding:1rem;" id="previewContent"></div>
+        <div class="modal-actions"><button class="btn-outline" id="closePreviewBtn2">关闭</button></div>
     </div>
 </div>
 
-<!-- 版本历史模态框 -->
-<div class="modal" id="versionModal">
-    <div class="modal-content">
-        <div class="modal-header"><i class="fas fa-history"></i> 版本历史</div>
+<div class="modal-overlay" id="versionModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-history"></i> 版本历史</h3><button class="modal-close" id="closeVersionBtn">&times;</button></div>
         <div class="version-list" id="versionList">
-            <div class="version-item"><i class="fas fa-circle" style="color:#2563eb; font-size:0.6rem;"></i> v2.1 - 2025-02-10 当前</div>
-            <div class="version-item"><i class="fas fa-circle" style="color:#94a3b8; font-size:0.6rem;"></i> v2.0 - 2025-01-15</div>
+            <div class="version-item"><i class="fas fa-circle" style="color:#1e4a6f; font-size:0.6rem;"></i> v2.1 - 2025-02-10 当前</div>
+            <div class="version-item"><i class="fas fa-circle" style="color:#94a3b8;"></i> v2.0 - 2025-01-15</div>
         </div>
-        <div class="modal-actions"><button class="btn-outline" id="closeVersionBtn"><i class="fas fa-times"></i> 关闭</button></div>
+        <div class="modal-actions"><button class="btn-outline" id="closeVersionBtn2">关闭</button></div>
     </div>
 </div>
 
-<!-- 单项逻辑规则配置模态框 -->
-<div class="modal" id="singleLogicModal">
-    <div class="modal-content" style="max-width:500px;">
-        <div class="modal-header"><i class="fas fa-random"></i> 配置题目显示逻辑</div>
+<div class="modal-overlay" id="singleLogicModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-random"></i> 配置题目显示逻辑</h3><button class="modal-close" id="closeSingleLogic">&times;</button></div>
         <div id="singleLogicQuestionRef" style="margin-bottom:16px; font-weight:500;"></div>
-        <div class="rule-item" style="background:#ffffff; border:1px solid #d9e2ef;">
-            <div style="margin-bottom:10px;"><label>依赖题目</label> <select id="logicDepQuestion" style="width:100%;"></select></div>
-            <div style="margin-bottom:10px;"><label>依赖选项</label> <select id="logicDepOption" style="width:100%;"></select></div>
-            <div style="display: flex; align-items: center; gap:12px;">
-                <label><input type="checkbox" id="logicShowHide"> <span id="logicActionText">显示</span> 此题</label>
-            </div>
+        <div class="rule-item">
+            <div style="margin-bottom:10px;"><label>依赖题目</label><select id="logicDepQuestion" style="width:100%;"></select></div>
+            <div style="margin-bottom:10px;"><label>依赖选项</label><select id="logicDepOption" style="width:100%;"></select></div>
+            <div><label><input type="checkbox" id="logicShowHide"> <span id="logicActionText">显示</span> 此题</label></div>
         </div>
         <div class="modal-actions">
-            <button class="btn-outline" id="closeSingleLogic"><i class="fas fa-times"></i> 取消</button>
-            <button class="btn-primary" id="saveSingleLogic"><i class="fas fa-save"></i> 保存规则</button>
+            <button class="btn-outline" id="closeSingleLogicBtn">取消</button>
+            <button class="btn-primary" id="saveSingleLogic">保存规则</button>
         </div>
     </div>
 </div>
 
-<!-- 全局逻辑规则配置模态框 -->
-<div class="modal" id="globalLogicModal">
-    <div class="modal-content">
-        <div class="modal-header"><i class="fas fa-globe"></i> 全局逻辑规则</div>
+<div class="modal-overlay" id="globalLogicModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-globe"></i> 全局逻辑规则</h3><button class="modal-close" id="closeGlobalLogic">&times;</button></div>
         <div id="globalRulesContainer"></div>
         <button class="btn-outline" id="addGlobalRuleBtn" style="width:100%; margin:10px 0;"><i class="fas fa-plus"></i> 添加规则</button>
         <div class="modal-actions">
-            <button class="btn-outline" id="closeGlobalLogic"><i class="fas fa-times"></i> 关闭</button>
-            <button class="btn-primary" id="saveGlobalLogic"><i class="fas fa-save"></i> 保存全局规则</button>
+            <button class="btn-outline" id="closeGlobalLogicBtn">关闭</button>
+            <button class="btn-primary" id="saveGlobalLogic">保存全局规则</button>
         </div>
     </div>
 </div>
 
-<!-- 自动算分配置模态框 -->
-<div class="modal" id="scoreModal">
-    <div class="modal-content">
-        <div class="modal-header"><i class="fas fa-calculator"></i> 自动算分配置</div>
-        <div style="margin-bottom:16px; color:#4a5c72;">设置每题系数，总分 = Σ(题目得分 × 系数)</div>
+<div class="modal-overlay" id="scoreModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-calculator"></i> 自动算分配置</h3><button class="modal-close" id="closeScoreModal">&times;</button></div>
+        <div style="margin-bottom:16px;">设置每题系数，总分 = Σ(题目得分 × 系数)</div>
         <div id="scoreItemsContainer" style="max-height:300px; overflow-y:auto; border:1px solid #e9edf4; border-radius:16px; padding:8px;"></div>
         <div style="margin-top:16px; display:flex; align-items:center; gap:16px;">
             <label><input type="checkbox" id="enableTotalScore"> 启用总分</label>
             <label>总分字段名 <input type="text" id="totalScoreLabel" value="总分" style="width:100px;"></label>
         </div>
         <div class="modal-actions">
-            <button class="btn-outline" id="closeScoreModal"><i class="fas fa-times"></i> 取消</button>
-            <button class="btn-primary" id="saveScoreConfig"><i class="fas fa-save"></i> 保存算分规则</button>
+            <button class="btn-outline" id="closeScoreModalBtn">取消</button>
+            <button class="btn-primary" id="saveScoreConfig">保存算分规则</button>
         </div>
     </div>
 </div>
 
-<!-- 编辑题目/选项模态框 -->
-<div class="modal" id="editQuestionModal">
-    <div class="modal-content">
-        <div class="modal-header"><i class="fas fa-pen"></i> <span id="editModalTitle">编辑题目</span></div>
+<div class="modal-overlay" id="editQuestionModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><span id="editModalTitle">编辑题目</span></h3><button class="modal-close" id="closeEditModal">&times;</button></div>
         <div class="modal-field"><label>题干</label><input type="text" id="editQuestionTitle"></div>
         <div class="modal-field"><label>权重</label><input type="number" id="editQuestionWeight" step="0.1" value="1.0"></div>
         <div class="modal-field"><label><input type="checkbox" id="editRequired"> 必填</label></div>
@@ -376,11 +450,13 @@
             <div id="optionsEditor" class="option-list"></div>
         </div>
         <div class="modal-actions">
-            <button class="btn-outline" id="closeEditModal"><i class="fas fa-times"></i> 取消</button>
-            <button class="btn-primary" id="saveEditBtn"><i class="fas fa-save"></i> 保存</button>
+            <button class="btn-outline" id="closeEditModalBtn">取消</button>
+            <button class="btn-primary" id="saveEditBtn">保存</button>
         </div>
     </div>
 </div>
+
+<div id="toast" class="toast-message">操作成功</div>
 
 <script>
     (function() {
@@ -416,48 +492,49 @@
         const newTemplateBtn = document.getElementById('newTemplateBtn');
         const templateModal = document.getElementById('templateModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
         const saveTemplateBtnModal = document.getElementById('saveTemplateBtnModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalTmplName = document.getElementById('modalTmplName');
         const modalCategory = document.getElementById('modalCategory');
         const modalAudience = document.getElementById('modalAudience');
         const modalDate = document.getElementById('modalDate');
-
         const previewBtn = document.getElementById('previewBtn');
         const previewModal = document.getElementById('previewModal');
         const closePreviewBtn = document.getElementById('closePreviewBtn');
+        const closePreviewBtn2 = document.getElementById('closePreviewBtn2');
         const previewTitle = document.getElementById('previewTitle');
         const previewContent = document.getElementById('previewContent');
-
         const versionModal = document.getElementById('versionModal');
         const versionHistoryBtn = document.getElementById('versionHistoryBtn');
         const closeVersionBtn = document.getElementById('closeVersionBtn');
-
+        const closeVersionBtn2 = document.getElementById('closeVersionBtn2');
         const globalLogicBtn = document.getElementById('globalLogicBtn');
         const globalLogicModal = document.getElementById('globalLogicModal');
         const closeGlobalLogic = document.getElementById('closeGlobalLogic');
+        const closeGlobalLogicBtn = document.getElementById('closeGlobalLogicBtn');
         const saveGlobalLogic = document.getElementById('saveGlobalLogic');
         const globalRulesContainer = document.getElementById('globalRulesContainer');
         const addGlobalRuleBtn = document.getElementById('addGlobalRuleBtn');
-
         const singleLogicModal = document.getElementById('singleLogicModal');
         const closeSingleLogic = document.getElementById('closeSingleLogic');
+        const closeSingleLogicBtn = document.getElementById('closeSingleLogicBtn');
         const saveSingleLogic = document.getElementById('saveSingleLogic');
         const logicDepQuestion = document.getElementById('logicDepQuestion');
         const logicDepOption = document.getElementById('logicDepOption');
         const logicShowHide = document.getElementById('logicShowHide');
         const logicActionText = document.getElementById('logicActionText');
         const singleLogicQuestionRef = document.getElementById('singleLogicQuestionRef');
-
         const scoreModal = document.getElementById('scoreModal');
         const closeScoreModal = document.getElementById('closeScoreModal');
+        const closeScoreModalBtn = document.getElementById('closeScoreModalBtn');
         const saveScoreConfig = document.getElementById('saveScoreConfig');
         const scoreItemsContainer = document.getElementById('scoreItemsContainer');
         const enableTotalScore = document.getElementById('enableTotalScore');
         const totalScoreLabel = document.getElementById('totalScoreLabel');
-
         const editQuestionModal = document.getElementById('editQuestionModal');
         const closeEditModal = document.getElementById('closeEditModal');
+        const closeEditModalBtn = document.getElementById('closeEditModalBtn');
         const saveEditBtn = document.getElementById('saveEditBtn');
         const editQuestionTitle = document.getElementById('editQuestionTitle');
         const editQuestionWeight = document.getElementById('editQuestionWeight');
@@ -465,12 +542,10 @@
         const editOptionsArea = document.getElementById('editOptionsArea');
         const optionsEditor = document.getElementById('optionsEditor');
         const addOptionBtn = document.getElementById('addOptionBtn');
-
         const questionsContainer = document.getElementById('questionsContainer');
         const addQuestionBtn = document.getElementById('addQuestionBtn');
         const questionBank = document.getElementById('questionBank');
         const saveTemplateBtn = document.getElementById('saveTemplateBtn');
-
         const currentTemplateNameSpan = document.getElementById('currentTemplateName');
         const currentVersionSpan = document.getElementById('currentVersion');
         const currentStatusSpan = document.getElementById('currentStatus');
@@ -479,98 +554,62 @@
         const infoAudience = document.getElementById('infoAudience');
         const infoDate = document.getElementById('infoDate');
         const globalLogicCountSpan = document.getElementById('globalLogicCount');
+        const toast = document.getElementById('toast');
 
-        function getCurrentTemplate() {
-            return templates.find(t => t.id === selectedTemplateId) || null;
-        }
+        function showToast(msg) { toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
 
-        function getCurrentQuestions() {
-            return questionsData[selectedTemplateId] || [];
-        }
-
-        function setCurrentQuestions(qs) {
-            questionsData[selectedTemplateId] = qs;
-        }
+        function getCurrentTemplate() { return templates.find(t => t.id === selectedTemplateId) || null; }
+        function getCurrentQuestions() { return questionsData[selectedTemplateId] || []; }
+        function setCurrentQuestions(qs) { questionsData[selectedTemplateId] = qs; }
 
         function updateGlobalCount() {
             const tmpl = getCurrentTemplate();
-            const cnt = tmpl?.globalRules?.length || 0;
-            globalLogicCountSpan.innerText = `(${cnt}条)`;
+            globalLogicCountSpan.innerText = `(${tmpl?.globalRules?.length || 0}条)`;
         }
 
-        // 渲染左侧列表
         function renderTemplateList() {
-        // 在函数内部定义状态映射
-const statusMap = { published: '已发布', draft: '草稿', archived: '已归档' };
-            const filtered = templates.filter(t => {
-                if (currentFilter !== 'all' && t.category !== currentFilter) return false;
-                if (searchTerm && !t.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-                return true;
-            });
+            const filtered = templates.filter(t => (currentFilter === 'all' || t.category === currentFilter) && (!searchTerm || t.name.toLowerCase().includes(searchTerm.toLowerCase())));
             let html = '';
             filtered.forEach(t => {
-                const selectedClass = (t.id === selectedTemplateId) ? 'selected' : '';
+                const selectedClass = t.id === selectedTemplateId ? 'selected' : '';
                 const statusClass = t.status === 'published' ? 'published' : (t.status === 'archived' ? 'archived' : '');
+                const statusText = t.status === 'published' ? '已发布' : (t.status === 'draft' ? '草稿' : '已归档');
                 html += `<div class="template-card ${selectedClass}" data-id="${t.id}">
-                    <div class="card-header"><span class="template-name">${t.name}</span><span class="status-badge ${statusClass}">${statusMap[t.status]}</span></div>
+                    <div class="card-header"><span class="template-name">${t.name}</span><span class="status-badge ${statusClass}">${statusText}</span></div>
                     <div class="template-meta"><span><i class="fas fa-tag"></i> ${t.category}</span><span><i class="fas fa-users"></i> ${t.fillCount}</span></div>
                     <div class="card-actions">
-                        <i class="fas fa-edit" data-action="edit" data-id="${t.id}" title="编辑"></i>
-                        <i class="fas fa-copy" data-action="copy" data-id="${t.id}" title="复制"></i>
-                        <i class="fas fa-trash-alt" data-action="delete" data-id="${t.id}" title="删除"></i>
-                        <i class="fas fa-eye" data-action="preview" data-id="${t.id}" title="预览"></i>
+                        <i class="fas fa-edit" data-action="edit" data-id="${t.id}"></i>
+                        <i class="fas fa-copy" data-action="copy" data-id="${t.id}"></i>
+                        <i class="fas fa-trash-alt" data-action="delete" data-id="${t.id}"></i>
+                        <i class="fas fa-eye" data-action="preview" data-id="${t.id}"></i>
                     </div>
                 </div>`;
             });
             templateListDiv.innerHTML = html || '<div style="padding:20px;text-align:center;">暂无模板</div>';
         }
 
-        // 渲染题目列表
         function renderQuestions() {
             const qs = getCurrentQuestions();
             let html = '';
             qs.forEach((q, idx) => {
-                let optionsHtml = '';
+                let opts = '';
                 if (q.type === '单选' || q.type === '多选') {
-                    optionsHtml = '<div class="options-container">';
-                    q.options.forEach(opt => {
-                        optionsHtml += `<div class="option-row"><span>${opt.text}</span>${opt.score ? `<span class="option-score"><i class="fas fa-star"></i> ${opt.score}</span>` : ''}</div>`;
-                    });
-                    optionsHtml += '</div>';
+                    q.options.forEach(opt => opts += `<div class="option-row"><span>${opt.text}</span>${opt.score ? `<span class="option-score"><i class="fas fa-star"></i> ${opt.score}</span>` : ''}</div>`);
                 } else if (q.type === '评分') {
-                    optionsHtml = '<div class="q-options"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> (评分)</div>';
+                    opts = '<div class="q-options"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> (评分)</div>';
                 } else if (q.type === '矩阵单选') {
-                    optionsHtml = '<div class="matrix-preview">';
-                    q.matrixRows.forEach(row => {
-                        optionsHtml += `<div class="matrix-row"><span style="width:100px;">${row}</span> ${q.matrixCols.join(' · ')}</div>`;
-                    });
-                    optionsHtml += '</div>';
+                    opts = '<div class="matrix-preview">';
+                    q.matrixRows.forEach(r => opts += `<div class="matrix-row"><span style="width:100px;">${r}</span> ${q.matrixCols.join(' · ')}</div>`);
+                    opts += '</div>';
                 } else if (q.type === '附件') {
-                    optionsHtml = '<div class="attach-demo"><i class="fas fa-paperclip"></i> 上传附件</div>';
+                    opts = '<div class="attach-demo"><i class="fas fa-paperclip"></i> 上传附件</div>';
                 } else if (q.type === '表格填写') {
-                    optionsHtml = '<table class="table-demo"><tr>'+q.tableCols.map(c=>'<th>'+c+'</th>').join('')+'</tr><tr><td>示例</td><td>示例</td><td>0.0</td></tr></table>';
+                    opts = '<table style="border:1px solid #dbe1ec; border-radius:14px;"><tr>'+q.tableCols.map(c=>'<th>'+c+'</th>').join('')+'</tr><tr><td colspan="3">示例</td></tr></table>';
                 }
-
-                let logicTag = '';
-                if (q.logic) {
-                    const depQ = qs.find(qq=>qq.id===q.logic.depQid);
-                    logicTag = `<div class="logic-tag"><i class="fas fa-code-branch"></i> 逻辑: 当「${depQ?.title||'?'}」=「${q.logic.depOption}」时 ${q.logic.action==='show'?'显示':'隐藏'}</div>`;
-                }
-
+                let logicTag = q.logic ? `<div class="logic-tag"><i class="fas fa-code-branch"></i> 逻辑: 当「${(qs.find(qq=>qq.id===q.logic.depQid)?.title)||'?'}」=「${q.logic.depOption}」时 ${q.logic.action==='show'?'显示':'隐藏'}</div>` : '';
                 html += `<div class="question-card" data-qid="${q.id}">
-                    <div class="question-header">
-                        <span class="q-type">${q.type}</span>
-                        <div class="q-actions">
-                            <i class="fas fa-random" data-action="logic" title="逻辑规则"></i>
-                            <i class="fas fa-edit" data-action="edit" title="编辑"></i>
-                            <i class="fas fa-copy" data-action="copy" title="复制"></i>
-                            <i class="fas fa-trash-alt" data-action="delete" title="删除"></i>
-                        </div>
-                    </div>
-                    <div class="q-title">${idx+1}. ${q.title} ${q.required ? '<span class="required-star">*</span>' : ''}<span class="q-weight"><i class="fas fa-weight"></i> 权重: ${q.weight}</span></div>
-                    ${optionsHtml}
-                    ${logicTag}
-                </div>`;
+                    <div class="question-header"><span class="q-type">${q.type}</span><div class="q-actions"><i class="fas fa-random" data-action="logic"></i><i class="fas fa-edit" data-action="edit"></i><i class="fas fa-copy" data-action="copy"></i><i class="fas fa-trash-alt" data-action="delete"></i></div></div>
+                    <div class="q-title">${idx+1}. ${q.title} ${q.required ? '<span class="required-star">*</span>' : ''}<span class="q-weight"><i class="fas fa-weight"></i> 权重: ${q.weight}</span></div>${opts}${logicTag}</div>`;
             });
             questionsContainer.innerHTML = html;
         }
@@ -591,12 +630,7 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
             updateGlobalCount();
         }
 
-        function selectTemplate(id) {
-            selectedTemplateId = id;
-            renderTemplateList();
-            renderQuestions();
-            updateEditorInfo();
-        }
+        function selectTemplate(id) { selectedTemplateId = id; renderTemplateList(); renderQuestions(); updateEditorInfo(); }
 
         function deleteTemplate(id) {
             if (confirm('确认删除？')) {
@@ -605,76 +639,46 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                 if (selectedTemplateId === id) {
                     selectedTemplateId = templates.length ? templates[0].id : null;
                     if (selectedTemplateId) selectTemplate(selectedTemplateId);
-                } else {
-                    renderTemplateList();
-                }
+                } else renderTemplateList();
+                showToast('已删除');
             }
         }
 
         function copyTemplate(id) {
-            const original = templates.find(t => t.id === id);
-            if (original) {
+            const orig = templates.find(t => t.id === id);
+            if (orig) {
                 const newId = 't' + Date.now() + Math.random().toString(36).substr(2,4);
-                const copy = { ...original, id: newId, name: original.name + ' 副本', status: 'draft', fillCount: 0, version: 'v1.0' };
+                const copy = { ...orig, id: newId, name: orig.name + ' 副本', status: 'draft', fillCount: 0, version: 'v1.0' };
                 templates.push(copy);
                 questionsData[newId] = JSON.parse(JSON.stringify(questionsData[id] || []));
                 renderTemplateList();
                 selectTemplate(newId);
+                showToast('已复制');
             }
         }
 
         function openPreview(optionalId) {
-            const tmpl = optionalId ? templates.find(t=>t.id===optionalId) : getCurrentTemplate();
+            const tmpl = optionalId ? templates.find(t => t.id === optionalId) : getCurrentTemplate();
             if (!tmpl) return;
             const qs = questionsData[tmpl.id] || [];
             previewTitle.innerText = tmpl.name;
-            let previewHtml = `<div style="font-weight:600;margin-bottom:16px;">${tmpl.name} (${tmpl.category})</div>`;
-            qs.forEach((q,idx) => {
-                previewHtml += `<div style="margin-bottom:20px; padding:12px; background:white; border-radius:16px;">`;
-                previewHtml += `<div style="font-weight:500;">${idx+1}. ${q.title} ${q.required?'<span style="color:red;">*</span>':''}</div>`;
-                if (q.type === '单选') {
-                    q.options.forEach(opt => previewHtml += `<div style="margin:5px 0;"><i class="far fa-circle"></i> ${opt.text}</div>`);
-                } else if (q.type === '多选') {
-                    q.options.forEach(opt => previewHtml += `<div><i class="far fa-square"></i> ${opt.text}</div>`);
-                } else if (q.type === '文本') {
-                    previewHtml += `<textarea placeholder="请输入" style="width:100%;border:1px solid #ccc;border-radius:8px;padding:8px;" disabled></textarea>`;
-                } else if (q.type === '评分') {
-                    previewHtml += `<span class="fa-star"></span><span class="fa-star"></span><span class="fa-star"></span><span class="fa-star"></span><span class="fa-star"></span>`;
-                } else if (q.type === '附件') {
-                    previewHtml += `<div style="background:#f0f4fe;padding:8px;border-radius:30px;"><i class="fas fa-paperclip"></i> 上传附件</div>`;
-                } else if (q.type === '表格填写') {
-                    previewHtml += `<table style="border:1px solid #ccc;"><tr>${q.tableCols.map(c=>'<th>'+c+'</th>').join('')}</tr><tr><td colspan="3">添加行</td></tr></table>`;
-                }
-                if (q.logic) previewHtml += `<div style="color:#b85e00;font-size:0.8rem;"><i class="fas fa-code-branch"></i> 逻辑控制</div>`;
-                previewHtml += `</div>`;
+            let html = `<div style="font-weight:600;margin-bottom:16px;">${tmpl.name}</div>`;
+            qs.forEach((q, idx) => {
+                html += `<div style="margin-bottom:20px; padding:12px; background:white; border-radius:16px;"><div style="font-weight:500;">${idx+1}. ${q.title}${q.required?'<span style="color:red;">*</span>':''}</div>`;
+                if (q.type === '单选') q.options.forEach(o => html += `<div><i class="far fa-circle"></i> ${o.text}</div>`);
+                else if (q.type === '多选') q.options.forEach(o => html += `<div><i class="far fa-square"></i> ${o.text}</div>`);
+                else if (q.type === '文本') html += `<textarea placeholder="请输入" style="width:100%;border:1px solid #ccc;border-radius:8px;padding:8px;" disabled></textarea>`;
+                else if (q.type === '评分') html += `<span class="fa-star"></span><span class="fa-star"></span><span class="fa-star"></span><span class="fa-star"></span><span class="fa-star"></span>`;
+                else if (q.type === '附件') html += `<div style="background:#f0f4fe;padding:8px;border-radius:30px;"><i class="fas fa-paperclip"></i> 上传附件</div>`;
+                else if (q.type === '表格填写') html += `<table style="border:1px solid #ccc;"><tr>${q.tableCols.map(c=>'<th>'+c+'</th>').join('')}</tr><tr><td colspan="3">添加行</td></tr></table>`;
+                if (q.logic) html += `<div style="color:#b85e00;"><i class="fas fa-code-branch"></i> 逻辑控制</div>`;
+                html += `</div>`;
             });
-            previewContent.innerHTML = previewHtml;
+            previewContent.innerHTML = html;
             previewModal.classList.add('active');
         }
 
-        function saveCurrentTemplate() {
-            alert('模板已保存 (模拟)');
-        }
-
-        // 自动算分弹窗渲染
-        function renderScoreModal() {
-            const tmpl = getCurrentTemplate();
-            const qs = getCurrentQuestions();
-            const config = tmpl.scoreConfig || { enabled: false, totalLabel: '总分', coefficients: {} };
-            enableTotalScore.checked = config.enabled;
-            totalScoreLabel.value = config.totalLabel || '总分';
-            let html = '';
-            qs.forEach(q => {
-                const coef = config.coefficients?.[q.id] || q.weight || 0;
-                html += `<div class="score-item">
-                    <span>${q.title}</span>
-                    <input type="number" step="0.1" value="${coef}" data-qid="${q.id}" class="score-coef" placeholder="系数">
-                </div>`;
-            });
-            scoreItemsContainer.innerHTML = html;
-        }
-
-        // 事件绑定 -------------------------------------------------
+        // 事件绑定
         templateListDiv.addEventListener('click', (e) => {
             const card = e.target.closest('.template-card');
             if (!card) return;
@@ -683,8 +687,8 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                 const icon = e.target.closest('.card-actions i');
                 const action = icon.dataset.action;
                 if (action === 'edit') {
-                    const tmpl = templates.find(t=>t.id===id);
-                    if(tmpl) {
+                    const tmpl = templates.find(t => t.id === id);
+                    if (tmpl) {
                         modalTitle.innerText = '编辑模板';
                         modalTmplName.value = tmpl.name;
                         modalCategory.value = tmpl.category;
@@ -694,12 +698,13 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                         const saveHandler = function() {
                             tmpl.name = modalTmplName.value.trim();
                             tmpl.category = modalCategory.value;
-                            tmpl.audience = Array.from(modalAudience.selectedOptions).map(o=>o.value).join(',');
+                            tmpl.audience = Array.from(modalAudience.selectedOptions).map(o => o.value).join(',');
                             tmpl.dateRange = modalDate.value;
                             renderTemplateList();
                             updateEditorInfo();
                             templateModal.classList.remove('active');
                             saveTemplateBtnModal.removeEventListener('click', saveHandler);
+                            showToast('已更新');
                         };
                         saveTemplateBtnModal.addEventListener('click', saveHandler);
                     }
@@ -707,9 +712,7 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                 else if (action === 'delete') deleteTemplate(id);
                 else if (action === 'preview') openPreview(id);
                 e.stopPropagation();
-            } else {
-                selectTemplate(id);
-            }
+            } else selectTemplate(id);
         });
 
         document.getElementById('basicInfoPanel').addEventListener('click', (e) => {
@@ -717,11 +720,7 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                 const field = e.target.closest('.edit-icon').dataset.field;
                 const tmpl = getCurrentTemplate();
                 if (!tmpl) return;
-                let newVal;
-                if (field === 'name') newVal = prompt('模板名称', tmpl.name);
-                else if (field === 'category') newVal = prompt('分类', tmpl.category);
-                else if (field === 'audience') newVal = prompt('适用对象', tmpl.audience);
-                else if (field === 'date') newVal = prompt('有效期限', tmpl.dateRange);
+                let newVal = prompt('修改', field === 'name' ? tmpl.name : field === 'category' ? tmpl.category : field === 'audience' ? tmpl.audience : tmpl.dateRange);
                 if (newVal !== null) {
                     if (field === 'name') tmpl.name = newVal;
                     else if (field === 'category') tmpl.category = newVal;
@@ -729,6 +728,7 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                     else if (field === 'date') tmpl.dateRange = newVal;
                     renderTemplateList();
                     updateEditorInfo();
+                    showToast('已更新');
                 }
             }
         });
@@ -743,140 +743,108 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
             const saveHandler = function() {
                 const name = modalTmplName.value.trim();
                 if (!name) { alert('请输入名称'); return; }
-                const newId = 't' + Date.now();
-                const tmpl = {
-                    id: newId, name, category: modalCategory.value,
-                    audience: Array.from(modalAudience.selectedOptions).map(o=>o.value).join(','),
-                    dateRange: modalDate.value, status: 'draft', fillCount: 0, version: 'v1.0', globalRules: [], scoreConfig: { enabled: false }
-                };
+                const newId = 't' + Date.now() + Math.random().toString(36).substr(2,4);
+                const tmpl = { id: newId, name, category: modalCategory.value, audience: Array.from(modalAudience.selectedOptions).map(o=>o.value).join(','), dateRange: modalDate.value, status: 'draft', fillCount: 0, version: 'v1.0', globalRules: [], scoreConfig: { enabled: false } };
                 templates.push(tmpl);
                 questionsData[newId] = [];
                 templateModal.classList.remove('active');
                 renderTemplateList();
                 selectTemplate(newId);
                 saveTemplateBtnModal.removeEventListener('click', saveHandler);
+                showToast('新建成功');
             };
             saveTemplateBtnModal.addEventListener('click', saveHandler);
         });
 
         closeModalBtn.addEventListener('click', () => templateModal.classList.remove('active'));
+        modalCancelBtn.addEventListener('click', () => templateModal.classList.remove('active'));
 
         previewBtn.addEventListener('click', () => openPreview());
         closePreviewBtn.addEventListener('click', () => previewModal.classList.remove('active'));
+        closePreviewBtn2.addEventListener('click', () => previewModal.classList.remove('active'));
 
         versionHistoryBtn.addEventListener('click', () => versionModal.classList.add('active'));
         closeVersionBtn.addEventListener('click', () => versionModal.classList.remove('active'));
+        closeVersionBtn2.addEventListener('click', () => versionModal.classList.remove('active'));
+
+        saveTemplateBtn.addEventListener('click', () => { showToast('模板已保存 (模拟)'); });
 
         // 全局逻辑
         globalLogicBtn.addEventListener('click', () => {
             const tmpl = getCurrentTemplate();
             if (!tmpl) return;
             let rulesHtml = '';
-            const rules = tmpl.globalRules || [];
-            rules.forEach((r, idx) => {
-                rulesHtml += `<div class="rule-item"><i class="fas fa-link"></i> 规则 ${idx+1}: 如果 ${r.condition} 则 ${r.action}</div>`;
-            });
-            if (rulesHtml === '') rulesHtml = '<p style="color:#999;">暂无全局规则，点击下方添加</p>';
-            globalRulesContainer.innerHTML = rulesHtml;
+            (tmpl.globalRules || []).forEach((r, idx) => { rulesHtml += `<div class="rule-item"><i class="fas fa-link"></i> 规则 ${idx+1}: 如果 ${r.condition} 则 ${r.action}</div>`; });
+            globalRulesContainer.innerHTML = rulesHtml || '<p style="color:#999;">暂无全局规则，点击下方添加</p>';
             globalLogicModal.classList.add('active');
         });
-
         addGlobalRuleBtn.addEventListener('click', () => {
-            const ruleDiv = document.createElement('div');
-            ruleDiv.className = 'rule-item';
-            ruleDiv.innerHTML = `<select><option>题目1</option><option>题目2</option></select> = <input placeholder="选项值"> 则 <select><option>显示</option><option>隐藏</option></select> 题目 <select><option>题目3</option></select>`;
-            globalRulesContainer.appendChild(ruleDiv);
+            const div = document.createElement('div'); div.className = 'rule-item';
+            div.innerHTML = `<select><option>题目1</option><option>题目2</option></select> = <input placeholder="选项值"> 则 <select><option>显示</option><option>隐藏</option></select> 题目 <select><option>题目3</option></select>`;
+            globalRulesContainer.appendChild(div);
         });
-
         closeGlobalLogic.addEventListener('click', () => globalLogicModal.classList.remove('active'));
-        saveGlobalLogic.addEventListener('click', () => {
-            alert('全局规则已保存（模拟）');
-            globalLogicModal.classList.remove('active');
-        });
+        closeGlobalLogicBtn.addEventListener('click', () => globalLogicModal.classList.remove('active'));
+        saveGlobalLogic.addEventListener('click', () => { showToast('全局规则已保存（模拟）'); globalLogicModal.classList.remove('active'); });
 
         // 自动算分
         document.getElementById('scoreConfigBtn').addEventListener('click', () => {
-            renderScoreModal();
+            const tmpl = getCurrentTemplate(); if (!tmpl) return;
+            const qs = getCurrentQuestions(); const config = tmpl.scoreConfig || { enabled: false, totalLabel: '总分', coefficients: {} };
+            enableTotalScore.checked = config.enabled;
+            totalScoreLabel.value = config.totalLabel || '总分';
+            let html = '';
+            qs.forEach(q => { const coef = config.coefficients?.[q.id] || q.weight || 0; html += `<div class="score-item"><span>${q.title}</span><input type="number" step="0.1" value="${coef}" data-qid="${q.id}" class="score-coef" placeholder="系数"></div>`; });
+            scoreItemsContainer.innerHTML = html;
             scoreModal.classList.add('active');
         });
         closeScoreModal.addEventListener('click', () => scoreModal.classList.remove('active'));
+        closeScoreModalBtn.addEventListener('click', () => scoreModal.classList.remove('active'));
         saveScoreConfig.addEventListener('click', () => {
-            const tmpl = getCurrentTemplate();
-            if (!tmpl) return;
+            const tmpl = getCurrentTemplate(); if (!tmpl) return;
             const coefs = {};
-            document.querySelectorAll('.score-coef').forEach(input => {
-                const qid = input.dataset.qid;
-                coefs[qid] = parseFloat(input.value) || 0;
-            });
-            tmpl.scoreConfig = {
-                enabled: enableTotalScore.checked,
-                totalLabel: totalScoreLabel.value.trim() || '总分',
-                coefficients: coefs
-            };
-            alert('算分规则已保存');
+            document.querySelectorAll('.score-coef').forEach(inp => { coefs[inp.dataset.qid] = parseFloat(inp.value) || 0; });
+            tmpl.scoreConfig = { enabled: enableTotalScore.checked, totalLabel: totalScoreLabel.value.trim() || '总分', coefficients: coefs };
+            showToast('算分规则已保存');
             scoreModal.classList.remove('active');
         });
 
         // 题目操作
         questionsContainer.addEventListener('click', (e) => {
-            const target = e.target;
-            const card = target.closest('.question-card');
+            const card = e.target.closest('.question-card');
             if (!card) return;
             const qid = card.dataset.qid;
             const qs = getCurrentQuestions();
             const q = qs.find(q => q.id === qid);
             if (!q) return;
 
-            if (target.closest('[data-action="logic"]')) {
+            if (e.target.closest('[data-action="logic"]')) {
                 singleLogicQuestionRef.innerText = `为题目「${q.title}」配置逻辑`;
                 logicDepQuestion.innerHTML = '<option value="">选择依赖题目</option>';
-                qs.forEach(qq => {
-                    if (qq.id !== qid) {
-                        let opt = document.createElement('option');
-                        opt.value = qq.id;
-                        opt.text = qq.title;
-                        logicDepQuestion.appendChild(opt);
-                    }
-                });
+                qs.forEach(qq => { if (qq.id !== qid) logicDepQuestion.appendChild(new Option(qq.title, qq.id)); });
                 logicDepOption.innerHTML = '<option value="">先选依赖题目</option>';
                 logicDepQuestion.onchange = function() {
-                    const depId = this.value;
-                    const depQ = qs.find(qq => qq.id === depId);
-                    if (depQ && (depQ.type==='单选'||depQ.type==='多选')) {
+                    const depId = this.value; const depQ = qs.find(qq => qq.id === depId);
+                    if (depQ && (depQ.type === '单选' || depQ.type === '多选')) {
                         logicDepOption.innerHTML = '<option value="">选择选项</option>';
-                        depQ.options.forEach(opt => {
-                            let o = document.createElement('option');
-                            o.value = opt.text;
-                            o.text = opt.text;
-                            logicDepOption.appendChild(o);
-                        });
-                    } else {
-                        logicDepOption.innerHTML = '<option value="">无需选项</option>';
-                    }
+                        depQ.options.forEach(opt => logicDepOption.appendChild(new Option(opt.text, opt.text)));
+                    } else logicDepOption.innerHTML = '<option value="">无需选项</option>';
                 };
                 logicShowHide.checked = (q.logic?.action === 'show');
                 logicActionText.innerText = logicShowHide.checked ? '显示' : '隐藏';
-                logicShowHide.onchange = function() {
-                    logicActionText.innerText = this.checked ? '显示' : '隐藏';
-                };
+                logicShowHide.onchange = function() { logicActionText.innerText = this.checked ? '显示' : '隐藏'; };
                 singleLogicModal.classList.add('active');
-                const saveSingleHandler = function() {
-                    const depId = logicDepQuestion.value;
-                    const depOpt = logicDepOption.value;
+                const saveHandler = function() {
+                    const depId = logicDepQuestion.value; const depOpt = logicDepOption.value;
                     if (!depId) { alert('请选择依赖题目'); return; }
-                    q.logic = {
-                        depQid: depId,
-                        depOption: depOpt || null,
-                        action: logicShowHide.checked ? 'show' : 'hide'
-                    };
-                    renderQuestions();
-                    singleLogicModal.classList.remove('active');
-                    saveSingleLogic.removeEventListener('click', saveSingleHandler);
+                    q.logic = { depQid: depId, depOption: depOpt || null, action: logicShowHide.checked ? 'show' : 'hide' };
+                    renderQuestions(); singleLogicModal.classList.remove('active'); saveSingleLogic.removeEventListener('click', saveHandler); showToast('逻辑已保存');
                 };
-                saveSingleLogic.addEventListener('click', saveSingleHandler);
+                saveSingleLogic.addEventListener('click', saveHandler);
                 closeSingleLogic.onclick = () => singleLogicModal.classList.remove('active');
+                closeSingleLogicBtn.onclick = () => singleLogicModal.classList.remove('active');
             }
-            else if (target.closest('[data-action="edit"]')) {
+            else if (e.target.closest('[data-action="edit"]')) {
                 currentEditingQuestionId = qid;
                 editQuestionTitle.value = q.title;
                 editQuestionWeight.value = q.weight;
@@ -885,29 +853,22 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                     editOptionsArea.style.display = 'block';
                     let optsHtml = '';
                     q.options.forEach((opt, idx) => {
-                        optsHtml += `<div class="option-edit-item" data-idx="${idx}">
-                            <input type="text" value="${opt.text}" placeholder="选项文字">
-                            <input type="number" value="${opt.score || 0}" step="0.1" placeholder="分数" style="width:80px;">
-                            <span class="remove-opt"><i class="fas fa-times-circle"></i></span>
-                        </div>`;
+                        optsHtml += `<div class="option-edit-item" data-idx="${idx}"><input type="text" value="${opt.text}" placeholder="选项文字"><input type="number" value="${opt.score || 0}" step="0.1" placeholder="分数" style="width:80px;"><span class="remove-opt"><i class="fas fa-times-circle"></i></span></div>`;
                     });
                     optionsEditor.innerHTML = optsHtml;
-                } else {
-                    editOptionsArea.style.display = 'none';
-                }
+                } else editOptionsArea.style.display = 'none';
                 editQuestionModal.classList.add('active');
             }
-            else if (target.closest('[data-action="copy"]')) {
+            else if (e.target.closest('[data-action="copy"]')) {
                 const newQ = JSON.parse(JSON.stringify(q));
                 newQ.id = 'q' + Date.now() + Math.random().toString(36).substr(2,4);
-                qs.push(newQ);
-                renderQuestions();
+                qs.push(newQ); renderQuestions(); showToast('已复制');
             }
-            else if (target.closest('[data-action="delete"]')) {
+            else if (e.target.closest('[data-action="delete"]')) {
                 if (confirm('删除此题？')) {
                     const idx = qs.findIndex(qq => qq.id === qid);
                     if (idx !== -1) qs.splice(idx, 1);
-                    renderQuestions();
+                    renderQuestions(); showToast('已删除');
                 }
             }
         });
@@ -928,55 +889,37 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                 });
                 q.options = opts;
             }
-            renderQuestions();
-            editQuestionModal.classList.remove('active');
+            renderQuestions(); editQuestionModal.classList.remove('active'); showToast('题目已更新');
         });
 
         closeEditModal.addEventListener('click', () => editQuestionModal.classList.remove('active'));
+        closeEditModalBtn.addEventListener('click', () => editQuestionModal.classList.remove('active'));
 
         addOptionBtn.addEventListener('click', () => {
-            const container = optionsEditor;
-            const div = document.createElement('div');
-            div.className = 'option-edit-item';
+            const div = document.createElement('div'); div.className = 'option-edit-item';
             div.innerHTML = `<input type="text" placeholder="选项文字"><input type="number" step="0.1" placeholder="分数" style="width:80px;"><span class="remove-opt"><i class="fas fa-times-circle"></i></span>`;
-            container.appendChild(div);
+            optionsEditor.appendChild(div);
         });
-
-        optionsEditor.addEventListener('click', (e) => {
-            if (e.target.closest('.remove-opt')) {
-                e.target.closest('.option-edit-item').remove();
-            }
-        });
+        optionsEditor.addEventListener('click', (e) => { if (e.target.closest('.remove-opt')) e.target.closest('.option-edit-item').remove(); });
 
         questionBank.addEventListener('click', (e) => {
-            const btn = e.target.closest('.bank-item');
-            if (!btn) return;
+            const btn = e.target.closest('.bank-item'); if (!btn) return;
             const type = btn.dataset.type;
             const qs = getCurrentQuestions();
             const newId = 'q' + Date.now() + Math.random().toString(36).substr(2,4);
-            let newQ = { id: newId, type: type, title: '新'+type+'题', required: false, weight: 1, logic: null };
-            if (type === '单选' || type === '多选') {
-                newQ.options = [{text:'选项1',score:0},{text:'选项2',score:0}];
-            } else if (type === '矩阵') {
-                newQ.type = '矩阵单选';
-                newQ.matrixRows = ['行1','行2'];
-                newQ.matrixCols = ['列1','列2','列3'];
-            } else if (type === '表格') {
-                newQ.type = '表格填写';
-                newQ.tableCols = ['列1','列2'];
-            }
-            qs.push(newQ);
-            renderQuestions();
+            let newQ = { id: newId, type: type, title: '新' + type + '题', required: false, weight: 1, logic: null };
+            if (type === '单选' || type === '多选') newQ.options = [{text:'选项1',score:0},{text:'选项2',score:0}];
+            else if (type === '矩阵') { newQ.type = '矩阵单选'; newQ.matrixRows = ['行1','行2']; newQ.matrixCols = ['列1','列2','列3']; }
+            else if (type === '表格') { newQ.type = '表格填写'; newQ.tableCols = ['列1','列2']; }
+            qs.push(newQ); renderQuestions(); showToast('已添加题目');
         });
 
         addQuestionBtn.addEventListener('click', () => {
             const qs = getCurrentQuestions();
             const newId = 'q' + Date.now() + Math.random().toString(36).substr(2,4);
             qs.push({ id: newId, type: '文本', title: '新文本题', required: false, weight: 0, options: [] });
-            renderQuestions();
+            renderQuestions(); showToast('已添加文本题');
         });
-
-        saveTemplateBtn.addEventListener('click', saveCurrentTemplate);
 
         filterTabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -986,16 +929,10 @@ const statusMap = { published: '已发布', draft: '草稿', archived: '已归�
                 renderTemplateList();
             });
         });
+        searchInput.addEventListener('input', (e) => { searchTerm = e.target.value; renderTemplateList(); });
+        window.addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); });
 
-        searchInput.addEventListener('input', (e) => {
-            searchTerm = e.target.value;
-            renderTemplateList();
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) e.target.classList.remove('active');
-        });
-
+        // 初始化
         renderTemplateList();
         selectTemplate('t1');
     })();

@@ -3,269 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>研究生站内信 · 模板管理</title>
-    <!-- Font Awesome 6 免费图标库 (专业图标替换简易符号) -->
+    <title>研究生站内信 · 模板管理（新建弹窗版）</title>
+    <!-- Inter 字体 + Font Awesome 6 (与第二个页面完全一致) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body, html {
-            height: 100%;
-            background-color: #f0f2f5;
-        }
-
-        /* 主容器，撑满整个屏幕 */
-        .app {
+        /* 全局样式完全采用第二个页面的设计系统 (卡片、按钮、弹窗风格) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100%;
-            max-width: 100%;
-            background-color: #fff;
         }
-
-        /* 头部区域 (无导航条) */
-        .app-header {
-            padding: 1rem 1.5rem;
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
             background: #ffffff;
-            border-bottom: 1px solid #e4e6e9;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
-            flex-shrink: 0;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
         }
-
-        .header-row {
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-        }
-
-        .header-title {
-            font-size: 1.5rem;
+            gap: 0.6rem;
+            font-size: 1.3rem;
             font-weight: 600;
-            color: #1e293b;
-            letter-spacing: 0.3px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
         }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
 
-        .btn-new {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 0.5rem 1.2rem;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(37,99,235,0.2);
-            transition: background 0.15s;
-            border: 1px solid #2563eb;
-        }
-
-        .btn-new:hover {
-            background-color: #1d4ed8;
-        }
-
-        /* 搜索栏 */
-        .search-bar {
+        /* 筛选栏 / 工具栏 */
+        .filter-bar {
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
-            gap: 0.8rem 1.2rem;
-            background: #f8fafc;
-            padding: 0.8rem 1rem;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
         }
-
-        .search-item {
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 170px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 4px;
         }
-
-        .search-item label {
-            color: #475569;
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
             white-space: nowrap;
         }
-
-        .search-item input, .search-item select {
-            padding: 0.5rem 0.8rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            background: white;
-            min-width: 150px;
-        }
-
-        .search-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: auto;
-        }
-
-        .search-actions button {
-            background: white;
-            border: 1px solid #cbd5e1;
-            padding: 0.45rem 1.2rem;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.1s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .search-actions button:first-child {
-            background: #2563eb;
+        .btn-primary {
+            background: #1e4a6f;
             color: white;
-            border-color: #2563eb;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
         }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
 
-        /* 主体：左右分栏 */
-        .main-area {
+        /* 新建按钮 (独立样式) */
+        .btn-new {
+            background: #1e4a6f;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+            transition: 0.15s;
+        }
+        .btn-new:hover { background: #123a58; transform: translateY(-2px); }
+
+        /* 左右分栏卡片 */
+        .main-split {
             display: flex;
-            flex: 1;
-            overflow: hidden;
-            min-height: 0;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
         }
-
-        /* 左侧模板列表 */
         .template-list-panel {
-            width: 32%;
+            flex: 1 1 35%;
+            min-width: 320px;
             background: #ffffff;
-            border-right: 1px solid #e9edf2;
+            border-radius: 28px;
+            border: 1px solid #e9eef4;
+            padding: 1.5rem 1rem;
+            box-shadow: 0 8px 24px rgba(0,20,40,0.04);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            max-height: 70vh;
+        }
+        .edit-panel {
+            flex: 1 1 60%;
+            min-width: 380px;
+            background: #ffffff;
+            border-radius: 28px;
+            border: 1px solid #e9eef4;
+            padding: 1.8rem 2rem;
+            box-shadow: 0 8px 24px rgba(0,20,40,0.04);
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+        @media (max-width: 800px) {
+            .main-split { flex-direction: column; }
+            .template-list-panel, .edit-panel { max-height: none; }
         }
 
         .list-header {
-            padding: 1rem 1.2rem 0.5rem;
             font-weight: 600;
-            color: #334155;
-            border-bottom: 1px solid #edf2f7;
+            color: #1e3a5f;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
         .list-container {
-            flex: 1;
             overflow-y: auto;
-            padding: 0.5rem 1rem 1rem;
+            flex: 1;
+            border-radius: 20px;
+            background: #fafdff;
+            padding: 0.2rem;
         }
-
         .template-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            min-width: 500px;
         }
-
         .template-table thead {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 500;
+            background: #eaf1f9;
+            color: #1d4b6e;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.02em;
             position: sticky;
             top: 0;
-            z-index: 2;
+            z-index: 5;
         }
-
-        .template-table th, .template-table td {
-            padding: 0.75rem 0.4rem;
-            text-align: left;
-            border-bottom: 1px solid #ecf1f6;
+        .template-table th {
+            padding: 1rem 0.8rem;
+        }
+        .template-table td {
+            padding: 0.9rem 0.8rem;
+            border-bottom: 1px solid #e3eaf2;
             vertical-align: middle;
         }
-
         .template-table tbody tr {
             cursor: pointer;
             transition: background 0.1s;
         }
-
         .template-table tbody tr:hover {
-            background: #f1f5f9;
+            background: #f2f8ff;
         }
-
         .template-table tbody tr.selected {
-            background: #e6f0ff;
-            border-left: 3px solid #2563eb;
+            background: #e1f0fa;
+            border-left: 4px solid #1e4a6f;
         }
-
         .status-badge {
             display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 500;
+            padding: 0.25rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #e3f0fa;
+            color: #11517c;
         }
-
-        .status-active {
-            background: #dff0e6;
-            color: #0b5e42;
-        }
-
-        .status-inactive {
-            background: #fee9e7;
-            color: #aa2e2e;
-        }
+        .status-active { background: #dff0e6; color: #0b5e42; }
+        .status-inactive { background: #fee9e7; color: #aa2e2e; }
 
         .row-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
-
         .action-btn {
-            background: none;
+            background: #f2f8ff;
             border: none;
-            color: #4b5563;
-            font-size: 1rem;
+            color: #2a577b;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
             cursor: pointer;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            transition: background 0.1s;
-        }
-
-        .action-btn:hover {
-            background: #e2e8f0;
-        }
-
-        .action-btn.edit-btn { color: #2563eb; }
-        .action-btn.delete-btn { color: #dc2626; }
-        .action-btn.preview-btn { color: #7c3aed; }
-
-        /* 右侧编辑面板 */
-        .edit-panel {
-            width: 68%;
-            background: #fbfdff;
-            overflow-y: auto;
-            padding: 1.5rem 2rem;
-            border-left: 1px solid #e9edf2;
-        }
-
-        .panel-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: #1e293b;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
+            border: 1px solid transparent;
         }
+        .action-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
 
+        /* 右侧编辑面板表单样式 (与第二页一致) */
         .form-row {
             margin-bottom: 1.2rem;
             display: flex;
@@ -273,41 +259,40 @@
             align-items: center;
             gap: 0.8rem;
         }
-
         .form-label {
             width: 100px;
-            font-weight: 500;
-            color: #334155;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #4e6f8c;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
-
-        .form-control {
+        .form-control, .type-select {
             flex: 1;
             min-width: 200px;
-            padding: 0.6rem 1rem;
-            border: 1px solid #cfddee;
-            border-radius: 20px;
-            font-size: 0.95rem;
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.7rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+        .form-control:focus, .type-select:focus {
+            outline: none;
+            border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15);
             background: white;
         }
-
-        .type-select {
-            flex: 1;
-            min-width: 200px;
-            padding: 0.6rem 1rem;
-            border-radius: 20px;
-            border: 1px solid #cfddee;
-            background: white;
-        }
-
-        /* 开关 */
         .toggle-switch {
             display: inline-flex;
             align-items: center;
             gap: 10px;
         }
         .toggle-switch input {
-            width: 40px;
-            height: 22px;
+            width: 44px;
+            height: 24px;
             appearance: none;
             background: #cbd5e1;
             border-radius: 30px;
@@ -316,13 +301,13 @@
             transition: 0.2s;
         }
         .toggle-switch input:checked {
-            background: #2563eb;
+            background: #1e4a6f;
         }
         .toggle-switch input::before {
             content: '';
             position: absolute;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             background: white;
             border-radius: 50%;
             top: 2px;
@@ -330,83 +315,77 @@
             transition: 0.2s;
         }
         .toggle-switch input:checked::before {
-            left: 20px;
+            left: 22px;
         }
 
-        /* 富文本工具栏 (使用 Font Awesome 图标) */
         .editor-toolbar {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            background: #f1f5f9;
-            padding: 0.6rem;
-            border-radius: 30px 30px 0 0;
+            gap: 6px;
+            background: #f1f7fd;
+            padding: 0.8rem;
+            border-radius: 20px 20px 0 0;
             border: 1px solid #dde3ea;
             border-bottom: none;
         }
         .editor-toolbar button {
             background: white;
-            border: none;
-            padding: 0.3rem 1rem;
+            border: 1px solid #cbd5e1;
             border-radius: 30px;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid #cddae9;
-            font-size: 0.85rem;
+            padding: 0.4rem 1.2rem;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            cursor: pointer;
+            transition: 0.1s;
         }
+        .editor-toolbar button:hover { background: #e2effa; }
         .editor-content {
             border: 1px solid #dde3ea;
             border-radius: 0 0 20px 20px;
-            min-height: 150px;
-            padding: 1rem;
+            min-height: 160px;
+            padding: 1.2rem;
             background: white;
             overflow-y: auto;
             outline: none;
             font-size: 0.95rem;
         }
-        [contenteditable="true"]:focus {
-            border-color: #2563eb;
-        }
+        .editor-content:focus { border-color: #2f6e9e; box-shadow: 0 0 0 2px rgba(47,110,158,0.1); }
 
-        /* 变量面板 */
         .variable-panel {
-            margin: 1.2rem 0;
-            background: #f0f4fe;
-            padding: 1rem;
+            margin: 1.5rem 0;
+            background: #f0f5fd;
+            padding: 1.2rem;
             border-radius: 24px;
         }
         .variable-title {
             font-weight: 600;
-            margin-bottom: 0.6rem;
             color: #1e3a8a;
+            margin-bottom: 0.8rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .variable-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
         .var-btn {
             background: white;
             border: 1px solid #a5c0fa;
-            padding: 0.4rem 1rem;
-            border-radius: 30px;
-            font-size: 0.85rem;
+            border-radius: 40px;
+            padding: 0.4rem 1.2rem;
+            font-size: 0.8rem;
             color: #1e3a8a;
             cursor: pointer;
-            transition: 0.1s;
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            transition: 0.1s;
         }
-        .var-btn:hover {
-            background: #dbeafe;
-        }
+        .var-btn:hover { background: #dbeafe; border-color: #4f7ae0; }
 
         .action-buttons {
             display: flex;
@@ -414,128 +393,123 @@
             margin-top: 2rem;
         }
         .save-btn, .preview-main-btn {
-            padding: 0.7rem 2rem;
-            border: none;
+            padding: 0.75rem 2rem;
             border-radius: 40px;
             font-weight: 600;
+            border: none;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            transition: 0.15s;
         }
-        .save-btn {
-            background: #2563eb;
-            color: white;
-        }
-        .preview-main-btn {
-            background: #f1f5f9;
-            color: #1e293b;
-            border: 1px solid #bbcde0;
-        }
+        .save-btn { background: #1e4a6f; color: white; box-shadow: 0 4px 12px rgba(0,60,110,0.3); }
+        .save-btn:hover { background: #123a58; transform: translateY(-2px); }
+        .preview-main-btn { background: white; border: 1px solid #cbd5e1; color: #2c455d; }
+        .preview-main-btn:hover { background: #f1f7fd; border-color: #9bb0c5; }
 
-        /* 预览模态框 */
+        /* 弹窗 (新建模板/编辑共用) —— 完全采用第二页的模态框风格 */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
         }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
         .modal-card {
-            background: white;
-            width: 90%;
-            max-width: 700px;
-            max-height: 80%;
-            border-radius: 32px;
-            padding: 2rem;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            background: white; border-radius: 32px; width: 90%; max-width: 800px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
         }
-        .modal-card h3 {
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
+        .modal-header h3 {
+            font-size: 1.6rem; font-weight: 600; color: #0c2b48;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        /* 预览模态框 (复用) */
         .preview-content {
-            background: #f8fafc;
-            padding: 1.5rem;
-            border-radius: 24px;
-            white-space: pre-wrap;
-            border: 1px solid #e2e8f0;
-        }
-        .close-modal {
-            float: right;
-            background: none;
-            border: none;
-            font-size: 1.8rem;
-            cursor: pointer;
-            color: #64748b;
+            background: #f8fafd; padding: 1.5rem; border-radius: 24px;
+            border: 1px solid #e2e8f0; white-space: pre-wrap;
         }
 
-        /* 移动端适配 */
-        @media screen and (max-width: 768px) {
-            .app-header { padding: 0.8rem; }
-            .header-title { font-size: 1.3rem; }
-            .search-bar { border-radius: 20px; padding: 0.8rem; }
-            .search-item input, .search-item select { min-width: 120px; }
-
-            .main-area {
-                flex-direction: column;
-            }
-            .template-list-panel, .edit-panel {
-                width: 100% !important;
-                height: 50%;
-                border-right: none;
-                border-bottom: 1px solid #e9edf2;
-            }
-            .edit-panel {
-                border-left: none;
-                overflow-y: auto;
-                padding: 1rem;
-            }
-            .template-table {
-                font-size: 0.8rem;
-            }
-            .template-table th, .template-table td {
-                padding: 0.5rem 0.3rem;
-            }
-            .row-actions {
-                flex-direction: column;
-                gap: 2px;
-            }
-            .form-row {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .form-label {
-                width: auto;
-            }
-            .form-control, .type-select {
-                width: 100%;
-            }
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
         }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
-    <div class="app">
-        <!-- 头部：无导航，使用专业图标 -->
-        <div class="app-header">
-            <div class="header-row">
-                <span class="header-title"></span>
-                <button class="btn-new" id="newTemplateBtn"><i class="fas fa-plus"></i> 新建模板</button>
+<div class="full-screen">
+    <!-- 顶部卡片 -->
+    <div class="card" style="padding-bottom: 1.2rem;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <span class="section-title" style="margin-bottom:0;"><i class="fas fa-envelope-open-text"></i> 站内信模板管理</span>
+            <button class="btn-new" id="newTemplateBtn"><i class="fas fa-plus-circle"></i> 新建模板</button>
+        </div>
+        <!-- 搜索栏 -->
+        <div class="filter-bar" style="margin-bottom: 0;">
+            <div class="filter-item">
+                <label><i class="fas fa-tag"></i> 名称</label>
+                <input type="text" class="filter-input" id="searchName" placeholder="模板名称">
             </div>
-            <div class="search-bar">
-                <div class="search-item">
-                    <label><i class="fas fa-tag"></i> 名称</label>
-                    <input type="text" placeholder="模板名称" id="searchName">
+            <div class="filter-item">
+                <label><i class="fas fa-filter"></i> 类型</label>
+                <select class="filter-select" id="searchType">
+                    <option value="">全部</option>
+                    <option value="学位">学位</option>
+                    <option value="培养">培养</option>
+                    <option value="研工">研工</option>
+                    <option value="导师">导师</option>
+                    <option value="通用">通用</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-left: auto;">
+                <button class="btn btn-outline" id="resetBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="searchBtn"><i class="fas fa-search"></i> 查询</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 左右分栏: 左侧列表 + 右侧编辑区 (编辑区仍保留，用于编辑已有模板) -->
+    <div class="main-split">
+        <!-- 左侧模板列表卡片 -->
+        <div class="template-list-panel">
+            <div class="list-header"><i class="fas fa-list-ul" style="color:#1e4a6f;"></i> 模板列表</div>
+            <div class="list-container" id="listContainer"></div>
+        </div>
+
+        <!-- 右侧编辑卡片 (仅用于修改已有模板，新建采用弹窗) -->
+        <div class="edit-panel" id="editPanel">
+            <div class="panel-title" style="display: flex; align-items: center; gap: 0.6rem; font-size: 1.2rem; font-weight: 600; color:#1e3a5f; margin-bottom: 1.5rem;">
+                <i class="fas fa-pen-to-square" style="color:#2f6e9e;"></i> <span id="editPanelTitle">编辑模板</span>
+            </div>
+            <form id="templateForm" onsubmit="return false;">
+                <div class="form-row">
+                    <span class="form-label"><i class="fas fa-font"></i> 模板名称</span>
+                    <input type="text" class="form-control" id="templateName" placeholder="如：硕士开题通知" required>
                 </div>
-                <div class="search-item">
-                    <label><i class="fas fa-filter"></i> 类型</label>
-                    <select id="searchType">
-                        <option value="">全部</option>
+                <div class="form-row">
+                    <span class="form-label"><i class="fas fa-code"></i> 模板编码</span>
+                    <input type="text" class="form-control" id="templateCode" placeholder="OPENING_REVIEW" required>
+                </div>
+                <div class="form-row">
+                    <span class="form-label"><i class="fas fa-tags"></i> 模板类型</span>
+                    <select class="type-select" id="templateType">
                         <option value="学位">学位</option>
                         <option value="培养">培养</option>
                         <option value="研工">研工</option>
@@ -543,366 +517,458 @@
                         <option value="通用">通用</option>
                     </select>
                 </div>
-                <div class="search-actions">
-                    <button id="searchBtn"><i class="fas fa-search"></i> 查询</button>
-                    <button id="resetBtn"><i class="fas fa-undo-alt"></i> 重置</button>
+                <div class="form-row">
+                    <span class="form-label"><i class="fas fa-power-off"></i> 状态</span>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="templateStatus" checked>
+                        <span id="statusText">启用</span>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 左右主体 -->
-        <div class="main-area">
-            <!-- 左侧列表区 -->
-            <div class="template-list-panel">
-                <div class="list-header"><i class="fas fa-list-ul" style="color: #2563eb;"></i> 模板列表</div>
-                <div class="list-container" id="listContainer">
-                    <!-- 动态表格会由js渲染 -->
+                <div style="margin: 1rem 0 0.5rem; font-weight: 600; color:#1e3a5f;"><i class="fas fa-edit"></i> 正文</div>
+                <div class="editor-toolbar">
+                    <button id="boldBtn"><i class="fas fa-bold"></i> 加粗</button>
+                    <button id="italicBtn"><i class="fas fa-italic"></i> 倾斜</button>
+                    <span style="margin-left:auto; font-size:0.75rem; color:#4e6f8c;"><i class="fas fa-mouse-pointer"></i> 点击下方变量插入</span>
                 </div>
-            </div>
+                <div class="editor-content" id="richEditor" contenteditable="true">
+                    例如：{studentName}同学，你好。请于{defenseDate}在{defenseLocation}参加答辩。
+                </div>
 
-            <!-- 右侧编辑区 -->
-            <div class="edit-panel" id="editPanel">
-                <div class="panel-title" id="editPanelTitle"><i class="fas fa-pen-to-square" style="color: #2563eb;"></i> 编辑模板</div>
-                <form id="templateForm" onsubmit="return false;">
-                    <div class="form-row">
-                        <span class="form-label"><i class="fas fa-font"></i> 模板名称</span>
-                        <input type="text" class="form-control" id="templateName" placeholder="如：硕士开题通知" required>
+                <div class="variable-panel">
+                    <div class="variable-title"><i class="fas fa-paperclip"></i> 可用变量 (点击插入)</div>
+                    <div class="variable-buttons" id="variablePanel">
+                        <button class="var-btn" data-var="{studentName}"><i class="fas fa-user-graduate"></i> 学生姓名</button>
+                        <button class="var-btn" data-var="{studentId}"><i class="fas fa-id-card"></i> 学号</button>
+                        <button class="var-btn" data-var="{mentorName}"><i class="fas fa-chalkboard-user"></i> 导师姓名</button>
+                        <button class="var-btn" data-var="{thesisTitle}"><i class="fas fa-book"></i> 论文题目</button>
+                        <button class="var-btn" data-var="{defenseDate}"><i class="fas fa-calendar-day"></i> 答辩日期</button>
+                        <button class="var-btn" data-var="{defenseLocation}"><i class="fas fa-location-dot"></i> 答辩地点</button>
+                        <button class="var-btn" data-var="{mentorTitle}"><i class="fas fa-user-tie"></i> 导师职称</button>
+                        <button class="var-btn" data-var="{currentDate}"><i class="fas fa-clock"></i> 当前日期</button>
                     </div>
-                    <div class="form-row">
-                        <span class="form-label"><i class="fas fa-code"></i> 模板编码</span>
-                        <input type="text" class="form-control" id="templateCode" placeholder="OPENING_REVIEW" required>
-                    </div>
-                    <div class="form-row">
-                        <span class="form-label"><i class="fas fa-tags"></i> 模板类型</span>
-                        <select class="type-select" id="templateType">
-                            <option value="学位">学位</option>
-                            <option value="培养">培养</option>
-                            <option value="研工">研工</option>
-                            <option value="导师">导师</option>
-                            <option value="通用">通用</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <span class="form-label"><i class="fas fa-power-off"></i> 状态</span>
-                        <div class="toggle-switch">
-                            <input type="checkbox" id="templateStatus" checked>
-                            <span id="statusText">启用</span>
-                        </div>
-                    </div>
+                </div>
 
-                    <!-- 富文本工具栏（图标替换） -->
-                    <div style="margin: 1rem 0 0.5rem; font-weight: 500;"><i class="fas fa-edit"></i> 正文</div>
-                    <div class="editor-toolbar">
-                        <button id="boldBtn"><i class="fas fa-bold"></i> 加粗</button>
-                        <button id="italicBtn"><i class="fas fa-italic"></i> 倾斜</button>
-                        <button id="insertVarBtn" disabled style="opacity:0.5; background:#eee;"><i class="fas fa-braces"></i> 变量</button>
-                        <span style="margin-left:auto; font-size:0.8rem; color:#4b5563;"><i class="fas fa-mouse-pointer"></i> 点击下方变量插入</span>
-                    </div>
-                    <div class="editor-content" id="richEditor" contenteditable="true">
-                        例如：{studentName}同学，你好。请于{defenseDate}在{defenseLocation}参加答辩。
-                    </div>
-
-                    <!-- 变量面板 -->
-                    <div class="variable-panel">
-                        <div class="variable-title"><i class="fas fa-paperclip" style="color: #1e3a8a;"></i> 可用变量 (点击插入)</div>
-                        <div class="variable-buttons" id="variablePanel">
-                            <button class="var-btn" data-var="{studentName}"><i class="fas fa-user-graduate"></i> 学生姓名</button>
-                            <button class="var-btn" data-var="{studentId}"><i class="fas fa-id-card"></i> 学号</button>
-                            <button class="var-btn" data-var="{mentorName}"><i class="fas fa-chalkboard-user"></i> 导师姓名</button>
-                            <button class="var-btn" data-var="{thesisTitle}"><i class="fas fa-book"></i> 论文题目</button>
-                            <button class="var-btn" data-var="{defenseDate}"><i class="fas fa-calendar-day"></i> 答辩日期</button>
-                            <button class="var-btn" data-var="{defenseLocation}"><i class="fas fa-location-dot"></i> 答辩地点</button>
-                            <button class="var-btn" data-var="{mentorTitle}"><i class="fas fa-user-tie"></i> 导师职称</button>
-                            <button class="var-btn" data-var="{currentDate}"><i class="fas fa-clock"></i> 当前日期</button>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button class="save-btn" id="saveTemplateBtn"><i class="fas fa-save"></i> 保存模板</button>
-                        <button class="preview-main-btn" id="previewBtn"><i class="fas fa-eye"></i> 预览</button>
-                    </div>
-                </form>
-            </div>
+                <div class="action-buttons">
+                    <button class="save-btn" id="saveTemplateBtn"><i class="fas fa-save"></i> 保存模板</button>
+                    <button class="preview-main-btn" id="previewBtn"><i class="fas fa-eye"></i> 预览</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- 预览模态框 -->
-    <div class="modal-overlay" id="previewModal">
-        <div class="modal-card">
-            <button class="close-modal" id="closePreviewModal"><i class="fas fa-xmark"></i></button>
-            <h3><i class="fas fa-file-lines" style="color:#2563eb;"></i> 模板预览 (示例数据)</h3>
-            <div class="preview-content" id="previewContent">
-                正在加载...
-            </div>
+<!-- ========= 新建模板专用弹窗 (完全独立) ========= -->
+<div class="modal-overlay" id="newTemplateModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus-circle" style="color:#1e4a6f;"></i> 新建模板</h3>
+            <button class="modal-close" id="closeNewModal">&times;</button>
         </div>
+        <form id="newTemplateForm" onsubmit="return false;">
+            <div class="form-row">
+                <span class="form-label"><i class="fas fa-font"></i> 模板名称 *</span>
+                <input type="text" class="form-control" id="newName" placeholder="如：硕士开题通知" required>
+            </div>
+            <div class="form-row">
+                <span class="form-label"><i class="fas fa-code"></i> 模板编码 *</span>
+                <input type="text" class="form-control" id="newCode" placeholder="OPENING_REVIEW" required>
+            </div>
+            <div class="form-row">
+                <span class="form-label"><i class="fas fa-tags"></i> 模板类型</span>
+                <select class="type-select" id="newType">
+                    <option value="学位">学位</option>
+                    <option value="培养">培养</option>
+                    <option value="研工">研工</option>
+                    <option value="导师">导师</option>
+                    <option value="通用" selected>通用</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <span class="form-label"><i class="fas fa-power-off"></i> 状态</span>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="newStatus" checked>
+                    <span id="newStatusText">启用</span>
+                </div>
+            </div>
+            <div style="margin: 1rem 0 0.5rem; font-weight: 600; color:#1e3a5f;"><i class="fas fa-edit"></i> 正文</div>
+            <div class="editor-toolbar" style="border-radius: 20px 20px 0 0;">
+                <button type="button" id="newBoldBtn"><i class="fas fa-bold"></i> 加粗</button>
+                <button type="button" id="newItalicBtn"><i class="fas fa-italic"></i> 倾斜</button>
+                <span style="margin-left:auto; font-size:0.75rem; color:#4e6f8c;"><i class="fas fa-mouse-pointer"></i> 点击下方变量插入</span>
+            </div>
+            <div class="editor-content" id="newRichEditor" contenteditable="true" style="min-height: 140px;">
+                例如：{studentName}同学，你好。请于{defenseDate}在{defenseLocation}参加答辩。
+            </div>
+
+            <div class="variable-panel" style="margin: 1rem 0;">
+                <div class="variable-title"><i class="fas fa-paperclip"></i> 可用变量 (点击插入)</div>
+                <div class="variable-buttons">
+                    <button type="button" class="var-btn" data-var="{studentName}"><i class="fas fa-user-graduate"></i> 学生姓名</button>
+                    <button type="button" class="var-btn" data-var="{studentId}"><i class="fas fa-id-card"></i> 学号</button>
+                    <button type="button" class="var-btn" data-var="{mentorName}"><i class="fas fa-chalkboard-user"></i> 导师姓名</button>
+                    <button type="button" class="var-btn" data-var="{thesisTitle}"><i class="fas fa-book"></i> 论文题目</button>
+                    <button type="button" class="var-btn" data-var="{defenseDate}"><i class="fas fa-calendar-day"></i> 答辩日期</button>
+                    <button type="button" class="var-btn" data-var="{defenseLocation}"><i class="fas fa-location-dot"></i> 答辩地点</button>
+                    <button type="button" class="var-btn" data-var="{mentorTitle}"><i class="fas fa-user-tie"></i> 导师职称</button>
+                    <button type="button" class="var-btn" data-var="{currentDate}"><i class="fas fa-clock"></i> 当前日期</button>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.8rem;">
+                <button type="button" class="btn btn-outline" id="cancelNewModal"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="saveNewTemplateBtn"><i class="fas fa-save"></i> 创建模板</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <script>
-        (function() {
-            // ---------- 模拟数据 ----------
-            let templates = [
-                { id: 't1', name: '硕士开题通知', code: 'OPENING_REVIEW', type: '培养', status: true, content: '{studentName}同学，你的开题报告《{thesisTitle}》定于{defenseDate}在{defenseLocation}举行。导师：{mentorName}' },
-                { id: 't2', name: '学位论文答辩', code: 'DEFENSE_NOTICE', type: '学位', status: true, content: '{studentName}，请于{defenseDate}参加答辩，地点{defenseLocation}。' },
-                { id: 't3', name: '奖学金公示提醒', code: 'SCHOLARSHIP', type: '研工', status: false, content: '{studentName}同学，奖学金{scholarshipName}已公示，请查看。' },
-                { id: 't4', name: '导师双选确认', code: 'MENTOR_SELECT', type: '导师', status: true, content: '{studentName}同学，{mentorName}导师已确认指导关系。' },
-            ];
+<!-- 预览模态框 (与之前一致) -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-lines" style="color:#1e4a6f;"></i> 模板预览 (示例数据)</h3>
+            <button class="modal-close" id="closePreviewModal">&times;</button>
+        </div>
+        <div class="preview-content" id="previewContent">正在加载...</div>
+    </div>
+</div>
 
-            // 当前选中的模板id (用于编辑)
-            let currentEditId = null;
+<div id="toast" class="toast-message">操作成功</div>
 
-            // 获取DOM元素
-            const listContainer = document.getElementById('listContainer');
-            const newBtn = document.getElementById('newTemplateBtn');
-            const searchBtn = document.getElementById('searchBtn');
-            const resetBtn = document.getElementById('resetBtn');
-            const searchName = document.getElementById('searchName');
-            const searchType = document.getElementById('searchType');
+<script>
+    (function() {
+        // ---------- 模拟数据 ----------
+        let templates = [
+            { id: 't1', name: '硕士开题通知', code: 'OPENING_REVIEW', type: '培养', status: true, content: '{studentName}同学，你的开题报告《{thesisTitle}》定于{defenseDate}在{defenseLocation}举行。导师：{mentorName}' },
+            { id: 't2', name: '学位论文答辩', code: 'DEFENSE_NOTICE', type: '学位', status: true, content: '{studentName}，请于{defenseDate}参加答辩，地点{defenseLocation}。' },
+            { id: 't3', name: '奖学金公示提醒', code: 'SCHOLARSHIP', type: '研工', status: false, content: '{studentName}同学，奖学金{scholarshipName}已公示，请查看。' },
+            { id: 't4', name: '导师双选确认', code: 'MENTOR_SELECT', type: '导师', status: true, content: '{studentName}同学，{mentorName}导师已确认指导关系。' },
+        ];
 
-            // 表单元素
-            const templateName = document.getElementById('templateName');
-            const templateCode = document.getElementById('templateCode');
-            const templateType = document.getElementById('templateType');
-            const templateStatus = document.getElementById('templateStatus');
-            const statusText = document.getElementById('statusText');
-            const richEditor = document.getElementById('richEditor');
-            const saveBtn = document.getElementById('saveTemplateBtn');
-            const previewBtn = document.getElementById('previewBtn');
+        let currentEditId = null;          // 右侧编辑区当前选中ID
+        // DOM 元素
+        const listContainer = document.getElementById('listContainer');
+        const newBtn = document.getElementById('newTemplateBtn');
+        const searchBtn = document.getElementById('searchBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const searchName = document.getElementById('searchName');
+        const searchType = document.getElementById('searchType');
 
-            // 预览模态框
-            const modal = document.getElementById('previewModal');
-            const previewContent = document.getElementById('previewContent');
-            const closeModal = document.getElementById('closePreviewModal');
+        // 右侧编辑区表单
+        const templateName = document.getElementById('templateName');
+        const templateCode = document.getElementById('templateCode');
+        const templateType = document.getElementById('templateType');
+        const templateStatus = document.getElementById('templateStatus');
+        const statusText = document.getElementById('statusText');
+        const richEditor = document.getElementById('richEditor');
+        const saveBtn = document.getElementById('saveTemplateBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const editPanelTitle = document.getElementById('editPanelTitle');
 
-            // 变量按钮
-            const varButtons = document.querySelectorAll('.var-btn');
+        // 新建弹窗元素
+        const newModal = document.getElementById('newTemplateModal');
+        const closeNewModal = document.getElementById('closeNewModal');
+        const cancelNewModal = document.getElementById('cancelNewModal');
+        const newName = document.getElementById('newName');
+        const newCode = document.getElementById('newCode');
+        const newType = document.getElementById('newType');
+        const newStatus = document.getElementById('newStatus');
+        const newStatusText = document.getElementById('newStatusText');
+        const newRichEditor = document.getElementById('newRichEditor');
+        const saveNewBtn = document.getElementById('saveNewTemplateBtn');
 
-            // 状态开关文字
-            templateStatus.addEventListener('change', function() {
-                statusText.innerText = this.checked ? '启用' : '禁用';
-            });
+        // 预览模态框
+        const previewModal = document.getElementById('previewModal');
+        const previewContent = document.getElementById('previewContent');
+        const closePreviewModal = document.getElementById('closePreviewModal');
+        const toast = document.getElementById('toast');
 
-            // ----- 富文本简单加粗/斜体 (execCommand 已足够) -----
-            document.getElementById('boldBtn').addEventListener('click', () => {
-                document.execCommand('bold', false, null);
-                richEditor.focus();
-            });
-            document.getElementById('italicBtn').addEventListener('click', () => {
-                document.execCommand('italic', false, null);
-                richEditor.focus();
-            });
+        // 通用Toast
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
 
-            // ----- 插入变量 -----
-            function insertTextAtCursor(text) {
-                const sel = window.getSelection();
-                if (sel.rangeCount > 0 && richEditor.contains(sel.anchorNode)) {
-                    const range = sel.getRangeAt(0);
-                    range.deleteContents();
-                    const textNode = document.createTextNode(text);
-                    range.insertNode(textNode);
-                    range.collapse(false);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                } else {
-                    richEditor.appendChild(document.createTextNode(text));
-                }
-                richEditor.focus();
+        // 富文本操作 (右侧)
+        document.getElementById('boldBtn').addEventListener('click', () => {
+            document.execCommand('bold', false, null);
+            richEditor.focus();
+        });
+        document.getElementById('italicBtn').addEventListener('click', () => {
+            document.execCommand('italic', false, null);
+            richEditor.focus();
+        });
+        // 新建弹窗内的加粗/倾斜
+        document.getElementById('newBoldBtn').addEventListener('click', () => {
+            document.execCommand('bold', false, null);
+            newRichEditor.focus();
+        });
+        document.getElementById('newItalicBtn').addEventListener('click', () => {
+            document.execCommand('italic', false, null);
+            newRichEditor.focus();
+        });
+
+        // 变量插入通用函数
+        function insertTextAtCursor(editorEl, text) {
+            const sel = window.getSelection();
+            if (sel.rangeCount > 0 && editorEl.contains(sel.anchorNode)) {
+                const range = sel.getRangeAt(0);
+                range.deleteContents();
+                const textNode = document.createTextNode(text);
+                range.insertNode(textNode);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else {
+                editorEl.appendChild(document.createTextNode(text));
             }
+            editorEl.focus();
+        }
 
-            varButtons.forEach(btn => {
+        // 为右侧变量按钮绑定
+        document.querySelectorAll('#variablePanel .var-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const variable = e.currentTarget.getAttribute('data-var');
+                insertTextAtCursor(richEditor, variable);
+            });
+        });
+        // 为弹窗内变量按钮绑定
+        document.querySelectorAll('#newTemplateModal .var-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const variable = e.currentTarget.getAttribute('data-var');
+                insertTextAtCursor(newRichEditor, variable);
+            });
+        });
+
+        // 开关文字
+        templateStatus.addEventListener('change', function() {
+            statusText.innerText = this.checked ? '启用' : '禁用';
+        });
+        newStatus.addEventListener('change', function() {
+            newStatusText.innerText = this.checked ? '启用' : '禁用';
+        });
+
+        // 渲染列表
+        function renderList(filterName = '', filterType = '') {
+            const filtered = templates.filter(t => {
+                const matchName = t.name.toLowerCase().includes(filterName.toLowerCase());
+                const matchType = filterType === '' || t.type === filterType;
+                return matchName && matchType;
+            });
+
+            let html = `<table class="template-table"><thead><tr><th>名称</th><th>编码</th><th>类型</th><th>状态</th><th>操作</th></tr></thead><tbody>`;
+            filtered.forEach(t => {
+                const statusClass = t.status ? 'status-active' : 'status-inactive';
+                const statusLabel = t.status ? '启用' : '禁用';
+                const selectedClass = (currentEditId === t.id) ? 'selected' : '';
+                html += `<tr data-id="${t.id}" class="${selectedClass}">`;
+                html += `<td>${escapeHtml(t.name)}</td>`;
+                html += `<td>${escapeHtml(t.code)}</td>`;
+                html += `<td>${escapeHtml(t.type)}</td>`;
+                html += `<td><span class="status-badge ${statusClass}">${statusLabel}</span></td>`;
+                html += `<td class="row-actions">
+                    <button class="action-btn edit-btn" data-id="${t.id}"><i class="fas fa-pen"></i> 编辑</button>
+                    <button class="action-btn delete-btn" data-id="${t.id}"><i class="fas fa-trash"></i> 删除</button>
+                    <button class="action-btn preview-btn" data-id="${t.id}"><i class="fas fa-eye"></i> 预览</button>
+                </td></tr>`;
+            });
+            html += '</tbody></table>';
+            listContainer.innerHTML = html;
+
+            // 行点击选中 (编辑)
+            document.querySelectorAll('.template-table tbody tr').forEach(tr => {
+                tr.addEventListener('click', (e) => {
+                    if (e.target.closest('.action-btn')) return;
+                    const id = tr.dataset.id;
+                    selectTemplate(id);
+                });
+            });
+            // 编辑按钮
+            document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const variable = e.currentTarget.getAttribute('data-var');
-                    insertTextAtCursor(variable);
+                    e.stopPropagation();
+                    selectTemplate(btn.dataset.id);
                 });
             });
-
-            // ----- 渲染列表 -----
-            function renderList(filterName = '', filterType = '') {
-                const filtered = templates.filter(t => {
-                    const matchName = t.name.toLowerCase().includes(filterName.toLowerCase());
-                    const matchType = filterType === '' || t.type === filterType;
-                    return matchName && matchType;
-                });
-
-                let html = `
-                    <table class="template-table">
-                        <thead>
-                            <tr><th>名称</th><th>编码</th><th>类型</th><th>状态</th><th>操作</th></tr>
-                        </thead>
-                        <tbody>
-                `;
-                filtered.forEach(t => {
-                    const statusClass = t.status ? 'status-active' : 'status-inactive';
-                    const statusLabel = t.status ? '启用' : '禁用';
-                    const selectedClass = (currentEditId === t.id) ? 'selected' : '';
-                    html += `<tr data-id="${t.id}" class="${selectedClass}">`;
-                    html += `<td>${t.name}</td>`;
-                    html += `<td>${t.code}</td>`;
-                    html += `<td>${t.type}</td>`;
-                    html += `<td><span class="status-badge ${statusClass}">${statusLabel}</span></td>`;
-                    html += `<td class="row-actions">
-                        <button class="action-btn edit-btn" data-id="${t.id}" title="编辑"><i class="fas fa-pencil-alt"></i></button>
-                        <button class="action-btn delete-btn" data-id="${t.id}" title="删除"><i class="fas fa-trash-can"></i></button>
-                        <button class="action-btn preview-btn" data-id="${t.id}" title="预览"><i class="fas fa-eye"></i></button>
-                    </td>`;
-                    html += `</tr>`;
-                });
-                html += '</tbody></table>';
-                listContainer.innerHTML = html;
-
-                // 行点击选中
-                document.querySelectorAll('.template-table tbody tr').forEach(tr => {
-                    tr.addEventListener('click', (e) => {
-                        if (e.target.closest('.action-btn')) return;
-                        const id = tr.dataset.id;
-                        selectTemplate(id);
-                    });
-                });
-
-                // 操作按钮事件
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const id = btn.dataset.id;
-                        selectTemplate(id);
-                    });
-                });
-
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const id = btn.dataset.id;
-                        if (confirm('确认删除该模板？(逻辑删除)')) {
-                            templates = templates.filter(t => t.id !== id);
-                            if (currentEditId === id) {
-                                clearForm();
-                                currentEditId = null;
-                                document.getElementById('editPanelTitle').innerHTML = '<i class="fas fa-pen-to-square" style="color: #2563eb;"></i> 新建模板';
-                            }
-                            renderList(searchName.value, searchType.value);
+            // 删除
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    if (confirm('确认删除该模板？')) {
+                        templates = templates.filter(t => t.id !== id);
+                        if (currentEditId === id) {
+                            clearEditForm(); // 清空右侧编辑区
                         }
-                    });
-                });
-
-                document.querySelectorAll('.preview-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const id = btn.dataset.id;
-                        const tmpl = templates.find(t => t.id === id);
-                        if (tmpl) showPreview(tmpl);
-                    });
-                });
-            }
-
-            // 选中模板填充到右侧
-            function selectTemplate(id) {
-                const tmpl = templates.find(t => t.id === id);
-                if (!tmpl) return;
-                currentEditId = id;
-                templateName.value = tmpl.name || '';
-                templateCode.value = tmpl.code || '';
-                templateType.value = tmpl.type || '通用';
-                templateStatus.checked = tmpl.status;
-                statusText.innerText = tmpl.status ? '启用' : '禁用';
-                richEditor.innerHTML = tmpl.content || '';
-                document.getElementById('editPanelTitle').innerHTML = '<i class="fas fa-pen-to-square" style="color: #2563eb;"></i> 编辑模板';
-
-                renderList(searchName.value, searchType.value);
-            }
-
-            function clearForm() {
-                templateName.value = '';
-                templateCode.value = '';
-                templateType.value = '通用';
-                templateStatus.checked = true;
-                statusText.innerText = '启用';
-                richEditor.innerHTML = '例如：{studentName}同学，你好。';
-                currentEditId = null;
-                document.getElementById('editPanelTitle').innerHTML = '<i class="fas fa-pen-to-square" style="color: #2563eb;"></i> 新建模板';
-                renderList(searchName.value, searchType.value);
-            }
-
-            // 预览
-            function showPreview(tmpl) {
-                let content = tmpl.content || richEditor.innerHTML;
-                const mockData = {
-                    '{studentName}': '李华',
-                    '{studentId}': 'M20230012',
-                    '{mentorName}': '张敏教授',
-                    '{thesisTitle}': '基于深度学习的图像分割',
-                    '{defenseDate}': '2026-04-15',
-                    '{defenseLocation}': '研究生院A座307',
-                    '{mentorTitle}': '博导',
-                    '{currentDate}': '2026-03-12',
-                };
-                let previewHtml = content.replace(/\{[\w]+\}/g, (match) => mockData[match] || `[${match}]`);
-                previewContent.innerHTML = previewHtml;
-                modal.style.display = 'flex';
-            }
-
-            // 保存模板
-            function saveTemplate() {
-                const name = templateName.value.trim();
-                const code = templateCode.value.trim();
-                const type = templateType.value;
-                const status = templateStatus.checked;
-                const content = richEditor.innerHTML;
-
-                if (!name || !code) {
-                    alert('模板名称和编码不能为空');
-                    return;
-                }
-
-                if (currentEditId) {
-                    const index = templates.findIndex(t => t.id === currentEditId);
-                    if (index !== -1) {
-                        templates[index] = { ...templates[index], name, code, type, status, content };
+                        renderList(searchName.value, searchType.value);
+                        showToast('模板已删除');
                     }
-                } else {
-                    const newId = 't' + Date.now();
-                    templates.push({ id: newId, name, code, type, status, content });
-                    currentEditId = newId;
-                }
-
-                renderList(searchName.value, searchType.value);
-                alert('保存成功');
-            }
-
-            // 事件绑定
-            newBtn.addEventListener('click', clearForm);
-            saveBtn.addEventListener('click', saveTemplate);
-            previewBtn.addEventListener('click', () => {
-                if (currentEditId) {
-                    const tmpl = templates.find(t => t.id === currentEditId);
+                });
+            });
+            // 预览按钮
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    const tmpl = templates.find(t => t.id === id);
                     if (tmpl) showPreview(tmpl);
-                    else showPreview({ content: richEditor.innerHTML });
-                } else {
-                    showPreview({ content: richEditor.innerHTML });
-                }
+                });
             });
+        }
 
-            closeModal.addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
-            window.addEventListener('click', (e) => {
-                if (e.target === modal) modal.style.display = 'none';
-            });
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
 
-            searchBtn.addEventListener('click', () => {
-                renderList(searchName.value, searchType.value);
-            });
+        // 选中模板填充到右侧编辑区
+        function selectTemplate(id) {
+            const tmpl = templates.find(t => t.id === id);
+            if (!tmpl) return;
+            currentEditId = id;
+            templateName.value = tmpl.name || '';
+            templateCode.value = tmpl.code || '';
+            templateType.value = tmpl.type || '通用';
+            templateStatus.checked = tmpl.status;
+            statusText.innerText = tmpl.status ? '启用' : '禁用';
+            richEditor.innerHTML = tmpl.content || '';
+            editPanelTitle.innerText = '编辑模板';
+            renderList(searchName.value, searchType.value);
+        }
 
-            resetBtn.addEventListener('click', () => {
-                searchName.value = '';
-                searchType.value = '';
-                renderList('', '');
-            });
+        // 清空右侧编辑区 (用于新建后取消选中或删除当前)
+        function clearEditForm() {
+            templateName.value = '';
+            templateCode.value = '';
+            templateType.value = '通用';
+            templateStatus.checked = true;
+            statusText.innerText = '启用';
+            richEditor.innerHTML = '例如：{studentName}同学，你好。';
+            currentEditId = null;
+            editPanelTitle.innerText = '编辑模板';
+            renderList(searchName.value, searchType.value);
+        }
 
-            // 初始化
-            renderList();
-            if (templates.length > 0) {
-                selectTemplate(templates[0].id);
+        // 预览
+        function showPreview(tmpl) {
+            let content = tmpl.content || richEditor.innerHTML;
+            const mockData = {
+                '{studentName}': '李华',
+                '{studentId}': 'M20230012',
+                '{mentorName}': '张敏教授',
+                '{thesisTitle}': '基于深度学习的图像分割',
+                '{defenseDate}': '2026-04-15',
+                '{defenseLocation}': '研究生院A座307',
+                '{mentorTitle}': '博导',
+                '{currentDate}': '2026-03-12',
+            };
+            let previewHtml = content.replace(/\{[\w]+\}/g, (match) => mockData[match] || `[${match}]`);
+            previewContent.innerHTML = previewHtml;
+            previewModal.classList.add('show');
+        }
+
+        // 新建弹窗打开
+        function openNewModal() {
+            newName.value = '';
+            newCode.value = '';
+            newType.value = '通用';
+            newStatus.checked = true;
+            newStatusText.innerText = '启用';
+            newRichEditor.innerHTML = '例如：{studentName}同学，你好。请于{defenseDate}在{defenseLocation}参加答辩。';
+            newModal.classList.add('show');
+        }
+
+        // 关闭新建弹窗
+        function closeNewModalHandler() {
+            newModal.classList.remove('show');
+        }
+
+        // 保存新建模板
+        function saveNewTemplate() {
+            const name = newName.value.trim();
+            const code = newCode.value.trim();
+            const type = newType.value;
+            const status = newStatus.checked;
+            const content = newRichEditor.innerHTML;
+
+            if (!name || !code) {
+                showToast('模板名称和编码不能为空', 1500);
+                return;
             }
-        })();
-    </script>
+
+            const newId = 't' + Date.now() + '-' + Math.random().toString(36).substring(2,6);
+            templates.push({ id: newId, name, code, type, status, content });
+
+            // 自动选中新模板到右侧编辑区 (可选)
+            selectTemplate(newId);
+
+            closeNewModalHandler();
+            showToast('模板已创建');
+            renderList(searchName.value, searchType.value);
+        }
+
+        // 右侧保存 (更新)
+        function saveCurrentTemplate() {
+            const name = templateName.value.trim();
+            const code = templateCode.value.trim();
+            const type = templateType.value;
+            const status = templateStatus.checked;
+            const content = richEditor.innerHTML;
+
+            if (!name || !code) {
+                showToast('模板名称和编码不能为空', 1500);
+                return;
+            }
+
+            if (currentEditId) {
+                const index = templates.findIndex(t => t.id === currentEditId);
+                if (index !== -1) {
+                    templates[index] = { ...templates[index], name, code, type, status, content };
+                    showToast('模板已更新');
+                }
+            } else {
+                // 如果右侧没有选中任何模板（理论上不可能，因为新建走弹窗，但兜底）
+                showToast('请先选择模板或使用新建弹窗', 1500);
+                return;
+            }
+            renderList(searchName.value, searchType.value);
+        }
+
+        // 事件绑定
+        newBtn.addEventListener('click', openNewModal);
+        closeNewModal.addEventListener('click', closeNewModalHandler);
+        cancelNewModal.addEventListener('click', closeNewModalHandler);
+        newModal.addEventListener('click', (e) => { if (e.target === newModal) closeNewModalHandler(); });
+
+        saveNewBtn.addEventListener('click', saveNewTemplate);
+        saveBtn.addEventListener('click', saveCurrentTemplate);
+
+        previewBtn.addEventListener('click', () => {
+            if (currentEditId) {
+                const tmpl = templates.find(t => t.id === currentEditId);
+                if (tmpl) showPreview(tmpl);
+                else showPreview({ content: richEditor.innerHTML });
+            } else {
+                showPreview({ content: richEditor.innerHTML });
+            }
+        });
+
+        closePreviewModal.addEventListener('click', () => { previewModal.classList.remove('show'); });
+        window.addEventListener('click', (e) => { if (e.target === previewModal) previewModal.classList.remove('show'); });
+
+        searchBtn.addEventListener('click', () => { renderList(searchName.value, searchType.value); });
+        resetBtn.addEventListener('click', () => {
+            searchName.value = '';
+            searchType.value = '';
+            renderList('', '');
+        });
+
+        // 初始化
+        renderList();
+        if (templates.length > 0) selectTemplate(templates[0].id);
+    })();
+</script>
 </body>
 </html>

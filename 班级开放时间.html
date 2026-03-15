@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生班级 · 统一卡片风格</title>
+    <!-- 引入 Inter 字体 & Font Awesome 6 (完全复用分数变动页的图标风格) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 彻底采纳分数变动页的设计语言：卡片、按钮、表格风格、模态框、toast */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem; }
+        }
+
+        /* 卡片 - 完全复用分数变动页 .card 样式 */
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+
+        /* 标题区 */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 筛选栏（完全复用filter-bar样式） */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 170px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        /* 按钮样式 与分数变动页完全一致 */
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 表格区域 (班级卡片内改成水平卡片列表, 但外层容器使用相同风格) */
+        .class-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* 水平卡片 — 重新设计以融入分数变动页的表格/卡片风格 */
+        .horizontal-card {
+            display: flex;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 1rem 1.5rem 1rem 1.5rem;
+            align-items: center;
+            gap: 1.5rem;
+            border: 1px solid #e2eaf3;
+            transition: 0.15s;
+            box-shadow: 0 2px 8px rgba(0,20,30,0.04);
+        }
+        .horizontal-card:hover {
+            border-color: #9bb0c5;
+            background: #f9fcff;
+        }
+
+        /* 图片区域 采用圆角 & 背景 */
+        .card-image {
+            flex: 0 0 120px;
+            width: 120px;
+            height: 90px;
+            border-radius: 18px;
+            background-color: #e0e9f2;
+            border: 1px solid #c0d0e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #2f557b;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* 模拟图案 (同原班级页) */
+        .card-image[data-theme="1"] { background-color: #b3cee5; background-image: repeating-linear-gradient(45deg, #ffffff50 0px, #ffffff50 8px, transparent 8px, transparent 16px); }
+        .card-image[data-theme="2"] { background-color: #c0dbd3; background-image: linear-gradient(135deg, #ffffff70 0%, transparent 50%); }
+        .card-image[data-theme="3"] { background-color: #edd4c9; background-image: radial-gradient(circle at 20px 30px, #ffffff90 4px, transparent 4px); background-size: 20px 20px; }
+        .card-image[data-theme="4"] { background-color: #d1c2e0; background-image: linear-gradient(90deg, #ffffff60 1px, transparent 1px); background-size: 12px 100%; }
+        .card-image[data-theme="5"] { background-color: #f5cfcb; background-image: repeating-linear-gradient(0deg, #ffffff80 0px, #ffffff80 2px, transparent 2px, transparent 6px); }
+
+        /* 卡片信息区 弹性 */
+        .card-info {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.2rem 2rem;
+        }
+
+        .class-name-section {
+            min-width: 160px;
+        }
+        .class-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0b2b48;
+            line-height: 1.2;
+        }
+        .class-sub {
+            font-size: 0.7rem;
+            color: #5f7995;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        /* 时间块 - 类似分数变动页的 badge-reason 风格 */
+        .time-chip {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+            border: 1px solid transparent;
+            line-height: 1.4;
+            min-width: 130px;
+        }
+        .time-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #3f6188;
+            text-transform: uppercase;
+            margin-right: 0.2rem;
+        }
+        .time-value {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1a314d;
+        }
+
+        /* 状态徽章 (类似 badge-reason 但增加颜色) */
+        .status-badge {
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            background: #e2ecf9;
+            color: #1a3455;
+        }
+        .status-badge.ongoing { background: #d2ebd2; color: #1f5420; }
+        .status-badge.upcoming { background: #f9efc9; color: #745f28; }
+        .status-badge.closed { background: #f3d9d9; color: #943e3e; }
+
+        /* 操作按钮组 (同分数变动页 .icon-btn) */
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .icon-btn {
+            background: #f2f8ff;
+            border: none;
+            font-size: 0.8rem;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #2a577b;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+
+        /* 分页栏 —— 完全复用分数变动页 .pagination-bar 样式 */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 弹窗 (完全复用分数变动页 .modal-overlay .modal-card) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 750px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .readonly-field { background: #ecf2f9; color: #2a4e6e; font-weight: 500; }
+
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+
+        /* 图片上传区 沿用班级页风格但适配卡片 */
+        .image-upload-area {
+            border: 2px dashed #b0c9e5;
+            border-radius: 28px;
+            padding: 1rem;
+            background: #f4f9ff;
+            cursor: pointer;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-upload-area input { display: none; }
+        .upload-preview { max-width: 100%; max-height: 80px; border-radius: 16px; display: block; }
+        .hidden { display: none !important; }
+
+        /* Toast 完全沿用 */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+
+        /* 移动端适应 */
+        @media (max-width: 750px) {
+            .horizontal-card { flex-wrap: wrap; }
+            .card-image { flex-basis: 90px; width: 90px; height: 70px; }
+            .status-badge { white-space: normal; }
+        }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 卡片：筛选栏 + 新增按钮 (与分数变动页布局完全一致) -->
+    <div class="card">
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-chalkboard-teacher"></i> 班级名称</label>
+                <input type="text" class="filter-input" id="searchInput" placeholder="班级名称...">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-filter"></i> 状态</label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="all">📋 全部状态</option>
+                    <option value="ongoing">🟢 进行中</option>
+                    <option value="upcoming">🟡 未开始</option>
+                    <option value="closed">🔴 已结束</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="addClassBtn"><i class="fas fa-plus-circle"></i> 新增班级</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 班级列表卡片 (原class-list) -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fas fa-users-between-lines"></i> 研究生班级开放时间
+        </div>
+        <div id="classList" class="class-list"></div>
+        <!-- 分页组件 (与分数变动页完全相同的样式) -->
+        <div class="pagination-bar" id="paginationContainer"></div>
+    </div>
+</div>
+
+<!-- 新增/编辑 弹窗 (完全复用分数变动页模态框结构 + 班级字段) -->
+<div class="modal-overlay" id="classModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-pen"></i> 班级信息</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="classForm" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="input-group full-width">
+                    <label><i class="fas fa-signature"></i> 班级名称 *</label>
+                    <input type="text" class="input-field" id="className" required placeholder="例如：计算机研1班" maxlength="50">
+                </div>
+                <!-- 图片上传区域 (整合进grid) -->
+                <div class="input-group full-width">
+                    <label><i class="fas fa-image"></i> 课程图片 (可留空使用模拟图)</label>
+                    <div class="image-upload-area" id="imageUploadArea">
+                        <input type="file" id="imageFile" accept="image/png,image/jpeg,image/jpg">
+                        <img id="imagePreview" class="upload-preview hidden" alt="预览图">
+                        <span id="uploadPlaceholder"><i class="fas fa-cloud-upload-alt"></i> 点击上传图片 (≤5MB)</span>
+                    </div>
+                    <input type="hidden" id="imageData" value="">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-clock"></i> 开放时间 *</label>
+                    <input type="datetime-local" class="input-field" id="startTime" required>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-hourglass-end"></i> 结束时间 *</label>
+                    <input type="datetime-local" class="input-field" id="endTime" required>
+                </div>
+                <input type="hidden" id="editingId">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> 保存班级</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 删除确认弹窗 (同样采用modal-overlay风格) -->
+<div class="modal-overlay" id="deleteConfirmModal">
+    <div class="modal-card" style="max-width: 400px;">
+        <div class="modal-header" style="border-bottom: none; margin-bottom: 0.2rem;">
+            <h3 style="font-size: 1.5rem;"><i class="fas fa-trash-alt" style="color: #b13e3e;"></i> 删除班级</h3>
+            <button class="modal-close" id="closeDeleteBtn">&times;</button>
+        </div>
+        <div style="padding: 0.5rem 0 1.5rem; text-align: center;">
+            <p style="margin-bottom: 0.5rem;">确定删除 <strong id="delClassName">班级名称</strong> ？</p>
+            <p style="font-size: 0.85rem; color: #7f8fa3;">此操作不可撤销</p>
+        </div>
+        <div class="modal-actions" style="justify-content: center;">
+            <button class="btn btn-outline" id="cancelDeleteBtn"><i class="fas fa-ban"></i> 取消</button>
+            <button class="btn" style="background:#b13e3e; color:white; border:none;" id="confirmDeleteBtn"><i class="fas fa-check-circle"></i> 删除</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // ----- 模拟班级数据 (保留原班级数据，完全兼容) -----
+        let classes = [
+            { id: '101', name: '计算机研1班', image: '', start: '2026-03-01T08:00', end: '2026-06-30T18:00', theme: '1' },
+            { id: '102', name: '计算机研2班', image: '', start: '2026-09-01T08:00', end: '2026-12-30T18:00', theme: '2' },
+            { id: '103', name: '软件工程专硕', image: '', start: '2025-12-01T08:00', end: '2026-01-30T18:00', theme: '3' },
+            { id: '104', name: '人工智能博士班', image: '', start: '2026-05-10T09:00', end: '2026-08-20T17:00', theme: '4' },
+            { id: '105', name: '网络空间安全', image: '', start: '2026-03-15T10:00', end: '2026-04-01T18:00', theme: '5' },
+            { id: '106', name: '数据科学硕士班', image: '', start: '2026-04-01T09:00', end: '2026-07-15T18:00', theme: '1' },
+            { id: '107', name: '云计算研班', image: '', start: '2026-02-10T08:30', end: '2026-05-20T17:30', theme: '3' },
+        ].map(c => ({ ...c, image: c.image || '' }));
+
+        // 分页配置 (与分数变动页一致：pageSize=5)
+        const pageSize = 5;
+        let currentPage = 1;
+        let searchKeyword = '';
+        let statusFilter = 'all';
+
+        // DOM 元素
+        const classListDiv = document.getElementById('classList');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const searchInput = document.getElementById('searchInput');
+        const statusSelect = document.getElementById('statusFilter');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const addClassBtn = document.getElementById('addClassBtn');
+        const toast = document.getElementById('toast');
+
+        // 弹窗相关
+        const modal = document.getElementById('classModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const classForm = document.getElementById('classForm');
+        const classNameInp = document.getElementById('className');
+        const startTimeInp = document.getElementById('startTime');
+        const endTimeInp = document.getElementById('endTime');
+        const editingId = document.getElementById('editingId');
+        const imageData = document.getElementById('imageData');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        const imageFile = document.getElementById('imageFile');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+
+        // 删除确认弹窗
+        const deleteModal = document.getElementById('deleteConfirmModal');
+        const closeDeleteBtn = document.getElementById('closeDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const delClassNameSpan = document.getElementById('delClassName');
+        let pendingDeleteId = null;
+
+        // 辅助函数
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+
+        function getClassStatus(start, end) {
+            const now = new Date();
+            const s = new Date(start), e = new Date(end);
+            if (now < s) return 'upcoming';
+            if (now >= s && now <= e) return 'ongoing';
+            return 'closed';
+        }
+
+        function formatTime(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        }
+
+        // 筛选逻辑
+        function filteredClasses() {
+            return classes.filter(cls => {
+                const matchSearch = cls.name.toLowerCase().includes(searchKeyword.toLowerCase());
+                const status = getClassStatus(cls.start, cls.end);
+                if (statusFilter === 'all') return matchSearch;
+                return matchSearch && status === statusFilter;
+            });
+        }
+
+        function getFiltered() { return filteredClasses(); }
+
+        function getPaginated() {
+            const filtered = getFiltered();
+            const start = (currentPage - 1) * pageSize;
+            return filtered.slice(start, start + pageSize);
+        }
+
+        function totalPages() {
+            return Math.ceil(getFiltered().length / pageSize) || 1;
+        }
+
+        function goToPage(page) {
+            const total = totalPages();
+            if (page < 1) page = 1;
+            if (page > total) page = total;
+            if (page === currentPage) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        }
+        window.pageGo = goToPage;
+
+        // 渲染分页 (与分数变动页一致)
+        function renderPagination() {
+            const total = totalPages();
+            if (total <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationContainer.innerHTML = html;
+        }
+
+        // 渲染卡片列表
+        function renderTable() {
+            const pageData = getPaginated();
+            let html = '';
+            if (pageData.length === 0) {
+                html = `<div style="text-align:center; padding:3rem; color:#8899bb;"><i class="fas fa-school" style="font-size:2.5rem; opacity:0.5;"></i><br>暂无班级记录</div>`;
+            } else {
+                pageData.forEach(cls => {
+                    const status = getClassStatus(cls.start, cls.end);
+                    let statusText = '', statusClass = '';
+                    if (status === 'ongoing') { statusText = '🟢 进行中'; statusClass = 'ongoing'; }
+                    else if (status === 'upcoming') { statusText = '🟡 未开始'; statusClass = 'upcoming'; }
+                    else { statusText = '🔴 已结束'; statusClass = 'closed'; }
+
+                    const imageStyle = cls.image ? `background-image: url('${cls.image}'); background-size: cover;` : '';
+                    const themeAttr = cls.image ? '' : `data-theme="${cls.theme || '1'}"`;
+
+                    html += `
+                    <div class="horizontal-card" data-id="${cls.id}">
+                        <div class="card-image" ${themeAttr} style="${imageStyle}"></div>
+                        <div class="card-info">
+                            <div class="class-name-section">
+                                <div class="class-name">${escapeHtml(cls.name)}</div>
+                                <div class="class-sub">研究生班级</div>
+                            </div>
+                            <div class="time-chip">
+                                <span class="time-label">⏱️开放</span>
+                                <span class="time-value">${formatTime(cls.start)}</span>
+                            </div>
+                            <div class="time-chip">
+                                <span class="time-label">⌛结束</span>
+                                <span class="time-value">${formatTime(cls.end)}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-left: auto;">
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                                <div class="action-btns">
+                                    <button class="icon-btn edit-btn" data-id="${cls.id}"><i class="fas fa-pen"></i> 编辑</button>
+                                    <button class="icon-btn delete-btn" data-id="${cls.id}" data-name="${cls.name}"><i class="fas fa-trash"></i> 删除</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+            classListDiv.innerHTML = html;
+
+            // 绑定事件
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    const cls = classes.find(c => c.id === id);
+                    if (cls) openEditModal(cls);
+                });
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    const name = btn.dataset.name;
+                    openDeleteConfirm(id, name);
+                });
+            });
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // 弹窗逻辑
+        function setDefaultDateTime() {
+            const now = new Date();
+            const later = new Date(now.getTime() + 30*86400000);
+            startTimeInp.value = now.toISOString().slice(0,16);
+            endTimeInp.value = later.toISOString().slice(0,16);
+        }
+
+        function resetImageUpload() {
+            imageFile.value = '';
+            imagePreview.src = '';
+            imagePreview.classList.add('hidden');
+            uploadPlaceholder.classList.remove('hidden');
+            imageData.value = '';
+        }
+
+        function openAddModal() {
+            modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> 新增班级';
+            classForm.reset();
+            resetImageUpload();
+            setDefaultDateTime();
+            editingId.value = '';
+            modal.classList.add('show');
+        }
+
+        function openEditModal(cls) {
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑班级';
+            classNameInp.value = cls.name;
+            startTimeInp.value = cls.start.slice(0,16);
+            endTimeInp.value = cls.end.slice(0,16);
+            editingId.value = cls.id;
+            if (cls.image) {
+                imagePreview.src = cls.image;
+                imagePreview.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+                imageData.value = cls.image;
+            } else {
+                resetImageUpload();
+            }
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        function openDeleteConfirm(id, name) {
+            pendingDeleteId = id;
+            delClassNameSpan.innerText = name;
+            deleteModal.classList.add('show');
+        }
+        function closeDeleteConfirm() { deleteModal.classList.remove('show'); }
+
+        function deleteClass(id) {
+            classes = classes.filter(c => c.id !== id);
+            const filtered = getFiltered();
+            if (filtered.length === 0 && currentPage > 1) currentPage--;
+            showToast('班级已删除');
+            renderTable();
+            renderPagination();
+            closeDeleteConfirm();
+        }
+
+        // 图片上传
+        imageUploadArea.addEventListener('click', () => imageFile.click());
+        imageFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { showToast('请上传图片',1500); return; }
+            if (file.size > 5*1024*1024) { showToast('图片必须 ≤5MB',1500); return; }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                imagePreview.src = ev.target.result;
+                imagePreview.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+                imageData.value = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 保存记录
+        function saveClass() {
+            const name = classNameInp.value.trim();
+            const start = startTimeInp.value;
+            const end = endTimeInp.value;
+            if (!name || !start || !end) { showToast('请填写完整'); return; }
+            if (new Date(start) >= new Date(end)) { showToast('结束时间必须晚于开放时间'); return; }
+
+            const newTheme = String(Math.floor(Math.random()*5)+1);
+            const newClass = {
+                id: editingId.value || generateId(),
+                name,
+                start,
+                end,
+                image: imageData.value || '',
+                theme: newTheme
+            };
+
+            if (editingId.value) {
+                const idx = classes.findIndex(c => c.id === editingId.value);
+                if (idx !== -1) {
+                    if (!imageData.value && !classes[idx].image) newClass.theme = classes[idx].theme || newTheme;
+                    classes[idx] = newClass;
+                }
+                showToast('班级已更新');
+            } else {
+                classes.push(newClass);
+                showToast('班级已添加');
+                const filtered = getFiltered();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+            closeModal();
+            renderTable();
+            renderPagination();
+        }
+
+        // 事件绑定
+        searchInput.addEventListener('input', (e) => {
+            searchKeyword = e.target.value.trim();
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        });
+        statusSelect.addEventListener('change', (e) => {
+            statusFilter = e.target.value;
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        });
+        resetFilterBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            statusSelect.value = 'all';
+            searchKeyword = '';
+            statusFilter = 'all';
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        });
+        addClassBtn.addEventListener('click', openAddModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        classForm.addEventListener('submit', (e) => { e.preventDefault(); saveClass(); });
+
+        // 删除确认
+        closeDeleteBtn.addEventListener('click', closeDeleteConfirm);
+        cancelDeleteBtn.addEventListener('click', closeDeleteConfirm);
+        deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) closeDeleteConfirm(); });
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (pendingDeleteId) deleteClass(pendingDeleteId);
+        });
+
+        // 初始化
+        renderTable();
+        renderPagination();
+    })();
+</script>
+</body>
+</html>

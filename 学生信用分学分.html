@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生信用学分管理系统 · 全屏分页+单个导出</title>
+    <!-- Font Awesome 5 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: #f3f6fc;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        #app {
+            width: 100%;
+            /* max-width: 1600px; */
+            margin: 0 auto;
+            padding: 1.2rem 1rem 1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 筛选卡片 */
+        .filter-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,20,50,0.04);
+            margin-bottom: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.8rem 1.2rem;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 140px;
+            flex: 1 1 160px;
+        }
+
+        .filter-item label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .filter-item input, .filter-item select {
+            padding: 0.7rem 0.9rem;
+            border: 1px solid #d9e2ef;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            background: white;
+            transition: 0.2s;
+        }
+
+        .filter-item input:focus, .filter-item select:focus {
+            border-color: #3b7cff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59,124,255,0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-left: auto;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.65rem 1.4rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: none;
+            background: white;
+            color: #1e293b;
+            border: 1px solid #cdddec;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .btn-primary {
+            background: #1a3b5d;
+            border: 1px solid #1a3b5d;
+            color: white;
+        }
+
+        .btn-primary i {
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #bdd3eb;
+        }
+
+        .btn-outline i {
+            color: #2c5282;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0,40,80,0.1);
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .stat-item {
+            background: white;
+            border-radius: 26px;
+            padding: 1.1rem 1.8rem;
+            box-shadow: 0 6px 14px rgba(0,20,40,0.02);
+            flex: 1 1 180px;
+            border: 1px solid rgba(0,70,120,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stat-icon {
+            background: #eef4ff;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e4f8a;
+            font-size: 1.5rem;
+        }
+
+        .stat-content h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #0b253c;
+        }
+
+        .stat-content p {
+            color: #5d7184;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* 表格区域 */
+        .table-wrapper {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 16px 30px -8px rgba(20,40,70,0.08);
+            padding: 0 0.2rem 0 1rem;
+            flex: 1 1 auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #eef3f9;
+        }
+
+        .table-header-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1rem 0.6rem 0.5rem;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-header-tools h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #17345c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn {
+            background: #e4edfa;
+            border: none;
+            padding: 0.6rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 500;
+            color: #1a3d6e;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            overflow-y: auto;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: #b6cde0 #f1f7fd;
+            padding-right: 4px;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #b6cde0;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1050px;        /* 确保操作列完整显示 */
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem 0.8rem 0.8rem 0.8rem;
+            color: #446688;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid #e2ebf6;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 1rem 0.8rem;
+            border-bottom: 1px solid #ecf3fa;
+            color: #1f2f40;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f8fbfe;
+        }
+
+        .student-link {
+            color: #1a4c8c;
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 1px dashed #9bb9da;
+            cursor: pointer;
+        }
+
+        .badge {
+            background: #e1ecfe;
+            color: #1a3f64;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .progress {
+            background: #e1eaf2;
+            border-radius: 40px;
+            height: 8px;
+            width: 80px;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .progress-fill {
+            display: block;
+            height: 8px;
+            background: #2e7ab3;
+            border-radius: 40px;
+            width: 0%;
+        }
+
+        .action-icons i {
+            margin: 0 6px;
+            color: #748ea8;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: color 0.1s;
+        }
+        .action-icons i:hover {
+            color: #1f4e8c;
+        }
+
+        /* 分页控件 */
+        .pagination-bar {
+            padding: 0.8rem 1rem 0.8rem 0.5rem;
+            border-top: 1px solid #e5eef9;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 16px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pagination-btn {
+            background: white;
+            border: 1px solid #d5e2f0;
+            border-radius: 30px;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #2c3e50;
+            transition: 0.1s;
+        }
+        .pagination-btn:hover:not(.disabled) {
+            background: #e4edfa;
+            border-color: #3670b3;
+        }
+        .pagination-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            cursor: default;
+        }
+        .page-info {
+            font-weight: 500;
+            color: #1e3f60;
+            min-width: 120px;
+            text-align: center;
+        }
+        .page-select {
+            width: 70px;
+            padding: 0.4rem;
+            border-radius: 30px;
+            border: 1px solid #cbdbea;
+            text-align: center;
+        }
+        .rows-per-page {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #3a5b7c;
+        }
+        .rows-per-page select {
+            padding: 0.4rem 1.4rem 0.4rem 0.8rem;
+            border-radius: 30px;
+            border: 1px solid #cbdbea;
+            background: white;
+            font-weight: 500;
+        }
+
+        /* 模态框 (历史详情) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.4);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: white;
+            width: 92%;
+            max-width: 700px;
+            max-height: 80vh;
+            border-radius: 40px;
+            padding: 2rem 1.5rem 1.5rem 1.5rem;
+            box-shadow: 0 40px 60px rgba(0,20,50,0.3);
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.8rem;
+        }
+        .modal-header h3 {
+            font-size: 1.6rem;
+            color: #082032;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #7f99b6;
+        }
+        .timeline-item {
+            padding: 1rem 0;
+            border-left: 3px solid #3670b3;
+            padding-left: 1.5rem;
+            margin-bottom: 0.8rem;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            width: 12px; height: 12px;
+            background: #3670b3;
+            border-radius: 50%;
+            position: absolute;
+            left: -7px;
+            top: 1.2rem;
+        }
+        .timeline-date {
+            font-size: 0.8rem;
+            color: #4a6f94;
+            font-weight: 600;
+        }
+        .timeline-desc {
+            font-size: 1rem;
+            margin: 4px 0 2px;
+        }
+        .timeline-reason {
+            color: #476c8f;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 700px) {
+            #app { padding: 0.8rem 0.5rem; }
+            .filter-card { padding: 1rem; }
+            .filter-row { flex-direction: column; align-items: stretch; }
+            .btn-group { margin-left: 0; justify-content: space-between; }
+            .stat-item { padding: 0.8rem 1rem; }
+            .stat-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+            .stat-content h3 { font-size: 1.3rem; }
+            .table-header-tools { flex-direction: column; align-items: start; }
+            .pagination-bar { flex-direction: column; align-items: flex-end; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 筛选卡片 -->
+        <div class="filter-card">
+            <div class="filter-row">
+                <div class="filter-item">
+                    <label><i class="fas fa-user-graduate"></i> 姓名</label>
+                    <input type="text" id="searchName" placeholder="输入姓名" value="">
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-id-card"></i> 学号</label>
+                    <input type="text" id="searchId" placeholder="学号">
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-users"></i> 班级</label>
+                    <select id="searchClass">
+                        <option value="">全部班级</option>
+                        <option value="计科1班">计科1班</option>
+                        <option value="计科2班">计科2班</option>
+                        <option value="软件1班">软件1班</option>
+                        <option value="人工智能班">人工智能班</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="queryBtn"><i class="fas fa-search"></i> 查询</button>
+                    <button class="btn btn-outline" id="resetBtn"><i class="fas fa-undo-alt"></i> 重置</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-content">
+                    <h3 id="totalCount">0</h3>
+                    <p>在读研究生</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-star"></i></div>
+                <div class="stat-content">
+                    <h3 id="avgCredit">0</h3>
+                    <p>平均信用分</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="stat-content">
+                    <h3 id="warningCount">0</h3>
+                    <p>预警人数 (≤60)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表格主区域 -->
+        <div class="table-wrapper">
+            <div class="table-header-tools">
+                <h2><i class="fas fa-clipboard-list"></i> 信用学分总览</h2>
+                <button class="btn export-btn" id="exportBtn"><i class="fas fa-file-excel"></i> 导出当前列表</button>
+            </div>
+            <div class="table-scroll">
+                <table id="creditTable">
+                    <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>学号</th>
+                            <th>班级</th>
+                            <th>信用学分</th>
+                            <th>应修学分</th>
+                            <th>已选学分</th>
+                            <th>完成率</th>
+                            <th>更新时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 动态渲染 -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- 分页控件优化 -->
+            <div class="pagination-bar">
+                <div class="rows-per-page">
+                    <span><i class="fas fa-list-ul"></i> 每页</span>
+                    <select id="rowsPerPage">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+                <div class="pagination-controls">
+                    <span class="pagination-btn" id="firstPage"><i class="fas fa-angle-double-left"></i></span>
+                    <span class="pagination-btn" id="prevPage"><i class="fas fa-chevron-left"></i></span>
+                    <span class="page-info" id="pageInfo">第 1 / 1 页</span>
+                    <span class="pagination-btn" id="nextPage"><i class="fas fa-chevron-right"></i></span>
+                    <span class="pagination-btn" id="lastPage"><i class="fas fa-angle-double-right"></i></span>
+                </div>
+                <div>
+                    <select id="pageJump" class="page-select">
+                        <option value="1">1</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史详情模态框 -->
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><span id="modalStudentName">张明</span> 的学分轨迹</h3>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <div style="margin-bottom: 1.5rem; background: #f2f7ff; padding: 1rem; border-radius: 20px;">
+                <p><strong>学号：</strong><span id="modalStudentId">202408001</span>  ·  <strong>班级：</strong><span id="modalStudentClass">计科1班</span></p>
+                <p>当前信用分: <strong id="modalCredit">82</strong>  / 应修: <strong id="modalRequired">42</strong>  / 已选: <strong id="modalSelected">28</strong></p>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">2026-03-10 14:20</div>
+                <div class="timeline-desc"><i class="fas fa-plus-circle" style="color:#2a7f62;"></i> 信用分 +2 (担任助教)</div>
+                <div class="timeline-reason">助教工作认定 · 研究生秘书</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">2026-03-01 09:15</div>
+                <div class="timeline-desc"><i class="fas fa-check-circle" style="color:#2c5282;"></i> 已选学分 +3 (高级算法)</div>
+                <div class="timeline-reason">选课系统同步</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">2026-02-18 11:30</div>
+                <div class="timeline-desc"><i class="fas fa-exclamation-circle" style="color:#b34a4a;"></i> 信用分 -5 (旷课一次)</div>
+                <div class="timeline-reason">考勤系统导入</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">2026-02-01 08:00</div>
+                <div class="timeline-desc">初始学分档案建立</div>
+                <div class="timeline-reason">教务系统同步</div>
+            </div>
+            <div style="text-align: right; margin-top: 1rem;">
+                <button class="btn btn-outline" id="closeModalInner"><i class="fas fa-times"></i> 关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 模拟数据 ----------
+            const sampleData = [
+                { name: '张明', id: '202408001', class: '计科1班', credit: 82, required: 42, selected: 28, lastUpdate: '2026-03-13' },
+                { name: '李华', id: '202408002', class: '计科1班', credit: 94, required: 40, selected: 38, lastUpdate: '2026-03-12' },
+                { name: '王芳', id: '202408003', class: '计科1班', credit: 67, required: 42, selected: 22, lastUpdate: '2026-03-10' },
+                { name: '赵岩', id: '202408101', class: '计科2班', credit: 55, required: 42, selected: 20, lastUpdate: '2026-03-11' },
+                { name: '陈静', id: '202408102', class: '计科2班', credit: 91, required: 40, selected: 34, lastUpdate: '2026-03-09' },
+                { name: '刘阳', id: '202408103', class: '计科2班', credit: 78, required: 42, selected: 30, lastUpdate: '2026-03-08' },
+                { name: '孙一凡', id: '202409011', class: '软件1班', credit: 62, required: 40, selected: 27, lastUpdate: '2026-03-07' },
+                { name: '周琪', id: '202409012', class: '软件1班', credit: 88, required: 42, selected: 33, lastUpdate: '2026-03-06' },
+                { name: '吴迪', id: '202409013', class: '软件1班', credit: 73, required: 42, selected: 26, lastUpdate: '2026-03-05' },
+                { name: '郑爽', id: '202410021', class: '人工智能班', credit: 96, required: 45, selected: 41, lastUpdate: '2026-03-04' },
+                { name: '林峰', id: '202410022', class: '人工智能班', credit: 59, required: 45, selected: 20, lastUpdate: '2026-03-03' },
+                { name: '高天', id: '202410023', class: '人工智能班', credit: 84, required: 42, selected: 36, lastUpdate: '2026-03-02' },
+                { name: '徐璐', id: '202408004', class: '计科1班', credit: 77, required: 42, selected: 32, lastUpdate: '2026-03-01' },
+                { name: '万涛', id: '202408104', class: '计科2班', credit: 81, required: 40, selected: 33, lastUpdate: '2026-02-28' },
+                { name: '沈梦', id: '202409014', class: '软件1班', credit: 69, required: 42, selected: 24, lastUpdate: '2026-02-27' }
+            ];
+
+            // 当前过滤后全量数据
+            let currentFilteredData = [...sampleData];
+            // 分页参数
+            let currentPage = 1;
+            let rowsPerPage = 10;
+
+            // 辅助函数：完成率
+            function computeRate(row) {
+                return Math.round((row.selected / row.required) * 100);
+            }
+
+            // 更新统计卡片（基于全量过滤后数据）
+            function updateStats(data) {
+                const total = data.length;
+                const sumCredit = data.reduce((acc, r) => acc + r.credit, 0);
+                const avg = total ? (sumCredit / total).toFixed(1) : 0;
+                const warning = data.filter(r => r.credit <= 60).length;
+                document.getElementById('totalCount').innerText = total;
+                document.getElementById('avgCredit').innerText = avg;
+                document.getElementById('warningCount').innerText = warning;
+            }
+
+            // 渲染分页控件状态 + 跳转下拉
+            function renderPaginationControls(totalRows) {
+                const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+                if (currentPage > totalPages) currentPage = totalPages || 1;
+                document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${totalPages} 页`;
+
+                // 更新首/末/prev/next禁用状态
+                const firstBtn = document.getElementById('firstPage');
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+                const lastBtn = document.getElementById('lastPage');
+
+                firstBtn.classList.toggle('disabled', currentPage === 1);
+                prevBtn.classList.toggle('disabled', currentPage === 1);
+                nextBtn.classList.toggle('disabled', currentPage === totalPages);
+                lastBtn.classList.toggle('disabled', currentPage === totalPages);
+
+                // 更新下拉跳转
+                const jumpSelect = document.getElementById('pageJump');
+                jumpSelect.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = i;
+                    if (i === currentPage) opt.selected = true;
+                    jumpSelect.appendChild(opt);
+                }
+            }
+
+            // 渲染表格（基于当前分页）
+            function renderTablePage() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const pageData = currentFilteredData.slice(start, end);
+
+                const tbody = document.getElementById('tableBody');
+                let html = '';
+                pageData.forEach(row => {
+                    const rate = computeRate(row);
+                    html += `<tr>
+                        <td><span class="student-link" data-student='${JSON.stringify(row)}'>${row.name}</span></td>
+                        <td>${row.id}</td>
+                        <td>${row.class}</td>
+                        <td><span class="badge" style="${row.credit <= 60 ? 'background:#fbe2e2;color:#a13030;' : ''}">${row.credit}</span></td>
+                        <td>${row.required}</td>
+                        <td>${row.selected}</td>
+                        <td>
+                            <span class="progress"><span class="progress-fill" style="width:${rate}%;"></span></span> ${rate}%
+                        </td>
+                        <td>${row.lastUpdate}</td>
+                        <td class="action-icons">
+                            <i class="fas fa-history" title="查看历史" data-student='${JSON.stringify(row)}'></i>
+                            <i class="fas fa-download" title="导出该生" data-student-export='${JSON.stringify(row)}' style="margin-left:8px;"></i>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+
+                // 绑定查看历史 (姓名 + 历史图标)
+                document.querySelectorAll('.student-link, .fa-history').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        let studentStr = this.dataset.student;
+                        if (!studentStr && this.tagName === 'I' && this.dataset.student) {
+                            studentStr = this.dataset.student;
+                        } else if (this.classList.contains('student-link')) {
+                            studentStr = this.dataset.student;
+                        }
+                        if (studentStr) {
+                            try {
+                                const student = JSON.parse(studentStr);
+                                showHistoryModal(student);
+                            } catch (err) { }
+                        }
+                        e.stopPropagation();
+                    });
+                });
+
+                // 绑定单个导出 (新功能：使用download图标)
+                document.querySelectorAll('.fa-download').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        const studentStr = this.dataset.studentExport;
+                        if (studentStr) {
+                            try {
+                                const student = JSON.parse(studentStr);
+                                exportSingleStudent(student);
+                            } catch (err) { }
+                        }
+                        e.stopPropagation();
+                    });
+                });
+
+                // 更新统计卡片基于全量过滤数据
+                updateStats(currentFilteredData);
+                renderPaginationControls(currentFilteredData.length);
+            }
+
+            // 单个导出：生成CSV并下载 (正常文件格式)
+            function exportSingleStudent(student) {
+                // 生成格式良好的csv，包含所有字段
+                const headers = ['姓名', '学号', '班级', '信用学分', '应修学分', '已选学分', '完成率', '最后更新'];
+                const rate = Math.round((student.selected / student.required) * 100) + '%';
+                const values = [student.name, student.id, student.class, student.credit, student.required, student.selected, rate, student.lastUpdate];
+                let csv = headers.join(',') + '\n';
+                csv += values.map(v => `"${v}"`).join(',') + '\n';
+
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${student.name}_${student.id}_信用学分.csv`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+
+            // 导出当前列表（全部过滤后）
+            function exportFilteredList() {
+                if (currentFilteredData.length === 0) {
+                    alert('无数据可导出');
+                    return;
+                }
+                const headers = ['姓名', '学号', '班级', '信用学分', '应修学分', '已选学分', '完成率', '最后更新'];
+                let csv = headers.join(',') + '\n';
+                currentFilteredData.forEach(s => {
+                    const rate = Math.round((s.selected / s.required) * 100) + '%';
+                    const row = [s.name, s.id, s.class, s.credit, s.required, s.selected, rate, s.lastUpdate];
+                    csv += row.map(v => `"${v}"`).join(',') + '\n';
+                });
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = '信用学分导出列表.csv';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+
+            // 过滤数据
+            function filterData() {
+                const nameVal = document.getElementById('searchName').value.trim().toLowerCase();
+                const idVal = document.getElementById('searchId').value.trim().toLowerCase();
+                const classVal = document.getElementById('searchClass').value;
+
+                return sampleData.filter(row => {
+                    const matchName = !nameVal || row.name.toLowerCase().includes(nameVal);
+                    const matchId = !idVal || row.id.toLowerCase().includes(idVal);
+                    const matchClass = !classVal || row.class === classVal;
+                    return matchName && matchId && matchClass;
+                });
+            }
+
+            // 刷新全部 (过滤 + 重置分页到第一页)
+            function refreshTable() {
+                currentFilteredData = filterData();
+                currentPage = 1;
+                renderTablePage();
+            }
+
+            // 重置筛选
+            function resetFilters() {
+                document.getElementById('searchName').value = '';
+                document.getElementById('searchId').value = '';
+                document.getElementById('searchClass').value = '';
+                refreshTable();
+            }
+
+            // 显示历史模态框
+            function showHistoryModal(student) {
+                const modal = document.getElementById('historyModal');
+                document.getElementById('modalStudentName').innerText = student.name;
+                document.getElementById('modalStudentId').innerText = student.id;
+                document.getElementById('modalStudentClass').innerText = student.class;
+                document.getElementById('modalCredit').innerText = student.credit;
+                document.getElementById('modalRequired').innerText = student.required;
+                document.getElementById('modalSelected').innerText = student.selected;
+                modal.style.display = 'flex';
+            }
+
+            // 初始化事件
+            window.onload = function() {
+                // 初始渲染全量
+                currentFilteredData = [...sampleData];
+                rowsPerPage = parseInt(document.getElementById('rowsPerPage').value, 10);
+                renderTablePage();
+
+                // 查询
+                document.getElementById('queryBtn').addEventListener('click', refreshTable);
+
+                // 重置
+                document.getElementById('resetBtn').addEventListener('click', resetFilters);
+
+                // 导出当前列表
+                document.getElementById('exportBtn').addEventListener('click', exportFilteredList);
+
+                // 分页控件事件
+                document.getElementById('firstPage').addEventListener('click', () => {
+                    if (currentPage > 1) { currentPage = 1; renderTablePage(); }
+                });
+                document.getElementById('prevPage').addEventListener('click', () => {
+                    if (currentPage > 1) { currentPage--; renderTablePage(); }
+                });
+                document.getElementById('nextPage').addEventListener('click', () => {
+                    const totalPages = Math.ceil(currentFilteredData.length / rowsPerPage);
+                    if (currentPage < totalPages) { currentPage++; renderTablePage(); }
+                });
+                document.getElementById('lastPage').addEventListener('click', () => {
+                    const totalPages = Math.ceil(currentFilteredData.length / rowsPerPage);
+                    if (currentPage < totalPages) { currentPage = totalPages; renderTablePage(); }
+                });
+
+                // 每页条数变更
+                document.getElementById('rowsPerPage').addEventListener('change', function(e) {
+                    rowsPerPage = parseInt(e.target.value, 10);
+                    currentPage = 1;
+                    renderTablePage();
+                });
+
+                // 跳转页码
+                document.getElementById('pageJump').addEventListener('change', function(e) {
+                    const newPage = parseInt(e.target.value, 10);
+                    if (newPage !== currentPage) {
+                        currentPage = newPage;
+                        renderTablePage();
+                    }
+                });
+
+                // 模态框关闭
+                const modal = document.getElementById('historyModal');
+                document.querySelectorAll('#closeModalBtn, #closeModalInner').forEach(btn => {
+                    btn.addEventListener('click', () => { modal.style.display = 'none'; });
+                });
+                window.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                });
+            };
+        })();
+    </script>
+</body>
+</html>

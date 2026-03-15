@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>研究生选修课 · 全屏管理 (优雅编辑控件 · 弹窗编辑)</title>
+    <!-- Inter 字体, 干净现代 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 基础重置 + 全屏宽度 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 全屏容器 */
+        .full-screen {
+            width: 100%;
+            padding: 1.8rem 2.5rem;
+            flex: 1;
+        }
+
+        /* 卡片呼吸 */
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0, 20, 40, 0.08);
+            padding: 2rem 2.2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            transition: box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .card:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title i {
+            color: #2f6e9e;
+            font-size: 1.4rem;
+        }
+
+        /* 筛选条 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+        }
+        .filter-item {
+            flex: 1 1 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .filter-item label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.7rem 1.2rem;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: 0.15s;
+            width: 100%;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47, 110, 158, 0.15);
+            background: #ffffff;
+        }
+        .btn-clear {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 0.7rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #2c455d;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            align-self: flex-end;
+            transition: 0.1s;
+        }
+        .btn-clear:hover {
+            background: #f1f7fd;
+            border-color: #9bb0c5;
+        }
+
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.75rem 1.8rem;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 60, 110, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #123a58;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 18px rgba(0, 60, 110, 0.25);
+        }
+
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+
+        .btn-outline:hover {
+            background: #f1f7fd;
+            border-color: #9bb0c5;
+        }
+
+        .btn-sm {
+            padding: 0.45rem 1.2rem;
+            font-size: 0.85rem;
+            border-radius: 30px;
+        }
+
+        /* 表格包装 */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th {
+            text-align: left;
+            padding: 1.2rem 1.5rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1d4b6e;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+
+        .course-name {
+            font-weight: 600;
+            color: #0b2b40;
+        }
+
+        .course-type {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .course-desc {
+            max-width: 320px;
+            color: #2f5575;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #2a577b;
+            background: #f2f8ff;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid transparent;
+        }
+
+        .icon-btn:hover {
+            background: #dae9f8;
+        }
+
+        .delete-btn:hover {
+            background: #ffeae9;
+            color: #b13e3e;
+        }
+
+        .preview-btn:hover {
+            background: #e0effa;
+            color: #004c99;
+        }
+
+        /* 编辑行样式 —— 移除，因为编辑已改为弹窗，但保留以防万一，实际不用 */
+        .edit-row { background-color: transparent; border-left: none; }
+
+        /* 分页组件 */
+        .pagination-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.8rem;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            background: white;
+            border: 1px solid #c9d9eb;
+            color: #1d4a6b;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .pagination-btn.active {
+            background: #1e4a6f;
+            border-color: #1e4a6f;
+            color: white;
+        }
+
+        .pagination-btn:hover:not(.active) {
+            background: #e5f0fb;
+        }
+
+        .page-info {
+            color: #466585;
+            margin-right: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        /* 弹窗 (新增/编辑/预览 统一风格) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 20, 40, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 32px;
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem 2.2rem;
+            box-shadow: 0 40px 70px rgba(0, 20, 50, 0.4);
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.show .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #0c2b48;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #8ba5c2;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #1e3a5f;
+        }
+
+        .modal-field {
+            margin-bottom: 1.4rem;
+        }
+
+        .modal-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #4f7396;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.2rem;
+        }
+
+        .modal-value {
+            font-size: 1.1rem;
+            background: #f4faff;
+            padding: 0.8rem 1.2rem;
+            border-radius: 16px;
+            color: #04223b;
+            word-break: break-word;
+        }
+
+        /* 弹窗内输入框 */
+        .modal-input {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 1px solid #d4e0ec;
+            border-radius: 20px;
+            font-size: 1rem;
+            background: #f9fcff;
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-input:focus {
+            border-color: #1e6b9e;
+            box-shadow: 0 0 0 3px rgba(30, 107, 158, 0.15);
+            outline: none;
+            background: #ffffff;
+        }
+        textarea.modal-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .toast-message {
+            background: #1e4a6f;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 60px;
+            font-weight: 500;
+            box-shadow: 0 15px 30px rgba(0, 40, 70, 0.4);
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1100;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: 0.2s;
+            pointer-events: none;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .footer-hint {
+            margin-top: 1.2rem;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #65809c;
+        }
+    </style>
+</head>
+<body>
+    <div class="full-screen">
+        <!-- 卡片：新增按钮 + 筛选条件 -->
+        <div class="card" style="padding: 1.5rem 2rem;">
+            <!-- 数据筛选条件 -->
+            <div class="filter-bar" style="margin-top: 1.5rem; margin-bottom: 0;">
+                <div class="filter-item">
+                    <label><i class="fas fa-filter"></i> 课程类型</label>
+                    <input type="text" class="filter-input" id="filterType" placeholder="例如：专业核心、跨学科" value="">
+                </div>
+                <div class="filter-item">
+                    <label><i class="fas fa-search"></i> 课程名称</label>
+                    <input type="text" class="filter-input" id="filterName" placeholder="输入名称关键字" value="">
+                </div>
+                <button class="btn-clear" id="clearFilterBtn"><i class="fas fa-redo-alt"></i> 重置筛选</button>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <!-- <i class="fas fa-graduation-cap" style="color:#1e4a6f; font-size: 1.8rem;"></i>
+                    <span style="font-weight: 600; font-size: 1.2rem; color:#1e3a5f;">选修课管理</span> -->
+                </div>
+                <button class="btn btn-primary" id="openAddModalBtn">
+                    <i class="fas fa-plus-circle"></i> 新增选修课程
+                </button>
+            </div>
+            </div>
+        </div>
+
+        <!-- 课程列表卡片 -->
+        <div class="card">
+            <div class="section-title">
+                <i class="fas fa-list-ul"></i> 选修课列表
+                <span style="margin-left: auto; font-size:0.9rem; font-weight:normal; background:#e2edf9; padding:0.3rem 1.2rem; border-radius:40px;display: none;" id="courseCount">0</span>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="courseTable">
+                    <thead>
+                        <tr>
+                            <th>课程名称</th>
+                            <th>课程类型</th>
+                            <th>课程介绍</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courseTableBody">
+                        <!-- 动态渲染，只有普通行，没有行内编辑 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页组件 -->
+            <div class="pagination-bar" id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <!-- 预览弹窗 (只读) -->
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fas fa-eye" style="color:#1e4a6f; margin-right: 0.5rem;"></i>课程预览</h3>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-field">
+                <div class="modal-label">课程名称</div>
+                <div class="modal-value" id="previewName">-</div>
+            </div>
+            <div class="modal-field">
+                <div class="modal-label">课程类型</div>
+                <div class="modal-value" id="previewType">-</div>
+            </div>
+            <div class="modal-field">
+                <div class="modal-label">课程介绍</div>
+                <div class="modal-value modal-desc" id="previewDesc">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑 共用弹窗 (通过标题和按钮区分) -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-pen" style="color:#1e4a6f;"></i> 编辑课程</h3>
+                <button class="modal-close" id="closeEditModalBtn">&times;</button>
+            </div>
+            <div class="modal-field">
+                <div class="modal-label">课程名称 <span style="color:#c00;">*</span></div>
+                <input type="text" class="modal-input" id="editName" placeholder="例如：高等量子力学" maxlength="60">
+            </div>
+            <div class="modal-field">
+                <div class="modal-label">课程类型</div>
+                <input type="text" class="modal-input" id="editType" placeholder="专业核心/跨学科" maxlength="30">
+            </div>
+            <div class="modal-field">
+                <div class="modal-label">课程介绍</div>
+                <textarea class="modal-input" id="editDesc" rows="3" placeholder="简要描述课程内容..."></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="btn btn-outline" id="cancelEditBtn">取消</button>
+                <button class="btn btn-primary" id="saveEditConfirmBtn"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-message">操作成功</div>
+
+    <script>
+        (function() {
+            // ---------- 模拟数据集 ----------
+            let allCourses = [
+                { id: 'c1', name: '高级算法设计与分析', type: '专业核心', desc: '涵盖复杂算法设计、分摊分析、NP完全理论及高级数据结构。' },
+                { id: 'c2', name: '自然语言处理', type: '跨学科', desc: 'Transformer、BERT、大模型微调及文本生成应用，包含实践项目。' },
+                { id: 'c3', name: '科研论文写作', type: '方法论', desc: '学术写作规范、投稿流程、LaTeX排版及回复审稿人技巧。' },
+                { id: 'c4', name: '量子信息导论', type: '前沿交叉', desc: '量子比特、纠缠、量子通信与量子计算基础。' },
+                { id: 'c5', name: '高级计量经济学', type: '方法论', desc: '面板数据、工具变量、因果推断及Stata应用。' },
+                { id: 'c6', name: '蛋白质结构分析', type: '专业核心', desc: '冷冻电镜原理、结构解析与PyMOL绘图。' },
+                { id: 'c7', name: '科技论文绘图', type: '工具', desc: 'Python/Matlab/R 绘图技巧与配色原则。' },
+                { id: 'c8', name: '学术英语演讲', type: '素养', desc: '国际会议演讲、PPT设计与问答策略。' }
+            ];
+
+            // 分页配置
+            const pageSize = 3;
+            let currentPage = 1;
+
+            // 筛选条件
+            let filterType = '';
+            let filterName = '';
+
+            // 当前正在编辑的课程id (用于弹窗保存)
+            let editingCourseId = null;  // null 表示新增模式
+
+            // DOM 元素
+            const tbody = document.getElementById('courseTableBody');
+            const toast = document.getElementById('toast');
+            const courseCountSpan = document.getElementById('courseCount');
+            const paginationContainer = document.getElementById('paginationContainer');
+
+            // 新增按钮 & 弹窗
+            const openAddBtn = document.getElementById('openAddModalBtn');
+            // 编辑/新增弹窗
+            const editModal = document.getElementById('editModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const editName = document.getElementById('editName');
+            const editType = document.getElementById('editType');
+            const editDesc = document.getElementById('editDesc');
+            const closeEditBtn = document.getElementById('closeEditModalBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const saveEditConfirmBtn = document.getElementById('saveEditConfirmBtn');
+
+            // 预览弹窗
+            const previewModal = document.getElementById('previewModal');
+            const previewName = document.getElementById('previewName');
+            const previewType = document.getElementById('previewType');
+            const previewDesc = document.getElementById('previewDesc');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+
+            // 筛选输入
+            const filterTypeInput = document.getElementById('filterType');
+            const filterNameInput = document.getElementById('filterName');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+
+            // 辅助函数: 显示短暂提示
+            function showToast(text, duration = 2000) {
+                toast.textContent = text || '操作成功';
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+
+            // 生成短id
+            function generateId() {
+                return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+            }
+
+            // 更新总课程数显示（过滤后）
+            function updateTotalCount() {
+                const filtered = getFilteredCourses();
+                courseCountSpan.textContent = filtered.length + ' 门';
+            }
+
+            // 获取过滤后的课程
+            function getFilteredCourses() {
+                return allCourses.filter(c => {
+                    const matchType = filterType === '' || c.type.toLowerCase().includes(filterType.toLowerCase());
+                    const matchName = filterName === '' || c.name.toLowerCase().includes(filterName.toLowerCase());
+                    return matchType && matchName;
+                });
+            }
+
+            // 获取当前页的数据 (基于过滤后)
+            function getPaginatedCourses() {
+                const filtered = getFilteredCourses();
+                const start = (currentPage - 1) * pageSize;
+                const end = start + pageSize;
+                return filtered.slice(start, end);
+            }
+
+            // 计算总页数 (基于过滤后)
+            function totalPages() {
+                const filtered = getFilteredCourses();
+                return Math.ceil(filtered.length / pageSize);
+            }
+
+            // 跳转页
+            function goToPage(page) {
+                const pages = totalPages();
+                if (page < 1) page = 1;
+                if (pages > 0 && page > pages) page = pages;
+                if (page === currentPage) return;
+                currentPage = page;
+                renderTable();
+                renderPagination();
+            }
+
+            // 渲染分页按钮
+            function renderPagination() {
+                const total = totalPages();
+                if (total <= 1) {
+                    paginationContainer.innerHTML = ''; 
+                    return;
+                }
+
+                let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${total} 页</span>`;
+
+                html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+
+                for (let i = 1; i <= total; i++) {
+                    if (i === currentPage) {
+                        html += `<span class="pagination-btn active">${i}</span>`;
+                    } else {
+                        html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+                    }
+                }
+
+                html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+
+                paginationContainer.innerHTML = html;
+            }
+
+            window.pageGo = function(page) {
+                goToPage(page);
+            };
+
+            // 预览函数
+            function showPreview(courseId) {
+                const course = allCourses.find(c => c.id === courseId);
+                if (!course) return;
+                previewName.innerText = course.name;
+                previewType.innerText = course.type;
+                previewDesc.innerText = course.desc || '(无介绍)';
+                previewModal.classList.add('show');
+            }
+
+            // 关闭预览弹窗
+            function closePreviewModal() {
+                previewModal.classList.remove('show');
+            }
+
+            // 删除课程
+            function deleteCourse(courseId) {
+                allCourses = allCourses.filter(c => c.id !== courseId);
+                const pages = totalPages();
+                if (currentPage > pages && currentPage > 1) {
+                    currentPage = pages;
+                }
+                showToast('课程已删除');
+                renderTable();
+                renderPagination();
+                updateTotalCount();
+            }
+
+            // 打开编辑弹窗 (复用)
+            function openEditModal(courseId) {
+                if (courseId) {
+                    // 编辑模式
+                    const course = allCourses.find(c => c.id === courseId);
+                    if (!course) return;
+                    editingCourseId = courseId;
+                    modalTitle.innerHTML = '<i class="fas fa-pen" style="color:#1e4a6f;"></i> 编辑课程';
+                    editName.value = course.name;
+                    editType.value = course.type;
+                    editDesc.value = course.desc;
+                } else {
+                    // 新增模式
+                    editingCourseId = null;
+                    modalTitle.innerHTML = '<i class="fas fa-plus-circle" style="color:#1e4a6f;"></i> 新增课程';
+                    editName.value = '';
+                    editType.value = '';
+                    editDesc.value = '';
+                }
+                editModal.classList.add('show');
+            }
+
+            // 关闭编辑弹窗
+            function closeEditModal() {
+                editModal.classList.remove('show');
+                editingCourseId = null; // 重置
+            }
+
+            // 保存编辑/新增
+            function saveEditModal() {
+                const name = editName.value.trim();
+                if (!name) {
+                    showToast('请填写课程名称', 1500);
+                    return;
+                }
+                const type = editType.value.trim() || '未分类';
+                const desc = editDesc.value.trim() || '暂无介绍';
+
+                if (editingCourseId) {
+                    // 编辑保存
+                    const course = allCourses.find(c => c.id === editingCourseId);
+                    if (course) {
+                        course.name = name;
+                        course.type = type;
+                        course.desc = desc;
+                        showToast('课程已更新');
+                    }
+                } else {
+                    // 新增保存
+                    const newCourse = {
+                        id: generateId(),
+                        name: name,
+                        type: type,
+                        desc: desc
+                    };
+                    allCourses.push(newCourse);
+                    // 新增后重置筛选，以便看到新课程
+                    filterType = ''; filterName = '';
+                    filterTypeInput.value = '';
+                    filterNameInput.value = '';
+                    showToast(`课程“${name}”已添加`);
+                }
+
+                // 跳转到最后一页 (如果是新增，方便看到；如果是编辑，保持当前页)
+                if (!editingCourseId) {
+                    currentPage = totalPages();
+                } else {
+                    // 编辑后可能因为筛选变化导致当前页无效？但筛选未变，没问题
+                }
+
+                closeEditModal();
+                renderTable();
+                renderPagination();
+                updateTotalCount();
+            }
+
+            // 渲染表格 (纯展示，无行内编辑)
+            function renderTable() {
+                const paginated = getPaginatedCourses();
+
+                let html = '';
+
+                if (paginated.length === 0) {
+                    html = `<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #8899bb;"><i class="fas fa-book-open" style="font-size: 2rem; opacity: 0.5; margin-bottom: 0.5rem; display: block;"></i>没有匹配的课程，可尝试清除筛选或新增</td></tr>`;
+                } else {
+                    paginated.forEach(course => {
+                        html += `<tr>`;
+                        html += `<td class="course-name">${escapeHtml(course.name)}</td>`;
+                        html += `<td><span class="course-type">${escapeHtml(course.type)}</span></td>`;
+                        html += `<td class="course-desc">${escapeHtml(course.desc)}</td>`;
+                        html += `<td><div class="action-btns">`;
+                        html += `<button class="icon-btn preview-btn" onclick="window.previewHandler('${course.id}')"><i class="fas fa-eye"></i> 预览</button>`;
+                        html += `<button class="icon-btn" onclick="window.openEditModal('${course.id}')"><i class="fas fa-pen"></i> 编辑</button>`;
+                        html += `<button class="icon-btn delete-btn" onclick="window.deleteHandler('${course.id}')"><i class="fas fa-trash"></i> 删除</button>`;
+                        html += `</div></td></tr>`;
+                    });
+                }
+
+                tbody.innerHTML = html;
+                updateTotalCount();
+            }
+
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+
+            // 挂载全局方法
+            window.previewHandler = showPreview;
+            window.deleteHandler = deleteCourse;
+            window.openEditModal = openEditModal;  // 编辑弹窗
+
+            // 预览弹窗关闭
+            closeModalBtn.addEventListener('click', closePreviewModal);
+            previewModal.addEventListener('click', (e) => {
+                if (e.target === previewModal) closePreviewModal();
+            });
+
+            // 新增按钮：打开弹窗（无courseId）
+            openAddBtn.addEventListener('click', () => {
+                openEditModal(null);
+            });
+
+            // 编辑弹窗关闭
+            closeEditBtn.addEventListener('click', closeEditModal);
+            cancelEditBtn.addEventListener('click', closeEditModal);
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) closeEditModal();
+            });
+
+            // 保存编辑/新增
+            saveEditConfirmBtn.addEventListener('click', saveEditModal);
+
+            // 筛选监听
+            function applyFilter() {
+                filterType = filterTypeInput.value;
+                filterName = filterNameInput.value;
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            }
+            filterTypeInput.addEventListener('input', applyFilter);
+            filterNameInput.addEventListener('input', applyFilter);
+
+            clearFilterBtn.addEventListener('click', () => {
+                filterTypeInput.value = '';
+                filterNameInput.value = '';
+                filterType = '';
+                filterName = '';
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+
+            // 初始化渲染
+            renderTable();
+            renderPagination();
+            updateTotalCount();
+        })();
+    </script>
+</body>
+</html>

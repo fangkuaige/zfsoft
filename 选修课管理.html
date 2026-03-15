@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选修课管理 · 弹窗增删改查 + 筛选</title>
+    <!-- Inter 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.8rem 2.5rem;
+            flex: 1;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 2rem 2.2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 筛选栏 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 200px;
+            flex: 1 1 180px;
+        }
+        .filter-item label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.75rem 1.8rem;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.85rem; }
+
+        /* 表格 */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1300px;
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .course-name { font-weight: 600; color: #0b2b40; }
+        .badge {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .numbers-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .action-btns { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.9rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+
+        /* 候补开关样式 (带图标和切换功能) */
+        .waitlist-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            background: #f0f6fe;
+            padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+            border-radius: 40px;
+            border: 1px solid transparent;
+            transition: 0.1s;
+        }
+        .waitlist-toggle:hover {
+            background: #ddeeff;
+            border-color: #abc0d5;
+        }
+        .waitlist-toggle i { font-size: 1.2rem; }
+        .toggle-on { color: #1e6b9e; }
+        .toggle-off { color: #a0b8cc; }
+
+        /* 分页 */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 弹窗 (模态框) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 700px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.8rem;
+        }
+        .modal-header h3 { font-size: 1.7rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.5rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label { font-weight: 600; font-size: 0.8rem; color: #4e6f8c; text-transform: uppercase; }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .checkbox-group {
+            display: flex; align-items: center; gap: 0.8rem; margin-top: 0.8rem;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 22px; height: 22px; accent-color: #1e4a6f;
+        }
+
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;
+        }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 卡片：筛选栏 + 新增按钮 -->
+    <div class="card">
+        <!-- <div class="section-title">
+            <i class="fas fa-sliders-h"></i> 筛选条件 & 操作
+        </div> -->
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-book"></i> 课程名称</label>
+                <input type="text" class="filter-input" id="filterName" placeholder="输入课程名称">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-chalkboard-user"></i> 授课老师</label>
+                <input type="text" class="filter-input" id="filterTeacher" placeholder="老师姓名">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-gear"></i> 选课机制</label>
+                <select class="filter-select" id="filterMechanism">
+                    <option value="">全部</option>
+                    <option value="firstCome">先到先得</option>
+                    <option value="lottery">投点法</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-list-check"></i> 候补机制</label>
+                <select class="filter-select" id="filterWaitlist">
+                    <option value="">全部</option>
+                    <option value="true">开启</option>
+                    <option value="false">关闭</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center;">
+                <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="openAddModalBtn"><i class="fas fa-plus-circle"></i> 新增课程</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 课程列表卡片 -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fas fa-list-ul"></i> 选修课列表
+            <span style="margin-left: auto; background:#e2edf9; padding:0.3rem 1.2rem; border-radius:40px;display: none;" id="courseCount">0</span>
+        </div>
+        <div class="table-wrapper">
+            <table id="courseTable">
+                <thead>
+                    <tr>
+                        <th>课程名称</th><th>班级</th><th>授课老师</th><th>学分</th><th>地址</th>
+                        <th>选/候/未</th><th>选课机制</th><th>候补机制</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="courseTableBody"></tbody>
+            </table>
+        </div>
+        <!-- 分页 -->
+        <div class="pagination-bar" id="paginationContainer"></div>
+    </div>
+</div>
+
+<!-- 新增/编辑 弹窗 -->
+<div class="modal-overlay" id="courseModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-edit" style="margin-right: 0.5rem;"></i>编辑课程</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="courseForm" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="input-group full-width">
+                    <label><i class="fas fa-book"></i> 课程名称 *</label>
+                    <input type="text" class="input-field" id="modalCourseName" required>
+                </div>
+                <div class="input-group">
+                    <label>班级</label>
+                    <input type="text" class="input-field" id="modalClassName">
+                </div>
+                <div class="input-group">
+                    <label>授课老师</label>
+                    <input type="text" class="input-field" id="modalTeacher">
+                </div>
+                <div class="input-group">
+                    <label>学分</label>
+                    <input type="number" step="0.5" class="input-field" id="modalCredit" value="2">
+                </div>
+                <div class="input-group full-width">
+                    <label>地址</label>
+                    <input type="text" class="input-field" id="modalAddress">
+                </div>
+                <div class="input-group">
+                    <label>选课学生</label>
+                    <input type="number" class="input-field" id="modalSelected" value="0" min="0">
+                </div>
+                <div class="input-group">
+                    <label>候补学生</label>
+                    <input type="number" class="input-field" id="modalWaitlist" value="0" min="0">
+                </div>
+                <div class="input-group">
+                    <label>未选学生</label>
+                    <input type="number" class="input-field" id="modalNotSelected" value="0" min="0">
+                </div>
+                <div class="input-group">
+                    <label>选课机制</label>
+                    <select class="input-field" id="modalMechanism">
+                        <option value="firstCome">先到先得</option>
+                        <option value="lottery">投点法</option>
+                    </select>
+                </div>
+                <div class="checkbox-group full-width">
+                    <input type="checkbox" id="modalWaitlistEnabled" checked>
+                    <label for="modalWaitlistEnabled" style="font-weight:500; font-size:1rem;">启用候补选课机制</label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> 保存课程</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // ---------- 初始数据 (包含全部字段) ----------
+        let allCourses = [
+            { id: 'c1', courseName: '电影鉴赏', className: '高一(5)班', teacher: '陈思', credit: 2, address: '多媒体厅', selectedCount: 38, waitlistCount: 7, notSelectedCount: 15, selectionMechanism: 'firstCome', waitlistEnabled: true },
+            { id: 'c2', courseName: '人工智能基础', className: '高二(1)班', teacher: '李博', credit: 3, address: '计算机楼203', selectedCount: 24, waitlistCount: 12, notSelectedCount: 8, selectionMechanism: 'lottery', waitlistEnabled: false },
+            { id: 'c3', courseName: '创意写作', className: '高三(6)班', teacher: '王安', credit: 2.5, address: '文学院105', selectedCount: 18, waitlistCount: 2, notSelectedCount: 22, selectionMechanism: 'firstCome', waitlistEnabled: true },
+            { id: 'c4', courseName: '烘焙工坊', className: '跨班', teacher: '周甜', credit: 1.5, address: '实训楼西点房', selectedCount: 12, waitlistCount: 9, notSelectedCount: 30, selectionMechanism: 'lottery', waitlistEnabled: true },
+            { id: 'c5', courseName: '量子力学导论', className: '大三(2)班', teacher: '赵博', credit: 4, address: '物理楼401', selectedCount: 21, waitlistCount: 5, notSelectedCount: 14, selectionMechanism: 'firstCome', waitlistEnabled: false },
+            { id: 'c6', courseName: '古典吉他', className: '艺术团', teacher: '林音', credit: 2, address: '排练厅3', selectedCount: 8, waitlistCount: 3, notSelectedCount: 26, selectionMechanism: 'lottery', waitlistEnabled: true },
+            { id: 'c7', courseName: '欧洲史', className: '人文班', teacher: '陈丹', credit: 3, address: '历史楼101', selectedCount: 30, waitlistCount: 2, notSelectedCount: 5, selectionMechanism: 'firstCome', waitlistEnabled: true },
+            { id: 'c8', courseName: 'Python数据分析', className: '混合', teacher: '王铎', credit: 3.5, address: '信息学院305', selectedCount: 45, waitlistCount: 20, notSelectedCount: 10, selectionMechanism: 'lottery', waitlistEnabled: false }
+        ];
+
+        // 分页配置
+        const pageSize = 4;
+        let currentPage = 1;
+        // 筛选条件对象
+        let filters = { name: '', teacher: '', mechanism: '', waitlist: '' };
+
+        // 弹窗相关
+        const modal = document.getElementById('courseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const modalForm = document.getElementById('courseForm');
+        // 弹窗输入字段
+        const modalCourseName = document.getElementById('modalCourseName');
+        const modalClassName = document.getElementById('modalClassName');
+        const modalTeacher = document.getElementById('modalTeacher');
+        const modalCredit = document.getElementById('modalCredit');
+        const modalAddress = document.getElementById('modalAddress');
+        const modalSelected = document.getElementById('modalSelected');
+        const modalWaitlist = document.getElementById('modalWaitlist');
+        const modalNotSelected = document.getElementById('modalNotSelected');
+        const modalMechanism = document.getElementById('modalMechanism');
+        const modalWaitlistEnabled = document.getElementById('modalWaitlistEnabled');
+
+        // 其它DOM
+        const tbody = document.getElementById('courseTableBody');
+        const toast = document.getElementById('toast');
+        const courseCountSpan = document.getElementById('courseCount');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const filterName = document.getElementById('filterName');
+        const filterTeacher = document.getElementById('filterTeacher');
+        const filterMechanism = document.getElementById('filterMechanism');
+        const filterWaitlist = document.getElementById('filterWaitlist');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const openAddModalBtn = document.getElementById('openAddModalBtn');
+
+        // 当前编辑的课程id (null表示新增)
+        let editingId = null;
+
+        // 辅助函数
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2,8); }
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // 筛选函数
+        function filterCourses() {
+            return allCourses.filter(c => {
+                if (filters.name && !c.courseName.toLowerCase().includes(filters.name.toLowerCase())) return false;
+                if (filters.teacher && !(c.teacher || '').toLowerCase().includes(filters.teacher.toLowerCase())) return false;
+                if (filters.mechanism && c.selectionMechanism !== filters.mechanism) return false;
+                if (filters.waitlist !== '') {
+                    const waitBool = filters.waitlist === 'true';
+                    if (c.waitlistEnabled !== waitBool) return false;
+                }
+                return true;
+            });
+        }
+
+        // 获取筛选后数据
+        function getFilteredCourses() {
+            return filterCourses();
+        }
+
+        // 分页相关 (基于筛选后数据)
+        function getPaginatedCourses() {
+            const filtered = getFilteredCourses();
+            const start = (currentPage - 1) * pageSize;
+            return filtered.slice(start, start + pageSize);
+        }
+
+        function totalPages() {
+            const filtered = getFilteredCourses();
+            return Math.ceil(filtered.length / pageSize);
+        }
+
+        function goToPage(page) {
+            const total = totalPages();
+            if (page < 1) page = 1;
+            if (total > 0 && page > total) page = total;
+            if (page === currentPage) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        }
+
+        // 渲染分页
+        function renderPagination() {
+            const total = totalPages();
+            if (total <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationContainer.innerHTML = html;
+        }
+        window.pageGo = goToPage;
+
+        // 更新总课程数 (筛选后)
+        function updateCount() {
+            courseCountSpan.textContent = getFilteredCourses().length + ' 门';
+        }
+
+        // 切换候补机制 (直接点击行内开关)
+        function toggleWaitlist(id) {
+            const course = allCourses.find(c => c.id === id);
+            if (course) {
+                course.waitlistEnabled = !course.waitlistEnabled;
+                showToast(`候补机制已${course.waitlistEnabled ? '开启' : '关闭'}`);
+                // 如果当前页因为筛选改变需要维持，直接重新渲染
+                renderTable();
+                renderPagination();
+                updateCount();
+            }
+        }
+
+        // 删除课程
+        function deleteCourse(id) {
+            allCourses = allCourses.filter(c => c.id !== id);
+            const filtered = getFilteredCourses();
+            if (filtered.length === 0 && currentPage > 1) currentPage--;
+            showToast('课程已删除');
+            renderTable();
+            renderPagination();
+            updateCount();
+        }
+
+        // 打开新增弹窗
+        function openAddModal() {
+            editingId = null;
+            modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> 新增课程';
+            // 清空表单
+            modalCourseName.value = '';
+            modalClassName.value = '';
+            modalTeacher.value = '';
+            modalCredit.value = 2;
+            modalAddress.value = '';
+            modalSelected.value = 0;
+            modalWaitlist.value = 0;
+            modalNotSelected.value = 0;
+            modalMechanism.value = 'firstCome';
+            modalWaitlistEnabled.checked = true;
+            modal.classList.add('show');
+        }
+
+        // 打开编辑弹窗
+        function openEditModal(id) {
+            const course = allCourses.find(c => c.id === id);
+            if (!course) return;
+            editingId = id;
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑课程';
+            modalCourseName.value = course.courseName || '';
+            modalClassName.value = course.className || '';
+            modalTeacher.value = course.teacher || '';
+            modalCredit.value = course.credit ?? 2;
+            modalAddress.value = course.address || '';
+            modalSelected.value = course.selectedCount ?? 0;
+            modalWaitlist.value = course.waitlistCount ?? 0;
+            modalNotSelected.value = course.notSelectedCount ?? 0;
+            modalMechanism.value = course.selectionMechanism || 'firstCome';
+            modalWaitlistEnabled.checked = course.waitlistEnabled || false;
+            modal.classList.add('show');
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            modal.classList.remove('show');
+            editingId = null;
+        }
+
+        // 保存课程 (新增/编辑)
+        function saveCourse() {
+            const name = modalCourseName.value.trim();
+            if (!name) { showToast('课程名称不能为空', 1500); return; }
+
+            const courseData = {
+                courseName: name,
+                className: modalClassName.value.trim(),
+                teacher: modalTeacher.value.trim(),
+                credit: parseFloat(modalCredit.value) || 0,
+                address: modalAddress.value.trim(),
+                selectedCount: parseInt(modalSelected.value, 10) || 0,
+                waitlistCount: parseInt(modalWaitlist.value, 10) || 0,
+                notSelectedCount: parseInt(modalNotSelected.value, 10) || 0,
+                selectionMechanism: modalMechanism.value,
+                waitlistEnabled: modalWaitlistEnabled.checked,
+            };
+
+            if (editingId) {
+                // 编辑
+                const index = allCourses.findIndex(c => c.id === editingId);
+                if (index !== -1) { allCourses[index] = { ...allCourses[index], ...courseData }; }
+                showToast('课程已更新');
+            } else {
+                // 新增
+                const newCourse = { id: generateId(), ...courseData };
+                allCourses.push(newCourse);
+                showToast('课程已添加');
+            }
+            // 调整当前页为最后一页（新增后）
+            if (!editingId) {
+                const filtered = getFilteredCourses();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+            closeModal();
+            renderTable();
+            renderPagination();
+            updateCount();
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const paginated = getPaginatedCourses();
+            let html = '';
+            if (paginated.length === 0) {
+                html = `<tr><td colspan="9" style="text-align:center; padding:3rem; color:#8899bb;"><i class="fas fa-book-open" style="font-size:2rem; opacity:0.5;"></i><br>暂无课程</td></tr>`;
+            } else {
+                paginated.forEach(c => {
+                    const mechText = c.selectionMechanism === 'firstCome' ? '先到先得' : '投点法';
+                    const waitIcon = c.waitlistEnabled ? 'fa-toggle-on toggle-on' : 'fa-toggle-off toggle-off';
+                    const waitText = c.waitlistEnabled ? '开启' : '关闭';
+                    html += `<tr>`;
+                    html += `<td class="course-name">${escapeHtml(c.courseName)}</td>`;
+                    html += `<td>${escapeHtml(c.className || '—')}</td>`;
+                    html += `<td>${escapeHtml(c.teacher || '—')}</td>`;
+                    html += `<td>${c.credit ?? '—'}</td>`;
+                    html += `<td>${escapeHtml(c.address || '—')}</td>`;
+                    html += `<td><span class="numbers-badge">${c.selectedCount}/${c.waitlistCount}/${c.notSelectedCount}</span></td>`;
+                    html += `<td><span class="badge">${mechText}</span></td>`;
+                    html += `<td><span class="waitlist-toggle" onclick="window.toggleWaitlistHandler('${c.id}')" title="点击切换候补"><i class="fas ${waitIcon}"></i> ${waitText}</span></td>`;
+                    html += `<td><div class="action-btns">`;
+                    html += `<button class="icon-btn" onclick="window.editHandler('${c.id}')"><i class="fas fa-pen"></i> 编辑</button>`;
+                    html += `<button class="icon-btn delete-btn" onclick="window.deleteHandler('${c.id}')"><i class="fas fa-trash"></i> 删除</button>`;
+                    html += `</div></td></tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+            updateCount();
+        }
+
+        // 收集筛选条件并重新渲染
+        function applyFilters() {
+            filters.name = filterName.value;
+            filters.teacher = filterTeacher.value;
+            filters.mechanism = filterMechanism.value;
+            filters.waitlist = filterWaitlist.value;
+            currentPage = 1;  // 重置到第一页
+            renderTable();
+            renderPagination();
+            updateCount();
+        }
+
+        // 重置筛选
+        function resetFilters() {
+            filterName.value = '';
+            filterTeacher.value = '';
+            filterMechanism.value = '';
+            filterWaitlist.value = '';
+            filters = { name: '', teacher: '', mechanism: '', waitlist: '' };
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+            updateCount();
+        }
+
+        // 挂载全局方法
+        window.toggleWaitlistHandler = toggleWaitlist;
+        window.deleteHandler = deleteCourse;
+        window.editHandler = openEditModal;
+
+        // 事件监听
+        filterName.addEventListener('input', applyFilters);
+        filterTeacher.addEventListener('input', applyFilters);
+        filterMechanism.addEventListener('change', applyFilters);
+        filterWaitlist.addEventListener('change', applyFilters);
+        resetFilterBtn.addEventListener('click', resetFilters);
+        openAddModalBtn.addEventListener('click', openAddModal);
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        modalForm.addEventListener('submit', (e) => { e.preventDefault(); saveCourse(); });
+
+        // 初始化
+        renderTable();
+        renderPagination();
+        updateCount();
+    })();
+</script>
+</body>
+</html>

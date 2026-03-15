@@ -15,7 +15,7 @@
         body, html {
             height: 100%;
             overflow: hidden;
-            background-color: #EDF2FF; /* 全局浅蓝背景 */
+            background-color: #EDF2FF;
         }
 
         /* 整体布局容器 */
@@ -25,17 +25,17 @@
             flex-direction: column;
         }
 
-        /* 顶部导航栏 - 深蓝色主基调 */
+        /* 顶部导航栏 */
         .top-header {
             height: 60px;
-            background-color: #1565C0; /* 深海蓝主色 */
+            background-color: #1565C0;
             color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 24px;
             box-shadow: 0 2px 12px rgba(21, 101, 192, 0.18);
-            z-index: 10;
+            z-index: 20;
             border-bottom: 1px solid #2176D2;
         }
 
@@ -55,7 +55,7 @@
             border-radius: 2px;
         }
 
-        /* 用户信息区域 - 右上角 */
+        /* 用户区域 */
         .user-menu {
             display: flex;
             align-items: center;
@@ -170,19 +170,90 @@
             display: flex;
             flex: 1;
             height: calc(100% - 60px);
+            position: relative;
+            overflow: hidden; /* 防止内部溢出 */
         }
 
-        /* 左侧导航栏 - 深蓝系 */
+        /* 左侧导航栏 - 采用绝对定位折叠，不影响右侧内容区宽度 */
         .sidebar {
             width: 220px;
             background-color: #0D47A1;
             color: #E3F2FD;
             height: 100%;
-            transition: all 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
             overflow-y: auto;
+            overflow-x: hidden;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+            position: relative;
+            white-space: nowrap;
+            z-index: 15;
         }
 
+        /* 折叠时：用transform移出可视区，同时右侧自然扩展 */
+        .sidebar.collapsed {
+            transform: translateX(-190px); /* 只露出60px宽度 */
+        }
+
+        /* 折叠时内部文字隐藏 (保留图标通过伪元素或特殊处理，但菜单项原本无图标，保持简洁，只显示一条色块) */
+        .sidebar.collapsed .menu-group-title,
+        .sidebar.collapsed .menu-item span:not(.menu-arrow),
+        .sidebar.collapsed .submenu-item {
+            opacity: 0;
+            pointer-events: none; /* 避免点击隐藏文字区域 */
+        }
+
+        .sidebar.collapsed .menu-item {
+            justify-content: center;
+            padding: 14px 0;
+        }
+
+        .sidebar.collapsed .menu-arrow {
+            display: none;
+        }
+
+        /* 折叠/展开按钮 - 放置在侧边栏右侧边缘，始终可见 */
+        .toggle-sidebar-btn {
+            position: absolute;
+            left: 200px; /* 根据sidebar宽度调整 */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 60px;
+            background-color: #1565C0;
+            border: 1px solid #64B5F6;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            z-index: 30;
+            transition: left 0.3s ease, background-color 0.2s;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            font-size: 16px;
+        }
+
+        .sidebar.collapsed + .toggle-sidebar-btn {
+            left: 40px; /* 跟随折叠后的侧边栏位置 (220-190=30 + 按钮本身偏移) 实际左侧60px处，按钮紧贴 */
+        }
+
+        .toggle-sidebar-btn:hover {
+            background-color: #0D47A1;
+        }
+
+        /* 右侧主内容区 - 自动占满剩余空间，不受折叠影响 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: linear-gradient(to bottom, #F5F9FF, #EDF2FF);
+            min-width: 0;  /* 防止flex溢出 */
+            transition: margin-left 0.3s ease; /* 平滑过渡（可选） */
+        }
+
+        /* 菜单组 */
         .menu-group {
             margin-bottom: 16px;
         }
@@ -194,9 +265,9 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: 500;
+            transition: opacity 0.2s;
         }
 
-        /* 一级菜单 */
         .menu-item {
             padding: 14px 24px;
             cursor: pointer;
@@ -232,7 +303,6 @@
             color: #64B5F6;
         }
 
-        /* 二级菜单 */
         .submenu {
             background-color: rgba(0, 0, 0, 0.1);
             display: none;
@@ -268,28 +338,43 @@
             background-color: rgba(100, 181, 246, 0.1);
         }
 
-        /* 右侧主内容区 - 蓝色渐变基调 */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            background: linear-gradient(to bottom, #F5F9FF, #EDF2FF);
-        }
-
-        /* 页签区域 - 浅蓝系 */
-        .tabs-header {
+        /* 页签区域 - 横向滚动 + 全部关闭按钮 */
+        .tabs-header-wrapper {
             display: flex;
             align-items: center;
             background-color: white;
             border-bottom: 1px solid #E3F2FD;
-            padding: 0 16px;
+            padding-left: 8px;
             height: 48px;
             box-shadow: 0 1px 3px rgba(21, 101, 192, 0.05);
+            flex-shrink: 0;
+        }
+
+        .tabs-header {
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: #90CAF9 #E3F2FD;
+            flex: 1;
+            height: 48px;
+        }
+
+        .tabs-header::-webkit-scrollbar {
+            height: 4px;
+        }
+        .tabs-header::-webkit-scrollbar-thumb {
+            background-color: #90CAF9;
+            border-radius: 4px;
+        }
+        .tabs-header::-webkit-scrollbar-track {
+            background-color: #E3F2FD;
         }
 
         .tab-item {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             padding: 0 20px;
             height: 47px;
@@ -304,6 +389,7 @@
             font-size: 14px;
             color: #5C6BC0;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .tab-item:hover {
@@ -339,6 +425,34 @@
             transform: rotate(90deg);
         }
 
+        /* 全部关闭按钮 */
+        .close-all-tabs {
+            background: none;
+            border: none;
+            color: #5C6BC0;
+            font-size: 13px;
+            padding: 0 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 100%;
+            border-left: 1px solid #E3F2FD;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .close-all-tabs:hover {
+            background-color: #FFEBEE;
+            color: #D32F2F;
+        }
+
+        .close-all-tabs span {
+            font-size: 18px;
+            line-height: 1;
+        }
+
         /* iframe 容器 */
         .iframe-container {
             flex: 1;
@@ -355,7 +469,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
-        /* 欢迎/空内容提示 - 增强版 */
+        /* 欢迎卡片 */
         .welcome-tip {
             position: absolute;
             top: 0;
@@ -448,6 +562,183 @@
             font-size: 12px;
             color: #90CAF9;
         }
+
+        /* AI智能体悬浮 (不变) */
+        .ai-float-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #1565C0, #0D47A1);
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(21, 101, 192, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.25s ease;
+            border: 2px solid #64B5F6;
+        }
+
+        .ai-float-btn:hover {
+            transform: scale(1.12) rotate(5deg);
+            background: linear-gradient(145deg, #0D47A1, #1565C0);
+            box-shadow: 0 12px 28px rgba(21, 101, 192, 0.6);
+        }
+
+        .ai-chat-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 360px;
+            height: 500px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 20, 40, 0.3);
+            display: flex;
+            flex-direction: column;
+            z-index: 1001;
+            border: 1px solid #E3F2FD;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+            transform-origin: bottom right;
+        }
+
+        .ai-chat-panel.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.8) translateY(20px);
+            pointer-events: none;
+        }
+
+        .ai-chat-header {
+            background: linear-gradient(145deg, #1565C0, #0D47A1);
+            color: white;
+            padding: 16px 20px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-chat-header span {
+            font-size: 16px;
+        }
+
+        .ai-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+            opacity: 0.8;
+            transition: 0.2s;
+        }
+
+        .ai-close-btn:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+        }
+
+        .ai-chat-body {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background-color: #F5F9FF;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ai-message {
+            background-color: white;
+            align-self: flex-start;
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            color: #1a2b4c;
+            font-size: 14px;
+            border: 1px solid #E3F2FD;
+        }
+
+        .user-message {
+            background-color: #1565C0;
+            color: white;
+            align-self: flex-end;
+            border-radius: 18px 18px 4px 18px;
+            border: 1px solid #0D47A1;
+        }
+
+        .ai-chat-footer {
+            display: flex;
+            padding: 12px;
+            background-color: white;
+            border-top: 1px solid #E3F2FD;
+        }
+
+        .ai-chat-footer input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #E3F2FD;
+            border-radius: 30px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .ai-chat-footer input:focus {
+            border-color: #64B5F6;
+            box-shadow: 0 0 0 2px rgba(100,181,246,0.2);
+        }
+
+        .ai-chat-footer button {
+            margin-left: 10px;
+            background-color: #1565C0;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 0 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #64B5F6;
+        }
+
+        .ai-chat-footer button:hover {
+            background-color: #0D47A1;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background-color: white;
+            border-radius: 18px;
+            align-self: flex-start;
+            border: 1px solid #E3F2FD;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background-color: #90CAF9;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1){ animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2){ animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%,80%,100%{ transform: scale(0); }
+            40%{ transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -455,10 +746,7 @@
         <!-- 顶部导航栏 -->
         <div class="top-header">
             <div class="system-title">研究生管理系统</div>
-            
-            <!-- 用户信息区域 - 右上角 -->
             <div class="user-menu">
-                <!-- 角色切换 -->
                 <div class="role-switch" id="roleSwitch">
                     <button class="role-btn" id="roleBtn">
                         <span id="currentRole">系统管理员</span>
@@ -470,8 +758,6 @@
                         <div class="role-option" data-role="学生">学生</div>
                     </div>
                 </div>
-                
-                <!-- 用户信息 -->
                 <div class="user-info">
                     <div class="user-avatar">正</div>
                     <div class="user-name">正方</div>
@@ -482,18 +768,15 @@
 
         <!-- 主体内容容器 -->
         <div class="content-wrapper">
-            <!-- 左侧导航栏（带二级菜单） -->
-            <div class="sidebar">
+            <!-- 左侧导航栏（使用transform折叠，不影响右侧宽度） -->
+            <div class="sidebar" id="sidebar">
                 <div class="menu-group">
                     <div class="menu-group-title">系统管理</div>
                     <div class="menu-item" id="menu1">
                         <span>数据概览</span>
                         <span class="menu-arrow">▶</span>
                     </div>
-                    <div class="submenu" id="submenu1">
-                        <!-- <div class="submenu-item" data-url="pages/dashboard/overview.html" data-title="总览">总览</div>
-                        <div class="submenu-item" data-url="pages/dashboard/statistics.html" data-title="统计分析">统计分析</div> -->
-                    </div>
+                    <div class="submenu" id="submenu1"></div>
                 </div>
 
                 <div class="menu-group">
@@ -504,11 +787,6 @@
                     </div>
                     <div class="submenu" id="submenu2">
                         <div class="submenu-item" data-url="报名表审核.html" data-title="报名表审核">报名表审核</div>
-                        <!-- <div class="submenu-item" data-url="笔试成绩录入.html" data-title="笔试成绩录入">笔试成绩录入</div>
-                        <div class="submenu-item" data-url="面试资格确认.html" data-title="面试资格确认">面试资格确认</div>
-                        <div class="submenu-item" data-url="面试成绩录入.html" data-title="面试成绩录入">面试成绩录入</div>
-                        <div class="submenu-item" data-url="学生面试结果管理.html" data-title="学生面试结果管理">学生面试结果管理</div>
-                         <div class="submenu-item" data-url="公共资源库.html" data-title="公共资源库">公共资源库</div> -->
                     </div>
                     <div class="menu-item" id="menu3">
                         <span>高管教育招生线索管理</span>
@@ -517,7 +795,7 @@
                     <div class="submenu" id="submenu3">
                         <div class="submenu-item" data-url="招生线索字典表配置.html" data-title="招生线索字典表配置">招生线索字典表配置</div>
                         <div class="submenu-item" data-url="管理员线索管理.html" data-title="管理员线索管理">管理员线索管理</div>
-                         <div class="submenu-item" data-url="销售人员线索.html" data-title="销售人员线索管理">销售人员线索管理</div>
+                         <div class="submenu-item" data-url="销售人员线索管理.html" data-title="销售人员线索管理">销售人员线索管理</div>
                     </div>
                      <div class="menu-item" id="menu4">
                         <span>MBA招生评审</span>
@@ -543,88 +821,100 @@
                          <div class="submenu-item" data-url="打印模板管理.html" data-title="打印模板管理">打印模板管理</div>
                          <div class="submenu-item" data-url="AI辅助功能.html" data-title="AI辅助功能">AI辅助功能</div>
                     </div>
-
+<div class="menu-group-title">EMBA教务管理</div>
+  <div class="menu-item" id="menu8">
+                        <span>课程管理</span>
+                        <span class="menu-arrow">▶</span>
+                    </div>
+                    <div class="submenu" id="submenu8">
+                        <div class="submenu-item" data-url="课程管理.html" data-title="课程管理">课程管理</div>
+                        <div class="submenu-item" data-url="个人课表.html" data-title="个人课表">个人课表</div>
+                    </div>
                        <div class="menu-item" id="menu6">
-                        <span>EMBA教务管理</span>
+                        <span>选修课管理</span>
                         <span class="menu-arrow">▶</span>
                     </div>
                     <div class="submenu" id="submenu6">
-                        <div class="submenu-item" data-url="面试预约管理.html" data-title="面试预约管理">面试预约管理</div>
-                        <div class="submenu-item" data-url="MBA材料评审（评委端）.html" data-title="MBA材料评审（评委端）">MBA材料评审（评委端）</div>
-                        <div class="submenu-item" data-url="MBA面试评审.html" data-title="MBA面试评审">MBA面试评审</div>
+                        <div class="submenu-item" data-url="选修课课程设置.html" data-title="选修课课程设置">选修课课程设置</div>
+                        <div class="submenu-item" data-url="班级开放时间.html" data-title="班级开放时间">班级开放时间</div>
+                        <div class="submenu-item" data-url="选修课管理.html" data-title="选修课管理">选修课管理</div>
+                        <div class="submenu-item" data-url="班级信用分学分.html" data-title="班级信用分学分">班级信用分学分</div>
+                         <div class="submenu-item" data-url="学生信用分学分.html" data-title="学生信用分学分">学生信用分学分</div>
+                         <div class="submenu-item" data-url="学生分数变动记录.html" data-title="学生分数变动记录">学生分数变动记录</div>
                     </div>
-                    <!-- <div class="menu-item" id="menu3">
-                        <span>导师管理</span>
+                     <div class="menu-item" id="menu7">
+                        <span>学生论文管理</span>
                         <span class="menu-arrow">▶</span>
                     </div>
-                    <div class="submenu" id="submenu3">
-                        <div class="submenu-item" data-url="pages/teacher/list.html" data-title="导师列表">导师列表</div>
-                        <div class="submenu-item" data-url="pages/teacher/allot.html" data-title="分配学生">分配学生</div>
+                    <div class="submenu" id="submenu7">
+                        <div class="submenu-item" data-url="论文开题报告.html" data-title="论文开题报告">论文开题报告</div>
+                        <div class="submenu-item" data-url="论文中期检查.html" data-title="论文中期检查">论文中期检查</div>
+                        <div class="submenu-item" data-url="论文毕业答辩.html" data-title="论文毕业答辩">论文毕业答辩</div>
+                        <div class="submenu-item" data-url="论文管理.html" data-title="论文管理">论文管理</div>
                     </div>
-
-                    <div class="menu-item" id="menu4">
-                        <span>论文管理</span>
-                        <span class="menu-arrow">▶</span>
-                    </div>
-                    <div class="submenu" id="submenu4">
-                        <div class="submenu-item" data-url="pages/thesis/submit.html" data-title="论文提交">论文提交</div>
-                        <div class="submenu-item" data-url="pages/thesis/review.html" data-title="论文评审">论文评审</div>
-                        <div class="submenu-item" data-url="pages/thesis/archive.html" data-title="论文归档">论文归档</div>
-                    </div> -->
                 </div>
 
                 <div class="menu-group">
                     <div class="menu-group-title">系统设置</div>
-                    <div class="menu-item" id="menu5">
+                    <div class="menu-item" id="menu99">
                         <span>公告管理</span>
                         <span class="menu-arrow">▶</span>
                     </div>
-                    <div class="submenu" id="submenu5">
+                    <div class="submenu" id="submenu99">
                         <div class="submenu-item" data-url="pages/notice/list.html" data-title="公告列表">公告列表</div>
                         <div class="submenu-item" data-url="pages/notice/publish.html" data-title="发布公告">发布公告</div>
                     </div>
                 </div>
             </div>
+            <!-- 折叠控制按钮 (独立于侧边栏，位置动态) -->
+            <div class="toggle-sidebar-btn" id="toggleSidebarBtn">◀</div>
 
             <!-- 右侧主内容区 -->
             <div class="main-content">
-                <!-- 页签头部 -->
-                <div class="tabs-header" id="tabsHeader">
-                    <!-- 页签会通过JS动态生成 -->
+                <!-- 页签头部：包装为flex，包含全部关闭按钮 -->
+                <div class="tabs-header-wrapper">
+                    <div class="tabs-header" id="tabsHeader"></div>
+                    <button class="close-all-tabs" id="closeAllTabsBtn"><span>✕</span> 全部关闭</button>
                 </div>
 
                 <!-- iframe容器 -->
                 <div class="iframe-container">
-                    <!-- 欢迎界面（默认空页面） -->
                     <div class="welcome-tip" id="welcomeTip">
                         <div class="welcome-card">
                             <div class="welcome-icon">🎓</div>
                             <div class="welcome-title">欢迎使用研究生管理系统</div>
                             <div class="welcome-desc">
                                 您好，<span id="welcomeUserName">正方</span>（<span id="welcomeRole">系统管理员</span>）！<br>
-                                这是一个专为研究生管理打造的一体化平台，您可以通过左侧菜单访问各项功能，
-                                包括学生管理、导师管理、论文管理等核心模块。
+                                侧边栏折叠采用滑动方式，不影响右侧内容。新增“全部关闭”按钮。
                             </div>
                             <div class="welcome-tips">
-                                <div class="welcome-tip-item">
-                                    <div class="tip-icon">📋</div>
-                                    <div class="tip-text">点击菜单打开功能页面</div>
-                                </div>
-                                <div class="welcome-tip-item">
-                                    <div class="tip-icon">🔄</div>
-                                    <div class="tip-text">支持多页签切换</div>
-                                </div>
-                                <div class="welcome-tip-item">
-                                    <div class="tip-icon">👤</div>
-                                    <div class="tip-text">可切换不同角色权限</div>
-                                </div>
+                                <div class="welcome-tip-item"><div class="tip-icon">📋</div><div class="tip-text">点击菜单打开页面</div></div>
+                                <div class="welcome-tip-item"><div class="tip-icon">🔄</div><div class="tip-text">多页签滚动切换</div></div>
+                                <div class="welcome-tip-item"><div class="tip-icon">🗑️</div><div class="tip-text">全部关闭一键清理</div></div>
                             </div>
-                            <div class="version-info">v1.0.0 | 2026 研究生管理系统</div>
+                            <div class="version-info">v2.1.0 | 2026 研究生管理系统 · 专业版</div>
                         </div>
                     </div>
                     <iframe id="mainIframe" style="display: none;"></iframe>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- AI智能体悬浮 -->
+    <div class="ai-float-btn" id="aiFloatBtn">🤖</div>
+    <div class="ai-chat-panel hidden" id="aiChatPanel">
+        <div class="ai-chat-header">
+            <span>AI智能助手 · 小研</span>
+            <button class="ai-close-btn" id="aiCloseBtn">×</button>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-message">你好！我是你的研究生管理AI助手。有什么可以帮你的？</div>
+            <div class="ai-message">例如：如何审核报名表？论文流程有哪些？</div>
+        </div>
+        <div class="ai-chat-footer">
+            <input type="text" id="aiInput" placeholder="输入问题...">
+            <button id="aiSendBtn">发送</button>
         </div>
     </div>
 
@@ -635,7 +925,7 @@
         let currentRole = "系统管理员";
         let currentUserName = "正方";
 
-        // DOM元素
+        // DOM
         const menuItems = document.querySelectorAll('.menu-item');
         const submenuItems = document.querySelectorAll('.submenu-item');
         const tabsHeader = document.getElementById('tabsHeader');
@@ -648,45 +938,40 @@
         const roleOptions = document.querySelectorAll('.role-option');
         const welcomeUserName = document.getElementById('welcomeUserName');
         const welcomeRole = document.getElementById('welcomeRole');
+        const closeAllBtn = document.getElementById('closeAllTabsBtn');
 
-        // 初始化欢迎信息
         welcomeUserName.textContent = currentUserName;
         welcomeRole.textContent = currentRole;
 
-        // 初始化一级菜单展开/收起
+        // 一级菜单展开/收起
         menuItems.forEach(menu => {
-            menu.addEventListener('click', function() {
+            menu.addEventListener('click', function(e) {
                 const menuId = this.id;
                 const submenuId = 'sub' + menuId;
                 const submenu = document.getElementById(submenuId);
                 const arrow = this.querySelector('.menu-arrow');
-                
-                // 切换展开/收起状态
-                submenu.classList.toggle('show');
-                arrow.classList.toggle('expanded');
-                
-                // 高亮当前一级菜单
+                if (submenu) {
+                    submenu.classList.toggle('show');
+                    if (arrow) arrow.classList.toggle('expanded');
+                }
                 menuItems.forEach(m => m.classList.remove('active'));
                 this.classList.add('active');
             });
         });
 
-        // 初始化二级菜单点击事件
+        // 二级菜单点击
         submenuItems.forEach(item => {
             item.addEventListener('click', function(e) {
-                e.stopPropagation(); // 阻止事件冒泡到一级菜单
-                
+                e.stopPropagation();
                 const url = this.getAttribute('data-url');
                 const title = this.getAttribute('data-title');
                 addOrActivateTab(url, title);
-                
-                // 高亮当前二级菜单，取消其他二级菜单高亮
                 submenuItems.forEach(si => si.classList.remove('active'));
                 this.classList.add('active');
             });
         });
 
-        // 角色切换功能
+        // 角色切换
         roleBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             roleDropdown.classList.toggle('show');
@@ -698,144 +983,176 @@
                 currentRoleEl.textContent = currentRole;
                 welcomeRole.textContent = currentRole;
                 roleDropdown.classList.remove('show');
-                
-                // 角色切换提示
-                alert(`✅ 已成功切换为【${currentRole}】角色！\n系统将根据角色权限调整功能可见性。`);
-                // 实际项目中可在这里添加权限控制逻辑
-                // window.location.reload();
+                alert(`✅ 已切换为【${currentRole}】角色`);
             });
         });
 
-        // 点击页面其他区域关闭角色下拉菜单
         document.addEventListener('click', function() {
             roleDropdown.classList.remove('show');
         });
 
-        // 退出登录事件
         logoutBtn.addEventListener('click', function() {
-            if (confirm('🚪 确定要退出登录吗？')) {
-                alert('👋 已成功退出登录，感谢使用研究生管理系统！');
-                // window.location.href = 'login.html';
+            if (confirm('确定退出？')) alert('已退出');
+        });
+
+        // 折叠功能：transform方式，不影响右侧内容宽度
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                toggleBtn.innerHTML = '▶';  // 展开指示
+            } else {
+                toggleBtn.innerHTML = '◀';
             }
         });
 
-        /**
-         * 添加或激活页签
-         * @param {string} url - 页面URL
-         * @param {string} title - 页签标题
-         */
+        // 页签核心函数
         function addOrActivateTab(url, title) {
-            // 检查是否已存在该页签
             const existingTab = tabs.find(tab => tab.url === url);
-            
             if (existingTab) {
-                // 激活已有页签
                 activateTab(existingTab.id);
-            } else {
-                // 创建新页签
-                const tabId = 'tab_' + Date.now();
-                const newTab = {
-                    id: tabId,
-                    url: url,
-                    title: title
-                };
-                tabs.push(newTab);
-                
-                // 创建页签DOM
-                const tabElement = document.createElement('div');
-                tabElement.className = 'tab-item';
-                tabElement.id = tabId;
-                tabElement.innerHTML = `
-                    ${title}
-                    <span class="tab-close" data-id="${tabId}">×</span>
-                `;
-                tabsHeader.appendChild(tabElement);
-                
-                // 绑定页签点击事件
-                tabElement.addEventListener('click', function() {
-                    activateTab(tabId);
-                });
-                
-                // 绑定关闭按钮事件
-                tabElement.querySelector('.tab-close').addEventListener('click', function(e) {
-                    e.stopPropagation(); // 阻止事件冒泡
-                    closeTab(tabId);
-                });
-                
-                // 激活新页签
-                activateTab(tabId);
+                return;
             }
-            
-            // 隐藏欢迎界面，显示iframe
+            const tabId = 'tab_' + Date.now();
+            const newTab = { id: tabId, url, title };
+            tabs.push(newTab);
+            const tabElement = document.createElement('div');
+            tabElement.className = 'tab-item';
+            tabElement.id = tabId;
+            tabElement.innerHTML = `${title}<span class="tab-close" data-id="${tabId}">×</span>`;
+            tabsHeader.appendChild(tabElement);
+            tabElement.addEventListener('click', function() { activateTab(tabId); });
+            tabElement.querySelector('.tab-close').addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeTab(tabId);
+            });
+            activateTab(tabId);
             welcomeTip.style.display = 'none';
             mainIframe.style.display = 'block';
         }
 
-        /**
-         * 激活指定页签
-         * @param {string} tabId - 页签ID
-         */
         function activateTab(tabId) {
-            // 更新激活状态
             tabs.forEach(tab => {
-                const tabElement = document.getElementById(tab.id);
+                const el = document.getElementById(tab.id);
                 if (tab.id === tabId) {
-                    tabElement.classList.add('active');
+                    el.classList.add('active');
                     mainIframe.src = tab.url;
                     activeTabId = tabId;
-                    
-                    // 高亮对应的二级菜单
                     submenuItems.forEach(si => {
                         if (si.getAttribute('data-url') === tab.url) {
                             si.classList.add('active');
-                            // 展开对应的一级菜单
-                            const menuItem = si.closest('.submenu').previousElementSibling;
-                            menuItem.classList.add('active');
-                            menuItem.querySelector('.menu-arrow').classList.add('expanded');
-                            si.closest('.submenu').classList.add('show');
+                            const parentSub = si.closest('.submenu');
+                            if (parentSub) {
+                                const menuItem = parentSub.previousElementSibling;
+                                if (menuItem) {
+                                    menuItem.classList.add('active');
+                                    const arrow = menuItem.querySelector('.menu-arrow');
+                                    if (arrow) arrow.classList.add('expanded');
+                                    parentSub.classList.add('show');
+                                }
+                            }
                         } else {
                             si.classList.remove('active');
                         }
                     });
                 } else {
-                    tabElement.classList.remove('active');
+                    el.classList.remove('active');
                 }
             });
         }
 
-        /**
-         * 关闭指定页签
-         * @param {string} tabId - 页签ID
-         */
         function closeTab(tabId) {
-            // 如果关闭的是激活的页签，需要激活其他页签
-            const isActiveTab = tabId === activeTabId;
-            
-            // 从数组中移除
-            tabs = tabs.filter(tab => tab.id !== tabId);
-            
-            // 移除DOM元素
-            const tabElement = document.getElementById(tabId);
-            tabElement.remove();
-            
-            // 如果关闭的是激活页签，激活第一个存在的页签
-            if (isActiveTab && tabs.length > 0) {
+            const isActive = (tabId === activeTabId);
+            tabs = tabs.filter(t => t.id !== tabId);
+            document.getElementById(tabId)?.remove();
+            if (isActive && tabs.length > 0) {
                 activateTab(tabs[0].id);
             } else if (tabs.length === 0) {
-                // 没有页签时显示欢迎界面
                 mainIframe.style.display = 'none';
                 welcomeTip.style.display = 'flex';
-                // 取消所有菜单高亮
-                menuItems.forEach(mi => {
-                    mi.classList.remove('active');
-                    const arrow = mi.querySelector('.menu-arrow');
-                    if (arrow) arrow.classList.remove('expanded');
-                });
-                submenuItems.forEach(si => si.classList.remove('active'));
-                document.querySelectorAll('.submenu').forEach(sm => sm.classList.remove('show'));
+                menuItems.forEach(m => m.classList.remove('active'));
+                submenuItems.forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
+                document.querySelectorAll('.menu-arrow').forEach(a => a.classList.remove('expanded'));
                 activeTabId = null;
             }
         }
+
+        // 全部关闭功能
+        closeAllBtn.addEventListener('click', function() {
+            if (tabs.length === 0) return;
+            // 移除所有页签DOM
+            tabs.forEach(tab => {
+                document.getElementById(tab.id)?.remove();
+            });
+            tabs = [];
+            mainIframe.style.display = 'none';
+            welcomeTip.style.display = 'flex';
+            menuItems.forEach(m => m.classList.remove('active'));
+            submenuItems.forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
+            document.querySelectorAll('.menu-arrow').forEach(a => a.classList.remove('expanded'));
+            activeTabId = null;
+        });
+
+        // AI 逻辑 (与之前相同)
+        const aiFloatBtn = document.getElementById('aiFloatBtn');
+        const aiPanel = document.getElementById('aiChatPanel');
+        const aiCloseBtn = document.getElementById('aiCloseBtn');
+        const aiSendBtn = document.getElementById('aiSendBtn');
+        const aiInput = document.getElementById('aiInput');
+        const aiChatBody = document.getElementById('aiChatBody');
+
+        aiFloatBtn.addEventListener('click', () => {
+            aiPanel.classList.remove('hidden');
+        });
+
+        aiCloseBtn.addEventListener('click', () => {
+            aiPanel.classList.add('hidden');
+        });
+
+        function addUserMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'user-message ai-message';
+            msgDiv.textContent = text;
+            aiChatBody.appendChild(msgDiv);
+            aiChatBody.scrollTop = aiChatBody.scrollHeight;
+        }
+
+        function addAIMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'ai-message';
+            msgDiv.textContent = text;
+            aiChatBody.appendChild(msgDiv);
+            aiChatBody.scrollTop = aiChatBody.scrollHeight;
+        }
+
+        function sendMessage() {
+            const txt = aiInput.value.trim();
+            if (!txt) return;
+            addUserMessage(txt);
+            aiInput.value = '';
+
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.innerHTML = '<span></span><span></span><span></span>';
+            aiChatBody.appendChild(typing);
+            aiChatBody.scrollTop = aiChatBody.scrollHeight;
+
+            setTimeout(() => {
+                aiChatBody.removeChild(typing);
+                let reply = '演示模式: 您可以问我关于招生、论文等问题。';
+                if (txt.includes('论文')) reply = '论文管理包括开题、中期、答辩等阶段。';
+                else if (txt.includes('报名')) reply = '报名表审核请使用左侧菜单。';
+                addAIMessage(reply);
+            }, 1000);
+        }
+
+        aiSendBtn.addEventListener('click', sendMessage);
+        aiInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
     </script>
 </body>
 </html>

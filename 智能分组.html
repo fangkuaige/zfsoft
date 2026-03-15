@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研途同行 · 智能分组（可拖拽+动态权重）</title>
+    <!-- Inter 字体 + 图标库 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 权重调整面板 - 新设计 */
+        .weight-panel {
+            background: #f3f9ff;
+            border-radius: 24px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #d6e3f0;
+        }
+        .weight-sliders {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem 3rem;
+            align-items: flex-end;
+            margin-bottom: 1.2rem;
+        }
+        .weight-item {
+            min-width: 160px;
+            flex: 1 1 160px;
+        }
+        .weight-item label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1e4a6f;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+        }
+        .weight-item input[type=range] {
+            width: 100%;
+            height: 6px;
+            border-radius: 10px;
+            background: #d0e1f0;
+            -webkit-appearance: none;
+        }
+        .weight-item input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #1e4a6f;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,60,120,0.3);
+        }
+        .weight-value {
+            font-weight: 700;
+            color: #0b3e5c;
+            background: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        .weight-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            border-top: 1px dashed #b8cee4;
+            padding-top: 1.2rem;
+        }
+
+        /* 规则标签 */
+        .rule-tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 2rem;
+            margin-bottom: 1rem;
+        }
+        .rule-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.4rem 1.2rem 0.4rem 1rem;
+            border-radius: 40px;
+            box-shadow: 0 2px 6px rgba(0,30,60,0.05);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1d4b6e;
+        }
+
+        /* 预览看板 - 可拖拽 */
+        .preview-kanban {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding: 0.8rem 0.2rem 1.8rem 0.2rem;
+            margin-bottom: 1rem;
+            scrollbar-width: thin;
+        }
+        .group-column {
+            background: #f7fafd;
+            border-radius: 24px;
+            padding: 1.4rem 1.2rem;
+            min-width: 240px;
+            max-width: 260px;
+            border: 1px solid #dae5f0;
+            box-shadow: 0 6px 12px rgba(0,20,40,0.04);
+            flex: 0 0 auto;
+            transition: background 0.2s;
+        }
+        .group-column.drag-over {
+            background: #e1f0fd;
+            border-color: #2f6e9e;
+        }
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            border-bottom: 2px dashed #bcd3e8;
+            padding-bottom: 0.5rem;
+        }
+        .group-header span {
+            background: #e2ecf9;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+        }
+        .member-card {
+            background: white;
+            border-radius: 18px;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            border: 1px solid #dee9f3;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            cursor: grab;
+            transition: 0.1s;
+        }
+        .member-card:active {
+            cursor: grabbing;
+            opacity: 0.8;
+            box-shadow: 0 8px 16px rgba(0,40,80,0.1);
+        }
+        .member-card.dragging {
+            opacity: 0.3;
+        }
+        .member-card i {
+            color: #2f6e9e;
+            font-size: 1.1rem;
+            background: #ecf3fa;
+            padding: 0.3rem;
+            border-radius: 50%;
+        }
+        .member-info {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .member-info small {
+            color: #627d9c;
+            font-weight: 400;
+            font-size: 0.7rem;
+            display: block;
+        }
+        .member-tag {
+            margin-left: auto;
+            background: #dff0fa;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #115a82;
+        }
+        .group-footer {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #4f6d8c;
+        }
+        .adapter-meter {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: #eaf3fc;
+            border-radius: 40px;
+            padding: 0.3rem 1.5rem 0.3rem 1.2rem;
+            margin-left: auto;
+        }
+
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 智能分组核心面板 -->
+    <div class="card">
+        <div class="section-title">
+            <!-- <i class="fas fa-robot"></i> 智能分组 · 高级机器学习 -->
+            <span style="margin-left: auto; font-size:0.8rem; background: #d9ecfa; padding:0.2rem 1rem; border-radius:40px;">动态权重 · 实时拖拽</span>
+        </div>
+
+        <!-- 可调节权重滑块区域 (真实联动) -->
+        <div class="weight-panel">
+            <div class="weight-sliders">
+                <div class="weight-item">
+                    <label><i class="fas fa-venus-mars"></i> 性别均衡 <span id="genderWeightVal" class="weight-value">30%</span></label>
+                    <input type="range" id="genderWeight" min="0" max="100" value="30" step="5">
+                </div>
+                <div class="weight-item">
+                    <label><i class="fas fa-chart-line"></i> 成绩均衡 <span id="scoreWeightVal" class="weight-value">50%</span></label>
+                    <input type="range" id="scoreWeight" min="0" max="100" value="50" step="5">
+                </div>
+                <div class="weight-item">
+                    <label><i class="fas fa-globe"></i> 生源背景 <span id="originWeightVal" class="weight-value">20%</span></label>
+                    <input type="range" id="originWeight" min="0" max="100" value="20" step="5">
+                </div>
+            </div>
+            <div class="weight-actions">
+                <button class="btn btn-outline btn-sm" id="resetWeightsBtn"><i class="fas fa-undo"></i> 重置默认</button>
+                <button class="btn btn-primary btn-sm" id="applyWeightBtn"><i class="fas fa-redo-alt"></i> 按权重重新分组</button>
+                <button class="btn btn-outline btn-sm" id="publishGroupBtn"><i class="fas fa-paper-plane"></i> 发布分组</button>
+            </div>
+        </div>
+
+        <!-- 实时规则标签 (随权重变化) -->
+        <div class="rule-tag-group" id="ruleTagGroup">
+            <span class="rule-tag"><i class="fas fa-venus-mars"></i> 性别均衡 <span id="genderTagWeight" class="rule-weight">权重 30%</span></span>
+            <span class="rule-tag"><i class="fas fa-chart-line"></i> 成绩均衡 <span id="scoreTagWeight" class="rule-weight">权重 50%</span></span>
+            <span class="rule-tag"><i class="fas fa-globe"></i> 生源背景 <span id="originTagWeight" class="rule-weight">权重 20%</span></span>
+            <span class="rule-tag"><i class="fas fa-ban"></i> 规避熟人 <span class="rule-weight">启用</span></span>
+        </div>
+
+        <!-- 预览看板 (支持真实拖拽交换) -->
+        <div class="preview-kanban" id="kanbanContainer">
+            <!-- 动态通过js渲染 但初始结构硬编码便于拖拽理解 我们会用js生成但保留容器 -->
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+            <div class="adapter-meter" id="adapterMeter">
+                <span id="genderMeter"><i class="fas fa-check-circle" style="color:#27803d;"></i> 性别 96%</span>
+                <span id="scoreMeter"><i class="fas fa-check-circle" style="color:#27803d;"></i> 成绩 88%</span>
+                <span id="originMeter"><i class="fas fa-exclamation-triangle" style="color:#c06d1b;"></i> 生源 73%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 提示 -->
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // ----- 数据模型：学生列表（带有性别、成绩、生源背景）-----
+        const students = [
+            { id: 's1', name: '欧阳雪', studentId: 'G202401', gender: '女', score: 87.0, origin: '北京', tag: '组长' },
+            { id: 's2', name: '王博文', studentId: 'G202402', gender: '男', score: 91.0, origin: '上海', tag: '成绩A' },
+            { id: 's3', name: '李思睿', studentId: 'G202403', gender: '男', score: 85.0, origin: '广州', tag: '' },
+            { id: 's4', name: '赵一凡', studentId: 'G202404', gender: '女', score: 78.5, origin: '深圳', tag: '' },
+            { id: 's5', name: '陈果', studentId: 'G202405', gender: '女', score: 96.0, origin: '成都', tag: '成绩A+' },
+            { id: 's6', name: '周明', studentId: 'G202406', gender: '男', score: 82.0, origin: '武汉', tag: '' },
+            { id: 's7', name: '郑青', studentId: 'G202407', gender: '女', score: 88.0, origin: '西安', tag: '' },
+            { id: 's8', name: '林溪', studentId: 'G202408', gender: '女', score: 84.0, origin: '杭州', tag: '' },
+            { id: 's9', name: '徐远', studentId: 'G202409', gender: '男', score: 72.0, origin: '南京', tag: '' },
+            { id: 's10', name: '沈梦', studentId: 'G202410', gender: '女', score: 86.5, origin: '重庆', tag: '上升↑' },
+            { id: 's11', name: '卢毅', studentId: 'G202411', gender: '男', score: 77.5, origin: '天津', tag: '' }
+        ];
+
+        // 初始分组 (三个组，模仿看板)
+        let groups = [
+            { id: 'g1', name: '探索组', members: ['s1', 's2', 's3', 's4'] },
+            { id: 'g2', name: '求是组', members: ['s5', 's6', 's7', 's8'] },
+            { id: 'g3', name: '创新组', members: ['s9', 's10', 's11'] }
+        ];
+
+        // 权重初始值
+        let weights = { gender: 30, score: 50, origin: 20 };
+
+        // 拖拽状态
+        let draggedItem = null;
+
+        // DOM 元素
+        const kanbanContainer = document.getElementById('kanbanContainer');
+        const toast = document.getElementById('toast');
+        const genderWeight = document.getElementById('genderWeight');
+        const scoreWeight = document.getElementById('scoreWeight');
+        const originWeight = document.getElementById('originWeight');
+        const genderWeightVal = document.getElementById('genderWeightVal');
+        const scoreWeightVal = document.getElementById('scoreWeightVal');
+        const originWeightVal = document.getElementById('originWeightVal');
+        const genderTagWeight = document.getElementById('genderTagWeight');
+        const scoreTagWeight = document.getElementById('scoreTagWeight');
+        const originTagWeight = document.getElementById('originTagWeight');
+        const resetWeightsBtn = document.getElementById('resetWeightsBtn');
+        const applyWeightBtn = document.getElementById('applyWeightBtn');
+        const publishGroupBtn = document.getElementById('publishGroupBtn');
+        const genderMeter = document.getElementById('genderMeter');
+        const scoreMeter = document.getElementById('scoreMeter');
+        const originMeter = document.getElementById('originMeter');
+
+        // 辅助: 显示toast
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        // 根据权重更新标签显示
+        function updateWeightDisplay() {
+            genderWeightVal.textContent = weights.gender + '%';
+            scoreWeightVal.textContent = weights.score + '%';
+            originWeightVal.textContent = weights.origin + '%';
+            genderTagWeight.textContent = `权重 ${weights.gender}%`;
+            scoreTagWeight.textContent = `权重 ${weights.score}%`;
+            originTagWeight.textContent = `权重 ${weights.origin}%`;
+            genderWeight.value = weights.gender;
+            scoreWeight.value = weights.score;
+            originWeight.value = weights.origin;
+        }
+
+        // 模拟计算适配度 (根据权重和当前分组粗略计算)
+        function updateMeters() {
+            // 简单模拟：性别均衡度基于各组男女比例方差；成绩均衡基于组平均分差异；生源基于多样性
+            // 为了演示动态效果，我们生成一些伪随机但随权重变化的数据
+            const total = weights.gender + weights.score + weights.origin || 100;
+            const genderRand = 70 + Math.floor(Math.random() * 25); // 70~95
+            const scoreRand = 75 + Math.floor(Math.random() * 20);
+            const originRand = 60 + Math.floor(Math.random() * 30);
+
+            genderMeter.innerHTML = `<i class="fas ${genderRand > 80 ? 'fa-check-circle' : 'fa-exclamation-triangle'}" style="color:${genderRand > 80 ? '#27803d' : '#c06d1b'};"></i> 性别 ${genderRand}%`;
+            scoreMeter.innerHTML = `<i class="fas ${scoreRand > 80 ? 'fa-check-circle' : 'fa-exclamation-triangle'}" style="color:${scoreRand > 80 ? '#27803d' : '#c06d1b'};"></i> 成绩 ${scoreRand}%`;
+            originMeter.innerHTML = `<i class="fas ${originRand > 75 ? 'fa-check-circle' : 'fa-exclamation-triangle'}" style="color:${originRand > 75 ? '#27803d' : '#c06d1b'};"></i> 生源 ${originRand}%`;
+        }
+
+        // 根据weights重新分组 (模拟智能分组算法)
+        function smartRegroup() {
+            // 打乱学生列表，然后按权重倾向分配 (这里简化为按成绩排序后蛇形分配，并稍微考虑性别)
+            const allStudentIds = students.map(s => s.id);
+            // 按成绩排序
+            const sorted = [...allStudentIds].sort((a, b) => {
+                const sa = students.find(s => s.id === a).score;
+                const sb = students.find(s => s.id === b).score;
+                return sb - sa; // 从高到低
+            });
+
+            // 按蛇形分配 (尽量让每组平均分接近)
+            const newGroups = [
+                { id: 'g1', name: '探索组', members: [] },
+                { id: 'g2', name: '求是组', members: [] },
+                { id: 'g3', name: '创新组', members: [] }
+            ];
+            sorted.forEach((sid, index) => {
+                const groupIndex = index % 3;
+                newGroups[groupIndex].members.push(sid);
+            });
+
+            // 根据权重做一些微调：如果成绩权重大，已经按蛇形实现；如果性别权重大，尝试交换平衡性别
+            if (weights.gender > 60) {
+                // 简单做一次性别均衡：统计各组男女，尝试交换
+                for (let i = 0; i < newGroups.length; i++) {
+                    for (let j = i+1; j < newGroups.length; j++) {
+                        const groupA = newGroups[i];
+                        const groupB = newGroups[j];
+                        const aMales = groupA.members.filter(id => students.find(s => s.id === id).gender === '男').length;
+                        const aFemales = groupA.members.length - aMales;
+                        const bMales = groupB.members.filter(id => students.find(s => s.id === id).gender === '男').length;
+                        const bFemales = groupB.members.length - bMales;
+                        // 如果比例相差太大，交换一个成员 (演示用)
+                        if (Math.abs(aMales - aFemales) > 1 && Math.abs(bMales - bFemales) > 1) {
+                            // 随便交换最后一个元素
+                            if (groupA.members.length && groupB.members.length) {
+                                let temp = groupA.members[groupA.members.length-1];
+                                groupA.members[groupA.members.length-1] = groupB.members[0];
+                                groupB.members[0] = temp;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 更新 groups
+            groups = newGroups;
+            renderKanban();
+            showToast('智能分组完成 (基于当前权重)');
+            updateMeters();
+        }
+
+        // 渲染看板 (并为每个成员卡片附加data-id)
+        function renderKanban() {
+            let html = '';
+            groups.forEach(group => {
+                // 计算组平均分
+                let totalScore = 0;
+                group.members.forEach(sid => {
+                    const s = students.find(st => st.id === sid);
+                    totalScore += s ? s.score : 0;
+                });
+                const avg = (totalScore / (group.members.length || 1)).toFixed(1);
+
+                html += `<div class="group-column" data-group-id="${group.id}">`;
+                html += `<div class="group-header"><span>🚀 ${group.name}</span> <span>${group.members.length}人 · ${avg}</span></div>`;
+
+                group.members.forEach(sid => {
+                    const s = students.find(st => st.id === sid);
+                    if (!s) return;
+                    html += `<div class="member-card" draggable="true" data-student-id="${s.id}" data-group-id="${group.id}">`;
+                    html += `<i class="fas fa-user-graduate"></i>`;
+                    html += `<div class="member-info">${s.name} <small>${s.studentId} · ${s.score}</small></div>`;
+                    if (s.tag) html += `<span class="member-tag">${s.tag}</span>`;
+                    html += `</div>`;
+                });
+
+                html += `<div class="group-footer"><i class="fas fa-lock-open"></i> 可拖拽微调</div>`;
+                html += `</div>`;
+            });
+            kanbanContainer.innerHTML = html;
+
+            // 重新绑定拖拽事件 (因为每次重新生成后DOM需要重新绑定)
+            bindDragEvents();
+        }
+
+        // ----- 拖拽实现 (支持跨组交换) -----
+        function bindDragEvents() {
+            const cards = document.querySelectorAll('.member-card');
+            const columns = document.querySelectorAll('.group-column');
+
+            cards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+                // 防止拖拽时默认图像
+                card.addEventListener('drag', (e) => e.preventDefault());
+            });
+
+            columns.forEach(col => {
+                col.addEventListener('dragover', handleDragOver);
+                col.addEventListener('dragleave', handleDragLeave);
+                col.addEventListener('drop', handleDrop);
+            });
+        }
+
+        function handleDragStart(e) {
+            const card = e.target.closest('.member-card');
+            if (!card) return;
+            draggedItem = {
+                studentId: card.dataset.studentId,
+                sourceGroupId: card.dataset.groupId
+            };
+            card.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', '');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            const card = e.target.closest('.member-card');
+            if (card) card.classList.remove('dragging');
+            document.querySelectorAll('.group-column').forEach(col => col.classList.remove('drag-over'));
+            draggedItem = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const col = e.target.closest('.group-column');
+            if (col) col.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            const col = e.target.closest('.group-column');
+            if (col) col.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetCol = e.target.closest('.group-column');
+            if (!targetCol || !draggedItem) return;
+
+            targetCol.classList.remove('drag-over');
+            const targetGroupId = targetCol.dataset.groupId;
+
+            // 如果放到同一个组，忽略
+            if (draggedItem.sourceGroupId === targetGroupId) {
+                draggedItem = null;
+                return;
+            }
+
+            // 找到源组和目标组
+            const sourceGroup = groups.find(g => g.id === draggedItem.sourceGroupId);
+            const targetGroup = groups.find(g => g.id === targetGroupId);
+            if (!sourceGroup || !targetGroup) return;
+
+            // 从源组移除该学生
+            const studentIndex = sourceGroup.members.indexOf(draggedItem.studentId);
+            if (studentIndex === -1) return;
+            sourceGroup.members.splice(studentIndex, 1);
+
+            // 将学生添加到目标组
+            targetGroup.members.push(draggedItem.studentId);
+
+            // 重新渲染看板
+            renderKanban();
+            showToast(`已将学生移动到 ${targetGroup.name}`);
+            updateMeters(); // 更新适配度
+            draggedItem = null;
+        }
+
+        // 初始化权重滑块监听
+        function initWeightSliders() {
+            genderWeight.addEventListener('input', function() {
+                weights.gender = parseInt(this.value);
+                updateWeightDisplay();
+            });
+            scoreWeight.addEventListener('input', function() {
+                weights.score = parseInt(this.value);
+                updateWeightDisplay();
+            });
+            originWeight.addEventListener('input', function() {
+                weights.origin = parseInt(this.value);
+                updateWeightDisplay();
+            });
+        }
+
+        // 重置权重为默认
+        resetWeightsBtn.addEventListener('click', function() {
+            weights = { gender: 30, score: 50, origin: 20 };
+            updateWeightDisplay();
+            showToast('权重已重置');
+        });
+
+        // 应用权重并重新分组
+        applyWeightBtn.addEventListener('click', function() {
+            smartRegroup();
+        });
+
+        // 发布分组 (模拟)
+        publishGroupBtn.addEventListener('click', function() {
+            showToast('分组已发布，通知已发送给学生');
+        });
+
+        // 初始渲染
+        renderKanban();
+        initWeightSliders();
+        updateWeightDisplay();
+        updateMeters();
+
+        // 额外：每次拖拽后稍微更新meters，已经调用updateMeters了
+    })();
+</script>
+</body>
+</html>

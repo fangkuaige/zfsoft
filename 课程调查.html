@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生课程调查 · 管理端</title>
+    <!-- Inter 字体 + 图标库 (同参考风格) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ========== 全局重置与字体 ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+
+        /* ========== 卡片 ========== */
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* ========== 筛选栏 ========== */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 170px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* ========== 表格 (课程调查) ========== */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;  /* 保证所有字段可见 */
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .survey-name {
+            font-weight: 600;
+            color: #0b2b40;
+        }
+        .badge-class {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .template-tag {
+            background: #e6f0f9;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            display: inline-block;
+            color: #1d4a6b;
+        }
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: none; border: none; font-size: 0.8rem; padding: 0.4rem 1rem;
+            border-radius: 40px; cursor: pointer; color: #2a577b; background: #f2f8ff;
+            display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid transparent;
+        }
+        .icon-btn:hover { background: #dae9f8; }
+        .delete-btn:hover { background: #ffeae9; color: #b13e3e; }
+
+        /* ========== 分页 ========== */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* ========== 弹窗 (完全复用风格 + 适配班级多选模拟) ========== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 800px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; display: flex; align-items: center; gap: 0.5rem; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .input-field:focus {
+            outline: none; border-color: #2f6e9e;
+            box-shadow: 0 0 0 3px rgba(47,110,158,0.15); background: white;
+        }
+        .readonly-field { background: #ecf2f9; color: #2a4e6e; font-weight: 500; }
+
+        /* 班级多选框模拟 (实际用多选select) 为了演示实用select multiple */
+        .class-multi-select {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.6rem 1.2rem; min-height: 90px; width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+
+        /* Toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 卡片：筛选栏 + 新增调查按钮 -->
+    <div class="card">
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label><i class="fas fa-poll"></i> 调查名称</label>
+                <input type="text" class="filter-input" id="filterSurveyName" placeholder="名称关键词">
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-layer-group"></i> 调查模板</label>
+                <select class="filter-select" id="filterTemplate">
+                    <option value="">全部模板</option>
+                    <option value="课程教学质量评估">课程教学质量评估</option>
+                    <option value="导师指导情况调查">导师指导情况调查</option>
+                    <option value="实验室满意度调查">实验室满意度调查</option>
+                    <option value="培养计划反馈">培养计划反馈</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label><i class="fas fa-users"></i> 班级</label>
+                <input type="text" class="filter-input" id="filterClass" placeholder="班级名">
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="resetFilterBtn"><i class="fas fa-undo"></i> 重置</button>
+                <button class="btn btn-primary" id="openAddModalBtn"><i class="fas fa-plus-circle"></i> 新建调查</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 课程调查列表卡片 -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fas fa-clipboard-list"></i> 课程调查管理
+        </div>
+        <div class="table-wrapper">
+            <table id="surveyTable">
+                <thead>
+                    <tr>
+                        <th>调查名称</th><th>模板</th><th>说明</th><th>关联班级</th><th>创建时间</th><th>截止时间</th><th>状态</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <!-- 分页 -->
+        <div class="pagination-bar" id="paginationContainer"></div>
+    </div>
+</div>
+
+<!-- 新增/编辑 调查弹窗 (完全满足字段: 模板,名称,说明,班级,时间等) -->
+<div class="modal-overlay" id="surveyModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-pen"></i> 课程调查</h3>
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="surveyForm" onsubmit="return false;">
+            <div class="form-grid">
+                <!-- 调查模板 (下拉) -->
+                <div class="input-group full-width">
+                    <label><i class="fas fa-file-alt"></i> 调查模板 *</label>
+                    <select class="input-field" id="modalTemplate" required>
+                        <option value="">-- 请选择模板 --</option>
+                        <option value="课程教学质量评估">课程教学质量评估</option>
+                        <option value="导师指导情况调查">导师指导情况调查</option>
+                        <option value="实验室满意度调查">实验室满意度调查</option>
+                        <option value="培养计划反馈">培养计划反馈</option>
+                    </select>
+                </div>
+                <!-- 调查名称 -->
+                <div class="input-group full-width">
+                    <label><i class="fas fa-heading"></i> 调查名称 *</label>
+                    <input type="text" class="input-field" id="modalName" required placeholder="例：2025春季 高级算法课程调查">
+                </div>
+                <!-- 调查说明 (富文本简单用textarea) -->
+                <div class="input-group full-width">
+                    <label><i class="fas fa-align-left"></i> 调查说明</label>
+                    <textarea class="input-field" id="modalDesc" rows="2" placeholder="向学生展示的详细说明……"></textarea>
+                </div>
+                <!-- 关联班级 (多选, 模拟班级列表) -->
+                <div class="input-group full-width">
+                    <label><i class="fas fa-chalkboard"></i> 关联班级 (可多选) *</label>
+                    <select multiple class="class-multi-select" id="modalClasses" size="3" required>
+                        <option value="研计算机1班" selected>研计算机1班</option>
+                        <option value="研计算机2班">研计算机2班</option>
+                        <option value="研软件1班">研软件1班</option>
+                        <option value="研人工智能班">研人工智能班</option>
+                        <option value="研大数据班">研大数据班</option>
+                        <option value="研网安班">研网安班</option>
+                    </select>
+                    <span style="font-size:0.7rem; color:#5d7e9c;">按住 Ctrl (Mac Cmd) 多选</span>
+                </div>
+                <!-- 起止时间两列 -->
+                <div class="input-group">
+                    <label><i class="fas fa-play-circle"></i> 开始时间</label>
+                    <input type="datetime-local" class="input-field" id="modalStartTime" required>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-stop-circle"></i> 结束时间</label>
+                    <input type="datetime-local" class="input-field" id="modalEndTime" required>
+                </div>
+                <!-- 状态/登记人简单作为额外字段 (登记人/创建人) -->
+                <div class="input-group">
+                    <label>创建人</label>
+                    <input type="text" class="input-field readonly-field" id="modalCreator" readonly value="当前管理员">
+                </div>
+                <div class="input-group">
+                    <label>状态</label>
+                    <select class="input-field" id="modalStatus">
+                        <option value="进行中">进行中</option>
+                        <option value="草稿">草稿</option>
+                        <option value="已结束">已结束</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="modalCancelBtn"><i class="fas fa-times"></i> 取消</button>
+                <button type="submit" class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> 保存调查</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast 通知 -->
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function(){
+        // ---------- 模拟初始数据 (研究生课程调查记录) 满足模板、名称、说明、班级等字段 ----------
+        let allSurveys = [
+            { id: 's1', template: '课程教学质量评估', name: '高等软件工程 课程反馈', description: '匿名评价教学质量、作业量', classes: ['研软件1班','研计算机2班'], startTime: '2026-03-01T08:00', endTime: '2026-03-15T23:59', creator: '教务处张', status: '进行中' },
+            { id: 's2', template: '导师指导情况调查', name: '2026春季 导师满意度', description: '了解导师指导频率与效果', classes: ['研计算机1班','研人工智能班','研大数据班'], startTime: '2026-03-05T00:00', endTime: '2026-03-20T23:59', creator: '研工部', status: '进行中' },
+            { id: 's3', template: '实验室满意度调查', name: '实验室安全与环境评估', description: '涵盖设备、安全、工位', classes: ['研网安班','研计算机2班'], startTime: '2026-02-20T09:00', endTime: '2026-03-05T18:00', creator: '实验管理员', status: '已结束' },
+            { id: 's4', template: '培养计划反馈', name: '2025级培养方案修订建议', description: '征集对课程体系的意见', classes: ['研计算机1班','研软件1班','研大数据班'], startTime: '2026-03-10T10:00', endTime: '2026-04-01T23:59', creator: '教学办', status: '草稿' },
+            { id: 's5', template: '课程教学质量评估', name: '机器学习 期中反馈', description: '主要针对授课节奏', classes: ['研人工智能班'], startTime: '2026-03-12T08:00', endTime: '2026-03-25T23:59', creator: '助教小李', status: '进行中' },
+            { id: 's6', template: '导师指导情况调查', name: '博士导师专项调查', description: '博士研究生匿名填写', classes: ['研计算机1班','研网安班','研大数据班'], startTime: '2026-03-01T08:00', endTime: '2026-03-30T23:59', creator: '学位办', status: '进行中' },
+            { id: 's7', template: '实验室满意度调查', name: '高性能集群使用反馈', description: '集群性能、软件支持', classes: ['研计算机2班','研软件1班'], startTime: '2026-02-25T14:00', endTime: '2026-03-10T14:00', creator: 'IT中心', status: '已结束' },
+        ];
+
+        // 分页配置
+        const pageSize = 5;
+        let currentPage = 1;
+        // 筛选条件
+        let filters = { surveyName: '', template: '', className: '' };
+
+        // DOM 元素
+        const tbody = document.getElementById('tableBody');
+        const toast = document.getElementById('toast');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const filterSurveyName = document.getElementById('filterSurveyName');
+        const filterTemplate = document.getElementById('filterTemplate');
+        const filterClass = document.getElementById('filterClass');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const openAddModalBtn = document.getElementById('openAddModalBtn');
+
+        // 弹窗元素
+        const modal = document.getElementById('surveyModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalForm = document.getElementById('surveyForm');
+        const modalTemplate = document.getElementById('modalTemplate');
+        const modalName = document.getElementById('modalName');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalClasses = document.getElementById('modalClasses');
+        const modalStartTime = document.getElementById('modalStartTime');
+        const modalEndTime = document.getElementById('modalEndTime');
+        const modalCreator = document.getElementById('modalCreator');
+        const modalStatus = document.getElementById('modalStatus');
+
+        // 当前编辑ID
+        let editingId = null;
+
+        // 辅助函数
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+        // 格式化日期时间
+        function formatDateTime(datetimeStr) {
+            if (!datetimeStr) return '—';
+            const d = new Date(datetimeStr);
+            if (isNaN(d.getTime())) return datetimeStr;
+            return d.toLocaleString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}).replace(/\//g,'-');
+        }
+        // 格式化班级列表显示
+        function formatClasses(classArray) {
+            if (!classArray || classArray.length === 0) return '—';
+            return classArray.map(c => `<span class="badge-class">${escapeHtml(c)}</span>`).join(' ');
+        }
+
+        // 筛选逻辑
+        function filterList() {
+            return allSurveys.filter(item => {
+                if (filters.surveyName && !item.name.toLowerCase().includes(filters.surveyName.toLowerCase())) return false;
+                if (filters.template && item.template !== filters.template) return false;
+                if (filters.className) {
+                    const clsLower = filters.className.toLowerCase();
+                    const matched = item.classes.some(c => c.toLowerCase().includes(clsLower));
+                    if (!matched) return false;
+                }
+                return true;
+            });
+        }
+
+        function getFiltered() { return filterList(); }
+
+        function getPaginated() {
+            const filtered = getFiltered();
+            const start = (currentPage - 1) * pageSize;
+            return filtered.slice(start, start + pageSize);
+        }
+
+        function totalPages() {
+            return Math.ceil(getFiltered().length / pageSize);
+        }
+
+        function goToPage(page) {
+            const total = totalPages();
+            if (page < 1) page = 1;
+            if (total > 0 && page > total) page = total;
+            if (page === currentPage) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        }
+        window.pageGo = goToPage;
+
+        // 渲染分页
+        function renderPagination() {
+            const total = totalPages();
+            if (total <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            let html = `<span class="page-info"><i class="fas fa-layer-group"></i> 第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+            paginationContainer.innerHTML = html;
+        }
+
+        // 删除调查
+        function deleteSurvey(id) {
+            allSurveys = allSurveys.filter(s => s.id !== id);
+            const filtered = getFiltered();
+            if (filtered.length === 0 && currentPage > 1) currentPage--;
+            showToast('调查已删除');
+            renderTable();
+            renderPagination();
+        }
+
+        // 打开新增弹窗
+        function openAddModal() {
+            editingId = null;
+            modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> 新建调查';
+            modalTemplate.value = '';
+            modalName.value = '';
+            modalDesc.value = '';
+            // 清除所有选中 (multiple)
+            Array.from(modalClasses.options).forEach(opt => opt.selected = false);
+            // 默认时间: 现在 和 一周后
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = new Date(now - tzOffset).toISOString().slice(0,16);
+            const oneWeekLater = new Date(now.getTime() + 7*86400000);
+            const localEnd = new Date(oneWeekLater - tzOffset).toISOString().slice(0,16);
+            modalStartTime.value = localISOTime;
+            modalEndTime.value = localEnd;
+            modalCreator.value = '当前管理员';
+            modalStatus.value = '草稿';
+            modal.classList.add('show');
+        }
+
+        // 打开编辑弹窗
+        function openEditModal(id) {
+            const item = allSurveys.find(s => s.id === id);
+            if (!item) return;
+            editingId = id;
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> 编辑调查';
+            modalTemplate.value = item.template || '';
+            modalName.value = item.name || '';
+            modalDesc.value = item.description || '';
+            // 设置多选班级
+            Array.from(modalClasses.options).forEach(opt => {
+                opt.selected = item.classes.includes(opt.value);
+            });
+            modalStartTime.value = item.startTime ? item.startTime.slice(0,16) : '';
+            modalEndTime.value = item.endTime ? item.endTime.slice(0,16) : '';
+            modalCreator.value = item.creator || '管理员';
+            modalStatus.value = item.status || '草稿';
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            editingId = null;
+        }
+
+        // 保存调查
+        function saveSurvey() {
+            const template = modalTemplate.value;
+            const name = modalName.value.trim();
+            const description = modalDesc.value.trim();
+            // 获取多选班级
+            const selectedClasses = Array.from(modalClasses.selectedOptions).map(opt => opt.value);
+            const startTime = modalStartTime.value;
+            const endTime = modalEndTime.value;
+            const creator = modalCreator.value.trim() || '管理员';
+            const status = modalStatus.value;
+
+            if (!template || !name || selectedClasses.length === 0 || !startTime || !endTime) {
+                showToast('请填写模板、名称、至少一个班级及起止时间', 1500);
+                return;
+            }
+            if (new Date(startTime) >= new Date(endTime)) {
+                showToast('结束时间必须晚于开始时间', 1500);
+                return;
+            }
+
+            const data = {
+                template, name, description,
+                classes: selectedClasses,
+                startTime, endTime, creator, status
+            };
+
+            if (editingId) {
+                const index = allSurveys.findIndex(s => s.id === editingId);
+                if (index !== -1) { allSurveys[index] = { ...allSurveys[index], ...data }; }
+                showToast('调查已更新');
+            } else {
+                const newItem = { id: generateId(), ...data };
+                allSurveys.push(newItem);
+                showToast('调查已添加');
+                // 跳到最后一页
+                const filtered = getFiltered();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+            closeModal();
+            renderTable();
+            renderPagination();
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const paginated = getPaginated();
+            let html = '';
+            if (paginated.length === 0) {
+                html = `<tr><td colspan="8" style="text-align:center; padding:3rem; color:#8899bb;"><i class="fas fa-poll" style="font-size:2rem; opacity:0.5;"></i><br>暂无课程调查记录</td></tr>`;
+            } else {
+                paginated.forEach(item => {
+                    html += `<tr>`;
+                    html += `<td class="survey-name">${escapeHtml(item.name)}</td>`;
+                    html += `<td><span class="template-tag">${escapeHtml(item.template)}</span></td>`;
+                    html += `<td><span title="${escapeHtml(item.description || '')}">${escapeHtml(item.description?.substring(0,15) || '—')}${item.description?.length > 15 ? '…' : ''}</span></td>`;
+                    html += `<td><div style="display:flex; flex-wrap:wrap; gap:4px;">${formatClasses(item.classes)}</div></td>`;
+                    html += `<td>${formatDateTime(item.startTime)}</td>`;
+                    html += `<td>${formatDateTime(item.endTime)}</td>`;
+                    html += `<td><span class="badge-reason" style="background:#e0f0fa;">${escapeHtml(item.status)}</span></td>`;
+                    html += `<td><div class="action-btns">`;
+                    html += `<button class="icon-btn" onclick="window.editHandler('${item.id}')"><i class="fas fa-pen"></i> 编辑</button>`;
+                    html += `<button class="icon-btn delete-btn" onclick="window.deleteHandler('${item.id}')"><i class="fas fa-trash"></i> 删除</button>`;
+                    html += `</div></td></tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        // 收集筛选并应用
+        function applyFilters() {
+            filters.surveyName = filterSurveyName.value;
+            filters.template = filterTemplate.value;
+            filters.className = filterClass.value;
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        function resetFilters() {
+            filterSurveyName.value = '';
+            filterTemplate.value = '';
+            filterClass.value = '';
+            filters = { surveyName: '', template: '', className: '' };
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        // 挂载全局方法
+        window.deleteHandler = deleteSurvey;
+        window.editHandler = openEditModal;
+
+        // 事件监听
+        filterSurveyName.addEventListener('input', applyFilters);
+        filterTemplate.addEventListener('change', applyFilters);
+        filterClass.addEventListener('input', applyFilters);
+        resetFilterBtn.addEventListener('click', resetFilters);
+        openAddModalBtn.addEventListener('click', openAddModal);
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modalCancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        modalForm.addEventListener('submit', (e) => { e.preventDefault(); saveSurvey(); });
+
+        // 初始化
+        renderTable();
+        renderPagination();
+    })();
+</script>
+</body>
+</html>

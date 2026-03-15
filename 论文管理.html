@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研途智控 · 研究生论文全流程管理</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 筛选栏 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 学分核查卡片 */
+        .credit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .credit-item {
+            background: #f5faff;
+            border-radius: 20px;
+            padding: 1rem 1.2rem;
+            border: 1px solid #dde7f0;
+        }
+        .credit-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #4e6f8c;
+            text-transform: uppercase;
+        }
+        .credit-number {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #1e4a6f;
+        }
+        .credit-warning {
+            color: #b13e3e;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+        }
+
+        /* 双列布局 */
+        .dashboard-split {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .left-panel {
+            flex: 1.8;
+            min-width: 450px;
+        }
+        .right-panel {
+            flex: 1.2;
+            min-width: 350px;
+        }
+
+        /* 表格 */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        th {
+            text-align: left;
+            padding: 1rem 0.8rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 0.9rem 0.8rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+        .student-row {
+            cursor: pointer;
+            transition: 0.05s;
+        }
+        .student-row:hover td {
+            background-color: #f2f8ff;
+        }
+        .selected-student {
+            background-color: #e1effb !important;
+            border-left: 4px solid #1e4a6f;
+        }
+        .warning-badge {
+            background: #fef0e0;
+            color: #b1570c;
+            border-radius: 40px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 0.3rem;
+        }
+        .progress-bar {
+            background: #e3eaf2;
+            height: 6px;
+            border-radius: 10px;
+            width: 100px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #1e4a6f;
+            height: 6px;
+            border-radius: 10px;
+        }
+
+        /* 分页 */
+        .pagination-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.2rem;
+        }
+        .pagination-btn {
+            background: white;
+            border: 1px solid #c9d9eb;
+            color: #1d4a6b;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .pagination-btn.active {
+            background: #1e4a6f;
+            border-color: #1e4a6f;
+            color: white;
+        }
+        .pagination-btn:hover:not(.active) {
+            background: #e5f0fb;
+        }
+        .page-info {
+            color: #466585;
+            margin-right: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        /* 右侧节点卡片 - 统一图标风格 */
+        .process-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 0.3rem;
+        }
+        .node-card {
+            background: #f9fcff;
+            border-radius: 24px;
+            padding: 1.2rem 1.5rem;
+            border: 1px solid #e0ecf7;
+        }
+        .node-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+        }
+        .node-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .node-name i {
+            color: #2f6e9e;
+            font-size: 1.1rem;
+            width: 1.4rem;
+        }
+        .node-badge {
+            background: #e3f0fa;
+            color: #11517c;
+            border-radius: 40px;
+            padding: 0.2rem 0.9rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .node-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #3d6381;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+        .node-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .file-tag {
+            background: white;
+            border: 1px dashed #9eb9d0;
+            border-radius: 40px;
+            padding: 0.2rem 1rem;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #1e4e7a;
+        }
+
+        /* 上传控件样式统一 */
+        .upload-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .upload-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .upload-btn {
+            background: white;
+            border: 1px dashed #9eb9d0;
+            border-radius: 40px;
+            padding: 0.3rem 1rem;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #1e4e7a;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .upload-btn:hover {
+            background: #e3f0fa;
+            border-color: #2f6e9e;
+        }
+        .file-name {
+            font-size: 0.75rem;
+            color: #3d6381;
+            margin-left: 0.5rem;
+        }
+
+        /* 批次卡片 */
+        .batch-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            background: #f6fafd;
+            border-radius: 20px;
+            padding: 1rem;
+        }
+        .batch-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #cbdae9;
+        }
+        .batch-status {
+            font-size: 0.7rem;
+            background: #e3f0fa;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 600px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.5rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { font-weight: 600; font-size: 0.75rem; color: #4e6f8c; display: block; margin-bottom: 0.3rem; }
+        .input-field, .filter-select {
+            width: 100%; padding: 0.7rem 1.2rem; border-radius: 16px; border: 1px solid #dde3ea;
+            background: #f8fafd; font-family: 'Inter', sans-serif;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.8rem; }
+
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 年级/班级存储导航 + 学分核查 (联动) -->
+    <div class="card">
+        <div class="filter-bar" style="margin-bottom: 0.5rem;">
+            <div class="filter-item"><label>年级</label><select class="filter-select" id="storeGrade"><option value="">全部年级</option><option>2024级</option><option>2025级</option><option>2023级</option></select></div>
+            <div class="filter-item"><label>班级</label><select class="filter-select" id="storeClass"><option value="">全部班级</option><option>学硕1班</option><option>专硕2班</option><option>博士班</option></select></div>
+            <div class="filter-item"><label>论文档案</label><span class="file-tag" id="paperCount"><i class="fas fa-folder"></i> 0篇 · 0MB</span></div>
+            <div style="margin-left: auto;"><button class="btn btn-outline btn-sm" id="browseArchiveBtn"><i class="fas fa-archive"></i> 按年级/班级浏览</button></div>
+        </div>
+        <!-- 学分核查卡片 (联动更新) -->
+        <div class="credit-grid" id="creditCards">
+            <div class="credit-item"><span class="credit-label">总学生</span><div class="credit-number" id="totalStudents">0</div></div>
+            <div class="credit-item"><span class="credit-label">平均学分</span><div class="credit-number" id="avgCredit">0/32</div></div>
+            <div class="credit-item"><span class="credit-label">学分预警</span><div class="credit-number" id="warningCount">0</div><div class="credit-warning" id="warningDetail">0人不足</div></div>
+            <div class="credit-item"><span class="credit-label">已修/应修</span><div class="credit-number" id="totalCredit">0/0</div><div class="credit-warning" id="creditDeficit">缺0学分</div></div>
+        </div>
+    </div>
+
+    <!-- 答辩批次管理栏 -->
+    <div class="card">
+        <div class="filter-bar" style="margin-bottom: 0;">
+            <div class="section-title" style="margin-bottom:0;"><i class="fas fa-layer-group"></i> 答辩批次管理</div>
+            <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary btn-sm" id="openNewBatchModal"><i class="fas fa-plus"></i> 新建批次</button>
+                <button class="btn btn-outline btn-sm" id="queryBatchBtn"><i class="fas fa-search"></i> 查询批次</button>
+            </div>
+        </div>
+        <div class="batch-list">
+            <div class="batch-item"><span><i class="fas fa-tag"></i> 2026春正式答辩 (2026-05-20)</span><span class="batch-status">进行中</span></div>
+            <div class="batch-item"><span><i class="fas fa-tag"></i> 2026预答辩批次 (2026-03-15)</span><span class="batch-status">材料收集中</span></div>
+            <div class="batch-item"><span><i class="fas fa-tag"></i> 2025秋正式答辩</span><span class="batch-status" style="background:#eceff3;">已结束</span></div>
+        </div>
+    </div>
+
+    <!-- 左右主面板 -->
+    <div class="dashboard-split">
+        <!-- 左侧：学生列表（分页 + 批量导入按钮） -->
+        <div class="left-panel card">
+            <div class="section-title"><i class="fas fa-users"></i> 学生名单 & 进度预警</div>
+            <div class="filter-bar" style="margin-bottom: 1rem;">
+                <div class="filter-item"><label>年级</label><select class="filter-select" id="filterGrade"><option value="">全部</option><option>2024级</option><option>2025级</option><option>2023级</option></select></div>
+                <div class="filter-item"><label>班级</label><select class="filter-select" id="filterClass"><option value="">全部</option><option>学硕1班</option><option>专硕2班</option><option>博士班</option></select></div>
+                <div class="filter-item"><label>预警</label><select class="filter-select" id="filterWarning"><option value="">全部</option><option>自动预警</option><option>手动预警</option></select></div>
+                <div><button class="btn btn-outline btn-sm" id="applyFilter"><i class="fas fa-search"></i> 筛选</button></div>
+                <div><button class="btn btn-outline btn-sm" id="manualWarningBtn"><i class="fas fa-bell"></i> 手动预警</button></div>
+                <div><button class="btn btn-primary btn-sm" id="batchImportBtn"><i class="fas fa-file-import"></i> 批量导入</button></div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>姓名</th><th>学号</th><th>年级/班级</th><th>进度%</th><th>开题</th><th>中期</th><th>答辩</th><th>预警</th></tr></thead>
+                    <tbody id="studentList"></tbody>
+                </table>
+            </div>
+            <!-- 分页控件 -->
+            <div class="pagination-bar" id="pagination"></div>
+        </div>
+
+        <!-- 右侧：选中学生的全流程看板（带上传控件，统一图标和按钮样式） -->
+        <div class="right-panel card">
+            <div class="section-title"><i class="fas fa-diagram-project"></i> 全流程节点 <span id="selectedStudentName" style="font-size:0.9rem;"></span></div>
+            <div id="noStudentMsg" style="text-align:center; color:#8899bb; padding:2rem;"><i class="fas fa-user-graduate" style="font-size:2.5rem;"></i><br>点击左侧学生查看详情</div>
+            <div id="processViewer" style="display:none;">
+                <div class="process-grid" id="nodeContainer"></div>
+                <!-- 知网查重入口 -->
+                <div style="display:flex; gap:0.5rem; margin-top:1rem; align-items:center;">
+                    <span class="file-tag"><i class="fas fa-cloud"></i> 查重率: <span id="dupRate">17%</span></span>
+                    <button class="btn btn-outline btn-sm" id="dupCheckBtn"><i class="fas fa-link"></i> 知网查重</button>
+                    <span class="file-tag"><i class="fas fa-file"></i> 送审版论文</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量导入弹窗 - 分不同流程导入结果 -->
+<div class="modal-overlay" id="batchImportModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3><i class="fas fa-file-import"></i> 批量导入结果</h3><button class="modal-close" id="closeBatchImportModal">&times;</button></div>
+        <div class="input-group">
+            <label>选择导入流程</label>
+            <select class="filter-select" id="importProcessType">
+                <option value="opening">开题报告</option>
+                <option value="midterm">中期检查</option>
+                <option value="firstFormat">第一次格式审查</option>
+                <option value="revision">论文修改意见</option>
+                <option value="instructorComment">指导教师评语</option>
+                <option value="defense">答辩委员会决议书</option>
+                <option value="secondFormat">第二次格式审查</option>
+                <option value="sentPaper">送审版论文</option>
+                <option value="modifiedPaper">修改后论文</option>
+                <option value="certificate">毕业/学位证书</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>批量上传文件 (支持多选)</label>
+            <input type="file" id="batchFiles" multiple class="input-field" style="padding: 0.5rem;">
+            <div style="font-size:0.75rem; color:#6f8faf; margin-top:0.3rem;">文件名格式: 学号_文件名.扩展名 (例如: G202401_开题报告.pdf)</div>
+        </div>
+        <div class="input-group">
+            <label>统一成绩/评分 (可选)</label>
+            <input type="text" class="input-field" id="batchScore" placeholder="如85">
+        </div>
+        <div class="input-group">
+            <label>统一是否通过</label>
+            <select class="filter-select" id="batchPass">
+                <option value="">保持不变</option>
+                <option value="通过">通过</option>
+                <option value="不通过">不通过</option>
+                <option value="待审核">待审核</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>统一评语/意见 (可选)</label>
+            <textarea class="input-field" id="batchComment" rows="2" placeholder="适用于所有选中学生的评语"></textarea>
+        </div>
+        <div class="input-group">
+            <label>应用到以下选中学生</label>
+            <div id="selectedStudentList" style="max-height:100px; overflow-y:auto; background:#f8fafd; padding:0.5rem; border-radius:12px; font-size:0.85rem;"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="cancelBatchImportBtn">取消</button>
+            <button class="btn btn-primary" id="confirmBatchImportBtn"><i class="fas fa-check"></i> 执行导入</button>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑节点弹窗（带附件上传控件） -->
+<div class="modal-overlay" id="editNodeModal">
+    <div class="modal-card">
+        <div class="modal-header"><h3 id="modalNodeTitle">编辑节点</h3><button class="modal-close" id="closeNodeModal">&times;</button></div>
+        <form id="nodeForm">
+            <div class="input-group"><label>节点类型</label><input class="input-field" id="nodeType" readonly></div>
+            <div class="input-group"><label>成绩/评分</label><input class="input-field" id="nodeScore" placeholder="如85"></div>
+            <div class="input-group"><label>是否通过</label><select class="filter-select" id="nodePass"><option value="通过">通过</option><option value="不通过">不通过</option><option value="待审核">待审核</option></select></div>
+            <div class="input-group">
+                <label>附件上传</label>
+                <div class="upload-wrapper" style="display:flex; align-items:center; gap:0.5rem;">
+                    <input type="file" id="nodeFileUpload" style="display:none;">
+                    <button type="button" class="upload-btn" id="triggerUpload"><i class="fas fa-upload"></i> 选择文件</button>
+                    <span class="file-name" id="selectedFileName">未选择文件</span>
+                </div>
+            </div>
+            <div class="input-group"><label>评语/意见</label><textarea class="input-field" id="nodeComment" rows="2"></textarea></div>
+            <div class="modal-actions"><button class="btn btn-outline" type="button" id="cancelNodeBtn">取消</button><button class="btn btn-primary" type="button" id="saveNodeBtn">保存</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- 新建批次弹窗 -->
+<div class="modal-overlay" id="batchModal">
+    <div class="modal-card"><div class="modal-header"><h3>新建答辩批次</h3><button class="modal-close" id="closeBatchModal">&times;</button></div>
+        <div class="input-group"><label>批次名称</label><input class="input-field" id="batchName" placeholder="如2026夏答辩"></div>
+        <div class="input-group"><label>开始日期</label><input type="date" class="input-field" id="batchStart"></div>
+        <div class="input-group"><label>结束日期</label><input type="date" class="input-field" id="batchEnd"></div>
+        <div class="modal-actions"><button class="btn btn-outline" id="cancelBatchBtn">取消</button><button class="btn btn-primary" id="saveBatchBtn">创建</button></div>
+    </div>
+</div>
+
+<!-- 手动预警弹窗 -->
+<div class="modal-overlay" id="warningModal">
+    <div class="modal-card"><div class="modal-header"><h3>手动预警</h3><button class="modal-close" id="closeWarningModal">&times;</button></div>
+        <p>发送给 <span id="warningCount">0</span> 位选中学生</p>
+        <textarea class="input-field" id="warningContent" placeholder="预警内容" rows="3">请尽快完成论文节点，避免影响毕业。</textarea>
+        <div class="modal-actions"><button class="btn btn-outline" id="cancelWarningBtn">取消</button><button class="btn btn-primary" id="sendWarningBtn">发送预警</button></div>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // 完整模拟数据
+        const students = [
+            { id: 's1', name: '欧阳雪', studentId: 'G202401', grade: '2024级', className: '学硕1班', credit: 28, required: 32,
+              progress: 70,
+              nodes: {
+                opening: { score: 82, pass: '通过', file: '开题报告_欧阳雪.pdf', comment: '' },
+                midterm: { score: 79, pass: '通过', file: '中期检查_欧阳雪.docx', comment: '' },
+                firstFormat: { status: '已审查', comment: '图表编号需修正', file: '一审意见.pdf' },
+                revision: { comment: '已按意见修改', file: '修改说明_欧阳雪.docx' },
+                defense: { resolution: '通过', file: '决议书_欧阳雪.png', comment: '答辩优秀' },
+                secondFormat: { status: '通过', comment: '', file: '' },
+                certificate: { degree: '学位证_欧阳雪.jpg', grad: '毕业证_欧阳雪.jpg' },
+                instructorComment: { comment: '论文工作认真，同意答辩', file: '' },
+                sentPaper: { file: '送审版_欧阳雪.pdf' },
+                modifiedPaper: { file: '修改后论文_欧阳雪.pdf' }
+              }, warnings: ['学分不足'] },
+            { id: 's2', name: '王博文', studentId: 'G202402', grade: '2024级', className: '学硕1班', credit: 32, required: 32,
+              progress: 60,
+              nodes: {
+                opening: { score: 90, pass: '通过', file: '开题_王博文.pdf', comment: '' },
+                midterm: { score: 88, pass: '通过', file: '中期.docx', comment: '' },
+                firstFormat: { status: '未通过', comment: '参考文献格式错误', file: '格式审查表.pdf' },
+                revision: { comment: '修改说明.docx', file: '修改说明_王博文.docx' },
+                defense: { },
+                secondFormat: { status: '待审查' },
+                certificate: { },
+                instructorComment: { comment: '需加强实验分析' },
+                sentPaper: { file: '送审版_王博文.pdf' },
+                modifiedPaper: { }
+              }, warnings: ['逾期1天'] },
+            { id: 's3', name: '李思睿', studentId: 'G202403', grade: '2024级', className: '专硕2班', credit: 30, required: 32,
+              progress: 40,
+              nodes: {
+                opening: { score: 76, pass: '通过', file: '开题报告_李思睿.pdf' },
+                midterm: { score: null, pass: '待录入', file: '' },
+                firstFormat: { },
+                revision: { },
+                defense: { },
+                secondFormat: { },
+                certificate: { },
+                instructorComment: { },
+                sentPaper: { }
+              }, warnings: ['中期逾期预警'] },
+            { id: 's4', name: '赵一凡', studentId: 'G202404', grade: '2024级', className: '专硕2班', credit: 32, required: 32,
+              progress: 90,
+              nodes: {
+                opening: { score: 88, pass: '通过', file: '开题_赵一凡.pdf' },
+                midterm: { score: 91, pass: '通过', file: '中期报告.docx' },
+                firstFormat: { status: '通过', comment: '合格' },
+                revision: { comment: '修改说明_final.docx', file: '修改后论文_赵一凡.pdf' },
+                defense: { resolution: '优秀', file: '决议书_赵一凡.jpg' },
+                secondFormat: { status: '通过' },
+                certificate: { degree: '学位证_赵一凡.jpg', grad: '毕业证_赵一凡.jpg' },
+                instructorComment: { comment: '论文质量高，同意答辩' },
+                sentPaper: { file: '送审版_赵一凡.pdf' },
+                modifiedPaper: { file: '最终版_赵一凡.pdf' }
+              }, warnings: [] },
+            { id: 's5', name: '陈果', studentId: 'G202405', grade: '2025级', className: '博士班', credit: 18, required: 20,
+              progress: 30,
+              nodes: {
+                opening: { score: 93, pass: '通过', file: '开题_陈果.pdf' },
+                midterm: { score: 87, pass: '通过', file: '中期_陈果.docx' },
+                firstFormat: { status: '待审查' },
+                revision: { },
+                defense: { },
+                secondFormat: { },
+                certificate: { },
+                instructorComment: { },
+                sentPaper: { }
+              }, warnings: ['学分不足'] }
+        ];
+
+        let selectedStudentId = 's1';
+        let filters = { grade: '', class: '', warning: '' };
+        let currentPage = 1;
+        const pageSize = 3;
+        let filteredStudents = [];
+
+        // DOM
+        const studentList = document.getElementById('studentList');
+        const noStudentMsg = document.getElementById('noStudentMsg');
+        const processViewer = document.getElementById('processViewer');
+        const nodeContainer = document.getElementById('nodeContainer');
+        const selectedStudentName = document.getElementById('selectedStudentName');
+        const toast = document.getElementById('toast');
+        const pagination = document.getElementById('pagination');
+
+        // 学分卡片元素
+        const totalStudentsEl = document.getElementById('totalStudents');
+        const avgCreditEl = document.getElementById('avgCredit');
+        const warningCountEl = document.getElementById('warningCount');
+        const warningDetailEl = document.getElementById('warningDetail');
+        const totalCreditEl = document.getElementById('totalCredit');
+        const creditDeficitEl = document.getElementById('creditDeficit');
+        const paperCountEl = document.getElementById('paperCount');
+
+        // 年级班级联动存储
+        const storeGrade = document.getElementById('storeGrade');
+        const storeClass = document.getElementById('storeClass');
+        const browseArchiveBtn = document.getElementById('browseArchiveBtn');
+
+        // 批量导入相关
+        const batchImportModal = document.getElementById('batchImportModal');
+        const closeBatchImportModal = document.getElementById('closeBatchImportModal');
+        const cancelBatchImportBtn = document.getElementById('cancelBatchImportBtn');
+        const confirmBatchImportBtn = document.getElementById('confirmBatchImportBtn');
+        const importProcessType = document.getElementById('importProcessType');
+        const batchFiles = document.getElementById('batchFiles');
+        const batchScore = document.getElementById('batchScore');
+        const batchPass = document.getElementById('batchPass');
+        const batchComment = document.getElementById('batchComment');
+        const selectedStudentList = document.getElementById('selectedStudentList');
+
+        // 弹窗
+        const editModal = document.getElementById('editNodeModal');
+        const closeNodeModal = document.getElementById('closeNodeModal');
+        const cancelNodeBtn = document.getElementById('cancelNodeBtn');
+        const saveNodeBtn = document.getElementById('saveNodeBtn');
+        const nodeType = document.getElementById('nodeType');
+        const nodeScore = document.getElementById('nodeScore');
+        const nodePass = document.getElementById('nodePass');
+        const nodeComment = document.getElementById('nodeComment');
+        const triggerUpload = document.getElementById('triggerUpload');
+        const nodeFileUpload = document.getElementById('nodeFileUpload');
+        const selectedFileName = document.getElementById('selectedFileName');
+        const batchModal = document.getElementById('batchModal');
+        const warningModal = document.getElementById('warningModal');
+        const warningCount = document.getElementById('warningCount');
+        const warningContent = document.getElementById('warningContent');
+
+        let currentEdit = { studentId: null, nodeKey: null };
+        let currentFile = null;
+
+        function showToast(msg) { toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
+
+        // 更新学分卡片和论文统计 (基于当前年级班级筛选)
+        function updateStats() {
+            const grade = storeGrade.value;
+            const classVal = storeClass.value;
+            let filtered = students.filter(s => (!grade || s.grade === grade) && (!classVal || s.className === classVal));
+            
+            const total = filtered.length;
+            const totalCreditSum = filtered.reduce((sum, s) => sum + s.credit, 0);
+            const totalRequired = filtered.reduce((sum, s) => sum + s.required, 0);
+            const avg = total ? (totalCreditSum / total).toFixed(1) : 0;
+            const warningStudents = filtered.filter(s => s.warnings && s.warnings.length > 0).length;
+            const creditWarning = filtered.filter(s => s.credit < s.required).length;
+            const deficit = totalRequired - totalCreditSum;
+
+            totalStudentsEl.textContent = total;
+            avgCreditEl.textContent = `${avg}/${totalRequired ? '32' : '0'}`;
+            warningCountEl.textContent = warningStudents;
+            warningDetailEl.textContent = `${creditWarning}人不足`;
+            totalCreditEl.textContent = `${totalCreditSum}/${totalRequired}`;
+            creditDeficitEl.textContent = `缺${deficit}学分`;
+
+            // 模拟论文篇数 (每个学生按平均3篇论文)
+            const paperCount = filtered.reduce((sum, s) => {
+                let cnt = 0;
+                if (s.nodes.sentPaper?.file) cnt++;
+                if (s.nodes.modifiedPaper?.file) cnt++;
+                if (s.nodes.opening?.file) cnt++;
+                return sum + cnt;
+            }, 0);
+            paperCountEl.innerHTML = `<i class="fas fa-folder"></i> ${paperCount}篇 · ${(paperCount * 0.8).toFixed(1)}MB`;
+        }
+
+        // 筛选学生并分页
+        function filterStudents() {
+            filteredStudents = students.filter(s => {
+                if (filters.grade && s.grade !== filters.grade) return false;
+                if (filters.class && s.className !== filters.class) return false;
+                if (filters.warning === '自动预警' && !s.warnings.some(w => w.includes('学分')||w.includes('逾期'))) return false;
+                if (filters.warning === '手动预警' && !s.warnings.includes('手动预警')) return false;
+                return true;
+            });
+            return filteredStudents;
+        }
+
+        function renderStudentList() {
+            filterStudents();
+            const start = (currentPage - 1) * pageSize;
+            const pageData = filteredStudents.slice(start, start + pageSize);
+            let html = '';
+            pageData.forEach(s => {
+                let warnHtml = s.warnings.map(w => `<span class="warning-badge">${w}</span>`).join('');
+                let selectedClass = (selectedStudentId === s.id) ? 'selected-student' : '';
+                html += `<tr class="student-row ${selectedClass}" data-id="${s.id}">
+                    <td>${s.name}</td><td>${s.studentId}</td><td>${s.grade} ${s.className}</td>
+                    <td><div class="progress-bar"><div class="progress-fill" style="width:${s.progress}%"></div></div> ${s.progress}%</td>
+                    <td>${s.nodes.opening?.pass || '—'}</td><td>${s.nodes.midterm?.pass || '—'}</td>
+                    <td>${s.nodes.defense?.resolution || '未答辩'}</td><td>${warnHtml || '—'}</td>
+                </tr>`;
+            });
+            studentList.innerHTML = html;
+
+            document.querySelectorAll('.student-row').forEach(r => r.addEventListener('click', (e) => {
+                let id = r.dataset.id;
+                if (id) selectStudent(id);
+            }));
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredStudents.length / pageSize);
+            let html = `<span class="page-info">第 ${currentPage} / ${totalPages || 1} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} id="prevPage"><i class="fas fa-chevron-left"></i></button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''} id="nextPage"><i class="fas fa-chevron-right"></i></button>`;
+            pagination.innerHTML = html;
+
+            document.querySelectorAll('.pagination-btn[data-page]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentPage = parseInt(btn.dataset.page);
+                    renderStudentList();
+                });
+            });
+            document.getElementById('prevPage')?.addEventListener('click', () => {
+                if (currentPage > 1) { currentPage--; renderStudentList(); }
+            });
+            document.getElementById('nextPage')?.addEventListener('click', () => {
+                if (currentPage < Math.ceil(filteredStudents.length / pageSize)) { currentPage++; renderStudentList(); }
+            });
+        }
+
+        function selectStudent(id) {
+            selectedStudentId = id;
+            renderStudentList();
+            let student = students.find(s => s.id === id);
+            if (student) {
+                noStudentMsg.style.display = 'none';
+                processViewer.style.display = 'block';
+                selectedStudentName.innerText = `${student.name} (${student.studentId})`;
+                renderNodeCards(student);
+            }
+        }
+
+        // 渲染节点卡片（统一图标和按钮样式）
+        function renderNodeCards(s) {
+            let nodes = s.nodes;
+            let html = '';
+
+            const renderUploadButton = (nodeKey, currentFile) => {
+                return `<div class="upload-wrapper">
+                    <input type="file" id="upload-${nodeKey}" class="upload-input" data-node="${nodeKey}" style="display:none;" />
+                    <button class="upload-btn" onclick="document.getElementById('upload-${nodeKey}').click()"><i class="fas fa-upload"></i> 上传</button>
+                    <span class="file-name" id="file-${nodeKey}">${currentFile || '未选择'}</span>
+                </div>`;
+            };
+
+            // 辅助函数：获取当前文件显示名
+            function getFileDisplay(node) {
+                return node?.file || '';
+            }
+
+            // 开题 - 统一图标风格
+            html += `<div class="node-card" data-node="opening"><div class="node-header"><span class="node-name"><i class="fas fa-book-open"></i> 开题报告</span><span class="node-badge">${nodes.opening?.score||''}分 ${nodes.opening?.pass||''}</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('opening', getFileDisplay(nodes.opening))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="opening"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            // 中期
+            html += `<div class="node-card" data-node="midterm"><div class="node-header"><span class="node-name"><i class="fas fa-chart-line"></i> 中期检查</span><span class="node-badge">${nodes.midterm?.score||''} ${nodes.midterm?.pass||''}</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('midterm', getFileDisplay(nodes.midterm))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="midterm"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            // 送审版论文
+            html += `<div class="node-card" data-node="sentPaper"><div class="node-header"><span class="node-name"><i class="fas fa-paper-plane"></i> 送审版论文</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('sentPaper', getFileDisplay(nodes.sentPaper))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="sentPaper"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            // 第一次格式审查
+            html += `<div class="node-card" data-node="firstFormat"><div class="node-header"><span class="node-name"><i class="fas fa-check-circle"></i> 第一次格式审查</span><span class="node-badge">${nodes.firstFormat?.status||'待审查'}</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('firstFormat', getFileDisplay(nodes.firstFormat))}</div>`;
+            html += `<div class="node-detail-item"><i class="fas fa-message"></i> ${nodes.firstFormat?.comment||''}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="firstFormat"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            // 论文修改意见
+            html += `<div class="node-card" data-node="revision"><div class="node-header"><span class="node-name"><i class="fas fa-pen"></i> 论文修改意见</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('revision', getFileDisplay(nodes.revision))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="revision"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            // 指导教师评语
+            html += `<div class="node-card" data-node="instructorComment"><div class="node-header"><span class="node-name"><i class="fas fa-user-tie"></i> 指导教师评语</span></div>`;
+            html += `<div class="node-detail-item">${nodes.instructorComment?.comment || '无'}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="instructorComment"><i class="fas fa-edit"></i> 填写</button></div></div>`;
+
+            // 答辩委员会决议书
+            html += `<div class="node-card" data-node="defense"><div class="node-header"><span class="node-name"><i class="fas fa-gavel"></i> 答辩委员会决议书</span><span class="node-badge">${nodes.defense?.resolution||''}</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('defense', getFileDisplay(nodes.defense))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="defense"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            // 第二次格式审查
+            html += `<div class="node-card" data-node="secondFormat"><div class="node-header"><span class="node-name"><i class="fas fa-clipboard-check"></i> 第二次格式审查</span><span class="node-badge">${nodes.secondFormat?.status||'未开始'}</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('secondFormat', getFileDisplay(nodes.secondFormat))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="secondFormat"><i class="fas fa-edit"></i> 录入</button></div></div>`;
+
+            // 修改后论文
+            html += `<div class="node-card" data-node="modifiedPaper"><div class="node-header"><span class="node-name"><i class="fas fa-file-alt"></i> 修改后论文</span></div>`;
+            html += `<div class="node-detail-item">${renderUploadButton('modifiedPaper', getFileDisplay(nodes.modifiedPaper))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="modifiedPaper"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            // 证书
+            html += `<div class="node-card" data-node="certificate"><div class="node-header"><span class="node-name"><i class="fas fa-certificate"></i> 证书扫描件</span></div>`;
+            html += `<div class="node-detail-item">毕业证: ${renderUploadButton('certificate_grad', getFileDisplay({file: nodes.certificate?.grad}))}</div>`;
+            html += `<div class="node-detail-item">学位证: ${renderUploadButton('certificate_degree', getFileDisplay({file: nodes.certificate?.degree}))}</div>`;
+            html += `<div class="node-actions"><button class="btn btn-outline btn-sm edit-node" data-node="certificate"><i class="fas fa-edit"></i> 编辑</button></div></div>`;
+
+            nodeContainer.innerHTML = html;
+
+            // 绑定上传按钮事件
+            document.querySelectorAll('.upload-input').forEach(input => {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const nodeKey = this.dataset.node;
+                        const fileNameSpan = document.getElementById(`file-${nodeKey}`);
+                        if (fileNameSpan) fileNameSpan.textContent = file.name;
+                        showToast(`文件 ${file.name} 已选择`);
+                    }
+                });
+            });
+
+            // 编辑按钮
+            document.querySelectorAll('.edit-node').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    let nodeKey = btn.dataset.node;
+                    openEditModal(s.id, nodeKey);
+                });
+            });
+        }
+
+        function openEditModal(studentId, nodeKey) {
+            let student = students.find(s => s.id === studentId);
+            if (!student) return;
+            let nodeData = student.nodes[nodeKey] || {};
+            currentEdit = { studentId, nodeKey };
+            nodeType.value = nodeKey;
+            nodeScore.value = nodeData.score || nodeData.status || '';
+            nodePass.value = nodeData.pass || '通过';
+            nodeComment.value = nodeData.comment || '';
+            selectedFileName.textContent = nodeData.file || '未选择文件';
+            currentFile = nodeData.file;
+            editModal.classList.add('show');
+        }
+
+        triggerUpload.addEventListener('click', () => nodeFileUpload.click());
+        nodeFileUpload.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                selectedFileName.textContent = e.target.files[0].name;
+                currentFile = e.target.files[0].name;
+            }
+        });
+
+        saveNodeBtn.addEventListener('click', () => {
+            let { studentId, nodeKey } = currentEdit;
+            let student = students.find(s => s.id === studentId);
+            if (!student) return;
+            if (!student.nodes[nodeKey]) student.nodes[nodeKey] = {};
+            let target = student.nodes[nodeKey];
+            target.score = nodeScore.value;
+            target.pass = nodePass.value;
+            target.file = currentFile || target.file;
+            target.comment = nodeComment.value;
+            showToast('节点更新成功');
+            editModal.classList.remove('show');
+            if (selectedStudentId === studentId) renderNodeCards(student);
+        });
+
+        // 筛选
+        document.getElementById('applyFilter').addEventListener('click', ()=>{
+            filters.grade = document.getElementById('filterGrade').value;
+            filters.class = document.getElementById('filterClass').value;
+            filters.warning = document.getElementById('filterWarning').value;
+            currentPage = 1;
+            renderStudentList();
+        });
+
+        // 手动预警
+        document.getElementById('manualWarningBtn').addEventListener('click', ()=>{
+            let selected = document.querySelectorAll('.student-row.selected-student');
+            if (selected.length === 0) { showToast('请先点击选中一名学生'); return; }
+            let ids = Array.from(selected).map(r => r.dataset.id);
+            warningCount.innerText = ids.length;
+            warningModal.classList.add('show');
+            window.selectedWarningIds = ids;
+        });
+
+        document.getElementById('sendWarningBtn').addEventListener('click', ()=>{
+            window.selectedWarningIds?.forEach(id => {
+                let s = students.find(st => st.id === id);
+                if (s && !s.warnings.includes('手动预警')) s.warnings.push('手动预警');
+            });
+            showToast('手动预警已发送');
+            warningModal.classList.remove('show');
+            renderStudentList();
+        });
+
+        // 批量导入功能
+        document.getElementById('batchImportBtn').addEventListener('click', ()=>{
+            let selected = document.querySelectorAll('.student-row.selected-student');
+            if (selected.length === 0) { showToast('请先点击选中一名或多名学生'); return; }
+            let ids = Array.from(selected).map(r => r.dataset.id);
+            let names = ids.map(id => {
+                let s = students.find(st => st.id === id);
+                return s ? `${s.name} (${s.studentId})` : '';
+            }).join('<br>');
+            selectedStudentList.innerHTML = names;
+            batchImportModal.classList.add('show');
+        });
+
+        closeBatchImportModal.addEventListener('click', ()=> batchImportModal.classList.remove('show'));
+        cancelBatchImportBtn.addEventListener('click', ()=> batchImportModal.classList.remove('show'));
+
+        confirmBatchImportBtn.addEventListener('click', ()=>{
+            let selected = document.querySelectorAll('.student-row.selected-student');
+            let ids = Array.from(selected).map(r => r.dataset.id);
+            let processType = importProcessType.value;
+            let score = batchScore.value;
+            let pass = batchPass.value;
+            let comment = batchComment.value;
+            let files = batchFiles.files;
+
+            // 模拟处理文件：实际应用中这里会上传文件并解析
+            let fileCount = files.length;
+            let fileMsg = fileCount > 0 ? `，已选择 ${fileCount} 个文件` : '';
+
+            ids.forEach(id => {
+                let s = students.find(st => st.id === id);
+                if (s) {
+                    if (!s.nodes[processType]) s.nodes[processType] = {};
+                    if (score) s.nodes[processType].score = score;
+                    if (pass) s.nodes[processType].pass = pass;
+                    if (comment) s.nodes[processType].comment = comment;
+                    
+                    // 如果有文件，根据文件名规则模拟关联
+                    if (fileCount > 0) {
+                        // 简单模拟：取第一个文件作为该节点的文件
+                        s.nodes[processType].file = `批量导入_${processType}.pdf`;
+                    }
+                }
+            });
+
+            showToast(`已为 ${ids.length} 位学生批量导入 ${processType} 结果${fileMsg}`);
+            batchImportModal.classList.remove('show');
+            
+            // 刷新当前选中学生的显示
+            if (selectedStudentId) {
+                let student = students.find(s => s.id === selectedStudentId);
+                if (student) renderNodeCards(student);
+            }
+            
+            // 清空表单
+            batchFiles.value = '';
+            batchScore.value = '';
+            batchPass.value = '';
+            batchComment.value = '';
+        });
+
+        // 新建批次
+        document.getElementById('openNewBatchModal').addEventListener('click', ()=> batchModal.classList.add('show'));
+        document.getElementById('closeBatchModal').addEventListener('click', ()=> batchModal.classList.remove('show'));
+        document.getElementById('cancelBatchBtn').addEventListener('click', ()=> batchModal.classList.remove('show'));
+        document.getElementById('saveBatchBtn').addEventListener('click', ()=>{
+            showToast('新答辩批次已创建');
+            batchModal.classList.remove('show');
+        });
+
+        // 查询批次演示
+        document.getElementById('queryBatchBtn').addEventListener('click', ()=> showToast('查询批次窗口 (演示)'));
+
+        // 知网查重
+        document.getElementById('dupCheckBtn')?.addEventListener('click', ()=> showToast('已送检知网查重'));
+
+        // 年级班级浏览联动
+        storeGrade.addEventListener('change', updateStats);
+        storeClass.addEventListener('change', updateStats);
+        browseArchiveBtn.addEventListener('click', ()=> {
+            showToast(`浏览: ${storeGrade.value || '全部年级'} ${storeClass.value || '全部班级'} 的论文档案`);
+        });
+
+        // 关闭弹窗
+        closeNodeModal.addEventListener('click', ()=> editModal.classList.remove('show'));
+        cancelNodeBtn.addEventListener('click', ()=> editModal.classList.remove('show'));
+        document.getElementById('closeWarningModal').addEventListener('click', ()=> warningModal.classList.remove('show'));
+        document.getElementById('cancelWarningBtn').addEventListener('click', ()=> warningModal.classList.remove('show'));
+
+        [editModal, batchModal, warningModal, batchImportModal].forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); }));
+
+        // 初始化
+        updateStats();
+        renderStudentList();
+        selectStudent('s1');
+    })();
+</script>
+</body>
+</html>

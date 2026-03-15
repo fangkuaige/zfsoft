@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>EMBA教务管理系统 · 集成式详情弹窗</title>
+    <!-- 使用SheetJS (XLSX) 生成真实Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <!-- 基础样式，移除所有图标相关 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 筛选栏 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 170px;
+            flex: 1 1 160px;
+        }
+        .filter-item label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
+        }
+        .filter-input, .filter-select {
+            background: #f8fafd;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 表格区域 */
+        .table-wrapper {
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e2eaf3;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+        th {
+            text-align: left;
+            padding: 1.2rem 1rem;
+            background: #eaf1f9;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1d4b6e;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #e3eaf2;
+            vertical-align: middle;
+        }
+        .course-name { font-weight: 600; color: #0b2b40; }
+        .badge-type {
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .action-tag {
+            background: #ecf5fb;
+            color: #1e4e7a;
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            border: 1px solid #c9d9eb;
+            transition: 0.1s;
+        }
+        .action-tag:hover { background: #d4e3f5; }
+        .action-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        /* 分页 */
+        .pagination-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 0.5rem; margin-top: 1.8rem; flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white; border: 1px solid #c9d9eb; color: #1d4a6b;
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 500; cursor: pointer; transition: 0.1s;
+        }
+        .pagination-btn.active { background: #1e4a6f; border-color: #1e4a6f; color: white; }
+        .pagination-btn:hover:not(.active) { background: #e5f0fb; }
+        .page-info { color: #466585; margin-right: 0.8rem; font-size: 0.9rem; }
+
+        /* 弹窗样式 (无图标) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 1200px;
+            padding: 1.8rem 2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; display: flex; flex-direction: column;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2eaf3;
+        }
+        .modal-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #0c2b48;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1; padding: 0 0.5rem;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+
+        /* iframe 容器 */
+        .iframe-container {
+            flex: 1;
+            min-height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #dde3ea;
+            background: #ffffff;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        /* 标签页样式 */
+        .detail-tab-buttons {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;
+        }
+        .mini-tab {
+            background: #eef4fa; padding: 0.5rem 1.2rem; border-radius: 40px;
+            font-size: 0.8rem; font-weight: 500; color: #1d4a6b; border: 1px solid #c9d9eb;
+            cursor: pointer; transition: 0.1s;
+        }
+        .mini-tab.active { background: #1e4a6f; color: white; border-color: #1e4a6f; }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 筛选栏 + 新增课程 -->
+    <div class="card">
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>课程名称</label>
+                <input type="text" class="filter-input" id="filterCourseName" placeholder="营销管理">
+            </div>
+            <div class="filter-item">
+                <label>课号</label>
+                <input type="text" class="filter-input" id="filterCourseCode" placeholder="MKT210">
+            </div>
+            <div class="filter-item">
+                <label>班级</label>
+                <select class="filter-select" id="filterClass">
+                    <option value="">全部班级</option>
+                    <option value="EMBA1班">EMBA1班</option>
+                    <option value="EMBA2班">EMBA2班</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="resetFilterBtn">重置</button>
+                <button class="btn btn-primary" id="openAddCourseModal">新增课程</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 总课表卡片 -->
+    <div class="card">
+        <div class="section-title">总课表管理</div>
+        <div class="table-wrapper">
+            <table id="courseTable">
+                <thead>
+                    <tr>
+                        <th>课程名称</th><th>课号</th><th>类型</th><th>班级</th><th>分组</th><th>排座</th><th>考勤</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <!-- 分页 + 一键导出Excel -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap;">
+            <button class="btn btn-outline btn-sm" id="exportExcelBtn">一键导出名单 (Excel)</button>
+            <div class="pagination-bar" id="paginationContainer" style="margin-top:0;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 新增/编辑课程弹窗 -->
+<div class="modal-overlay" id="courseModal">
+    <div class="modal-card" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3 id="courseModalTitle">课程信息</h3>
+            <button class="modal-close" id="closeCourseModalBtn">&times;</button>
+        </div>
+        <form id="courseForm" onsubmit="return false;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="grid-column: span 2;">
+                    <label>课程名称 *</label>
+                    <input type="text" class="filter-input" id="modalCourseName" required placeholder="营销管理">
+                </div>
+                <div>
+                    <label>课号 *</label>
+                    <input type="text" class="filter-input" id="modalCourseCode" required placeholder="MKT210">
+                </div>
+                <div>
+                    <label>课程类型</label>
+                    <select class="filter-select" id="modalCourseType">
+                        <option value="必修">必修</option><option value="选修">选修</option><option value="实践">实践</option>
+                    </select>
+                </div>
+                <div>
+                    <label>班级</label>
+                    <input type="text" class="filter-input" id="modalClassName" placeholder="EMBA1班">
+                </div>
+                <div>
+                    <label>学分</label>
+                    <input type="number" step="0.5" class="filter-input" id="modalCredit" value="2.0">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="display:flex; align-items:center; gap:8px;"><input type="checkbox" id="modalPcReminder" checked> 开启PC考勤提醒</label>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                <button type="button" class="btn btn-outline" id="cancelCourseBtn">取消</button>
+                <button type="submit" class="btn btn-primary" id="saveCourseBtn">保存课程</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========== 课程详情弹窗 (集成所有功能页面) ========== -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-card" style="max-width: 1300px; height: 85vh;">
+        <div class="modal-header">
+            <h3 id="detailModalTitle">课程详情</h3>
+            <button class="modal-close" id="closeDetailModalBtn">&times;</button>
+        </div>
+        <div style="font-weight:600; margin-bottom:0.5rem;" id="detailCourseNameDisplay"></div>
+        <!-- 标签页 (集成各个功能模块) -->
+        <div class="detail-tab-buttons" id="detailTabContainer">
+            <span class="mini-tab active" data-tab="student">学员管理</span>
+            <span class="mini-tab" data-tab="group">智能分组</span>
+            <span class="mini-tab" data-tab="seat">教室排座</span>
+            <span class="mini-tab" data-tab="hw">课程作业</span>
+            <span class="mini-tab" data-tab="activity">班级活动</span>
+            <span class="mini-tab" data-tab="att">考勤管理</span>
+            <span class="mini-tab" data-tab="ppt">课件管理</span>
+            <span class="mini-tab" data-tab="case">教学案例</span>
+            <span class="mini-tab" data-tab="material">辅助材料</span>
+            <span class="mini-tab" data-tab="exam">考核方式</span>
+            <span class="mini-tab" data-tab="survey">课程调查</span>
+            <span class="mini-tab" data-tab="qa">学生提问</span>
+        </div>
+        <!-- iframe 容器 - 加载对应功能页面 -->
+        <div class="iframe-container" id="detailIframeContainer">
+            <iframe id="detailIframe" title="详情页签" style="width:100%; height:100%;"></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- 独立弹窗 - 用于部分功能快速打开（保留，但主要用详情弹窗） -->
+<div class="modal-overlay" id="groupModal">
+    <div class="modal-card" style="max-width: 1000px; height: 80vh;">
+        <div class="modal-header">
+            <h3 id="groupModalTitle">分组管理</h3>
+            <button class="modal-close" id="closeGroupModal">&times;</button>
+        </div>
+        <div class="iframe-container" style="min-height: 400px;">
+            <iframe id="groupIframe" title="分组界面" style="width:100%; height:100%;"></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="seatModal">
+    <div class="modal-card" style="max-width: 1000px; height: 80vh;">
+        <div class="modal-header">
+            <h3 id="seatModalTitle">排座管理</h3>
+            <button class="modal-close" id="closeSeatModal">&times;</button>
+        </div>
+        <div class="iframe-container">
+            <iframe id="seatIframe" title="排座界面" style="width:100%; height:100%;"></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="attendanceModal">
+    <div class="modal-card" style="max-width: 1000px; height: 80vh;">
+        <div class="modal-header">
+            <h3 id="attModalTitle">考勤管理</h3>
+            <button class="modal-close" id="closeAttModal">&times;</button>
+        </div>
+        <div class="iframe-container">
+            <iframe id="attIframe" title="考勤界面" style="width:100%; height:100%;"></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 提示 -->
+<div id="toast" style="background:#1e4a6f; color:white; padding:0.8rem 2rem; border-radius:60px; font-weight:500; box-shadow:0 15px 30px rgba(0,40,70,0.4); position:fixed; bottom:30px; right:30px; z-index:1100; opacity:0; transform:translateY(10px); transition:0.2s; pointer-events:none;">操作成功</div>
+
+<script>
+    (function() {
+        // ---------- 模拟课程数据 ----------
+        let allCourses = [
+            { id: 'c1', courseName: '营销管理', courseCode: 'MKT210', type: '必修', className: 'EMBA1班', credit: 3, pcReminder: true },
+            { id: 'c2', courseName: '数据模型', courseCode: 'DS410', type: '选修', className: 'EMBA2班', credit: 2.5, pcReminder: false },
+            { id: 'c3', courseName: '组织行为学', courseCode: 'OB301', type: '必修', className: 'EMBA1班', credit: 2, pcReminder: true },
+            { id: 'c4', courseName: '战略管理', courseCode: 'STR520', type: '必修', className: 'EMBA国际班', credit: 3, pcReminder: true },
+            { id: 'c5', courseName: '财务分析', courseCode: 'FIN330', type: '选修', className: 'EMBA2班', credit: 2, pcReminder: false },
+            { id: 'c6', courseName: '领导力', courseCode: 'LDP401', type: '实践', className: 'EMBA1班', credit: 1.5, pcReminder: true },
+            { id: 'c7', courseName: '高级机器学习', courseCode: 'CS6101', type: '必修', className: '研计算机1班', credit: 3, pcReminder: true },
+            { id: 'c8', courseName: '自然语言处理', courseCode: 'CS6102', type: '选修', className: '研计算机2班', credit: 2.5, pcReminder: true },
+            { id: 'c9', courseName: '数值分析', courseCode: 'MA6003', type: '必修', className: '研数学班', credit: 3, pcReminder: false },
+        ];
+
+        // 分页配置
+        const pageSize = 5;
+        let currentPage = 1;
+        let filters = { courseName: '', courseCode: '', className: '' };
+
+        // DOM
+        const tbody = document.getElementById('tableBody');
+        const toast = document.getElementById('toast');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const filterName = document.getElementById('filterCourseName');
+        const filterCode = document.getElementById('filterCourseCode');
+        const filterClass = document.getElementById('filterClass');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const openAddModalBtn = document.getElementById('openAddCourseModal');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+
+        // 课程弹窗
+        const courseModal = document.getElementById('courseModal');
+        const courseModalTitle = document.getElementById('courseModalTitle');
+        const closeCourseModalBtn = document.getElementById('closeCourseModalBtn');
+        const cancelCourseBtn = document.getElementById('cancelCourseBtn');
+        const courseForm = document.getElementById('courseForm');
+        const modalCourseName = document.getElementById('modalCourseName');
+        const modalCourseCode = document.getElementById('modalCourseCode');
+        const modalCourseType = document.getElementById('modalCourseType');
+        const modalClassName = document.getElementById('modalClassName');
+        const modalCredit = document.getElementById('modalCredit');
+        const modalPcReminder = document.getElementById('modalPcReminder');
+
+        // 详情弹窗
+        const detailModal = document.getElementById('detailModal');
+        const detailModalTitle = document.getElementById('detailModalTitle');
+        const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
+        const detailCourseNameDisplay = document.getElementById('detailCourseNameDisplay');
+        const detailIframe = document.getElementById('detailIframe');
+        let currentCourseIdForDetail = null;
+
+        // 独立iframe弹窗
+        const groupModal = document.getElementById('groupModal');
+        const seatModal = document.getElementById('seatModal');
+        const attModal = document.getElementById('attendanceModal');
+        const closeGroupModal = document.getElementById('closeGroupModal');
+        const closeSeatModal = document.getElementById('closeSeatModal');
+        const closeAttModal = document.getElementById('closeAttModal');
+        const groupIframe = document.getElementById('groupIframe');
+        const seatIframe = document.getElementById('seatIframe');
+        const attIframe = document.getElementById('attIframe');
+        const groupModalTitle = document.getElementById('groupModalTitle');
+        const seatModalTitle = document.getElementById('seatModalTitle');
+        const attModalTitle = document.getElementById('attModalTitle');
+
+        // 编辑课程id
+        let editingCourseId = null;
+
+        // 辅助函数
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+            }, duration);
+        }
+
+        function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // 筛选
+        function filterList() {
+            return allCourses.filter(c => {
+                if (filters.courseName && !c.courseName.toLowerCase().includes(filters.courseName.toLowerCase())) return false;
+                if (filters.courseCode && !c.courseCode.toLowerCase().includes(filters.courseCode.toLowerCase())) return false;
+                if (filters.className && c.className !== filters.className) return false;
+                return true;
+            });
+        }
+
+        function getFiltered() { return filterList(); }
+        function getPaginated() {
+            const f = getFiltered();
+            const start = (currentPage - 1) * pageSize;
+            return f.slice(start, start + pageSize);
+        }
+        function totalPages() { return Math.ceil(getFiltered().length / pageSize); }
+
+        function goToPage(page) {
+            const total = totalPages();
+            if (page < 1) page = 1;
+            if (total > 0 && page > total) page = total;
+            if (page === currentPage) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        }
+        window.pageGo = goToPage;
+
+        function renderTable() {
+            const paginated = getPaginated();
+            let html = '';
+            if (paginated.length === 0) {
+                html = `<tr><td colspan="8" style="text-align:center; padding:3rem;">暂无课程</td></tr>`;
+            } else {
+                paginated.forEach(c => {
+                    html += `<tr>`;
+                    html += `<td class="course-name"><a href="#" onclick="window.openDetail('${c.id}'); return false;" style="color:#1e4a6f; text-decoration:none;">${escapeHtml(c.courseName)}</a></td>`;
+                    html += `<td>${escapeHtml(c.courseCode)}</td>`;
+                    html += `<td><span class="badge-type">${escapeHtml(c.type)}</span></td>`;
+                    html += `<td>${escapeHtml(c.className)}</td>`;
+                    html += `<td><span class="action-tag" onclick="window.openGroupModal('${c.courseName}', '${c.id}')">分组管理</span></td>`;
+                    html += `<td><span class="action-tag" onclick="window.openSeatModal('${c.courseName}', '${c.id}')">排座管理</span></td>`;
+                    html += `<td><span class="action-tag" onclick="window.openAttModal('${c.courseName}', '${c.id}')">考勤管理</span></td>`;
+                    html += `<td><div class="action-btns">`;
+                    html += `<span class="action-tag" onclick="window.editCourse('${c.id}')">编辑</span>`;
+                    html += `<span class="action-tag" onclick="window.deleteCourse('${c.id}')">删除</span>`;
+                    html += `</div></td></tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        function renderPagination() {
+            const total = totalPages();
+            if (total <= 1) { paginationContainer.innerHTML = ''; return; }
+            let html = `<span class="page-info">第 ${currentPage} / ${total} 页</span>`;
+            html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.pageGo(${currentPage-1})"><</button>`;
+            for (let i = 1; i <= total; i++) {
+                if (i === currentPage) html += `<span class="pagination-btn active">${i}</span>`;
+                else html += `<button class="pagination-btn" onclick="window.pageGo(${i})">${i}</button>`;
+            }
+            html += `<button class="pagination-btn" ${currentPage === total ? 'disabled' : ''} onclick="window.pageGo(${currentPage+1})">></button>`;
+            paginationContainer.innerHTML = html;
+        }
+
+        // 删除课程
+        window.deleteCourse = function(id) {
+            if (!confirm('确认删除该课程？')) return;
+            allCourses = allCourses.filter(c => c.id !== id);
+            const filtered = getFiltered();
+            if (filtered.length === 0 && currentPage > 1) currentPage--;
+            showToast('课程已删除');
+            renderTable(); renderPagination();
+        };
+
+        window.editCourse = function(id) {
+            const course = allCourses.find(c => c.id === id);
+            if (!course) return;
+            editingCourseId = id;
+            courseModalTitle.innerText = '编辑课程';
+            modalCourseName.value = course.courseName || '';
+            modalCourseCode.value = course.courseCode || '';
+            modalCourseType.value = course.type || '必修';
+            modalClassName.value = course.className || '';
+            modalCredit.value = course.credit || 2.0;
+            modalPcReminder.checked = course.pcReminder !== false;
+            courseModal.classList.add('show');
+        };
+
+        function openAddCourse() {
+            editingCourseId = null;
+            courseModalTitle.innerText = '新增课程';
+            modalCourseName.value = ''; modalCourseCode.value = ''; modalCourseType.value = '必修';
+            modalClassName.value = ''; modalCredit.value = 2.0; modalPcReminder.checked = true;
+            courseModal.classList.add('show');
+        }
+
+        function saveCourse() {
+            const name = modalCourseName.value.trim();
+            const code = modalCourseCode.value.trim();
+            if (!name || !code) { showToast('课程名称和课号必填'); return; }
+            const type = modalCourseType.value;
+            const className = modalClassName.value.trim() || '未分班';
+            const credit = parseFloat(modalCredit.value) || 2.0;
+            const pcReminder = modalPcReminder.checked;
+
+            const data = { courseName: name, courseCode: code, type, className, credit, pcReminder };
+            if (editingCourseId) {
+                const idx = allCourses.findIndex(c => c.id === editingCourseId);
+                if (idx !== -1) allCourses[idx] = { ...allCourses[idx], ...data };
+                showToast('课程已更新');
+            } else {
+                const newId = generateId();
+                allCourses.push({ id: newId, ...data });
+                showToast('课程已添加');
+                const filtered = getFiltered();
+                currentPage = Math.ceil(filtered.length / pageSize);
+            }
+            closeCourseModal();
+            renderTable(); renderPagination();
+        }
+
+        function closeCourseModal() { courseModal.classList.remove('show'); editingCourseId = null; }
+
+        // ========== 集成功能页面的详情弹窗 ==========
+        // 功能页面映射表 - 根据tab名称加载对应HTML文件
+        const tabPageMap = {
+            'student': '学员管理.html',
+            'group': '智能分组.html',
+            'seat': '教室排座.html',
+            'hw': '课程作业.html',
+            'activity': '班级活动.html',
+            'att': '考勤管理.html',
+            'ppt': '课件管理.html',
+            'case': '教学案例.html',
+            'material': '辅助材料.html',
+            'exam': '考核方式.html',
+            'survey': '课程调查.html',
+            'qa': '学生提问.html'
+        };
+
+        // 打开详情弹窗
+        window.openDetail = function(courseId) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (!course) return;
+            currentCourseIdForDetail = courseId;
+            detailCourseNameDisplay.innerText = `${course.courseName} (${course.courseCode}) · ${course.className}`;
+            detailModalTitle.innerText = `课程详情 · ${course.courseName}`;
+            
+            // 切换到学员管理页签，并传递课程参数
+            switchDetailTab('student', course);
+            detailModal.classList.add('show');
+        };
+
+        // 切换标签页
+        function switchDetailTab(tabId, course) {
+            document.querySelectorAll('.mini-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.mini-tab[data-tab="${tabId}"]`).classList.add('active');
+            
+            const pageFile = tabPageMap[tabId];
+            if (!pageFile) {
+                detailIframe.srcdoc = `<html><body style="font-family: Inter; padding:2rem;">页面不存在: ${tabId}</body></html>`;
+                return;
+            }
+
+            // 构建带课程参数的URL - 通过hash传递课程信息，让子页面可以识别
+            // 也可以直接通过iframe的src加载，子页面通过parent获取课程信息
+            detailIframe.src = pageFile + `#courseId=${course.id}&courseName=${encodeURIComponent(course.courseName)}&className=${encodeURIComponent(course.className)}`;
+        }
+
+        // 独立弹窗 - 分组管理
+        window.openGroupModal = function(courseName, courseId) {
+            groupModalTitle.innerText = `分组管理 · ${courseName}`;
+            groupIframe.src = '智能分组.html' + `#courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+            groupModal.classList.add('show');
+        };
+
+        // 独立弹窗 - 排座管理
+        window.openSeatModal = function(courseName, courseId) {
+            seatModalTitle.innerText = `排座管理 · ${courseName}`;
+            seatIframe.src = '教室排座.html' + `#courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+            seatModal.classList.add('show');
+        };
+
+        // 独立弹窗 - 考勤管理
+        window.openAttModal = function(courseName, courseId) {
+            attModalTitle.innerText = `考勤管理 · ${courseName}`;
+            attIframe.src = '考勤管理.html' + `#courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+            attModal.classList.add('show');
+        };
+
+        // 关闭独立弹窗
+        closeGroupModal.addEventListener('click', ()=> groupModal.classList.remove('show'));
+        closeSeatModal.addEventListener('click', ()=> seatModal.classList.remove('show'));
+        closeAttModal.addEventListener('click', ()=> attModal.classList.remove('show'));
+        
+        [groupModal, seatModal, attModal].forEach(modal => {
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+        });
+
+        // 导出Excel
+        function exportExcel() {
+            const data = [
+                ['学生姓名', '学号', '组别', '课程'],
+                ['张敏', 'G001', '第1组', '营销管理'],
+                ['李涛', 'G002', '第1组', '营销管理'],
+                ['王芳', 'G003', '第2组', '数据模型'],
+                ['陈静', 'G004', '第2组', '组织行为学'],
+                ['赵雷', 'G005', '第3组', '战略管理'],
+            ];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, '学生名单');
+            XLSX.writeFile(wb, '学生名单.xlsx');
+            showToast('Excel已导出');
+        }
+        exportExcelBtn.addEventListener('click', exportExcel);
+
+        // 筛选
+        function applyFilters() {
+            filters.courseName = filterName.value;
+            filters.courseCode = filterCode.value;
+            filters.className = filterClass.value;
+            currentPage = 1;
+            renderTable(); renderPagination();
+        }
+        function resetFilters() {
+            filterName.value = ''; filterCode.value = ''; filterClass.value = '';
+            filters = { courseName: '', courseCode: '', className: '' };
+            currentPage = 1; renderTable(); renderPagination();
+        }
+
+        filterName.addEventListener('input', applyFilters);
+        filterCode.addEventListener('input', applyFilters);
+        filterClass.addEventListener('change', applyFilters);
+        resetFilterBtn.addEventListener('click', resetFilters);
+        openAddModalBtn.addEventListener('click', openAddCourse);
+
+        closeCourseModalBtn.addEventListener('click', closeCourseModal);
+        cancelCourseBtn.addEventListener('click', closeCourseModal);
+        courseForm.addEventListener('submit', (e) => { e.preventDefault(); saveCourse(); });
+        courseModal.addEventListener('click', (e) => { if (e.target === courseModal) closeCourseModal(); });
+
+        // 详情弹窗关闭
+        closeDetailModalBtn.addEventListener('click', ()=> detailModal.classList.remove('show'));
+        detailModal.addEventListener('click', (e) => { if (e.target === detailModal) detailModal.classList.remove('show'); });
+
+        // 标签切换
+        document.querySelectorAll('.mini-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = tab.dataset.tab;
+                const course = allCourses.find(c => c.id === currentCourseIdForDetail);
+                if (course) {
+                    switchDetailTab(tabId, course);
+                }
+            });
+        });
+
+        // 初始化
+        renderTable(); renderPagination();
+
+        // 添加一个全局消息接收器，让子页面可以调用父页面方法
+        window.receiveMessageFromChild = function(data) {
+            console.log('收到子页面消息:', data);
+            if (data.type === 'showToast') {
+                showToast(data.message);
+            } else if (data.type === 'closeModal') {
+                detailModal.classList.remove('show');
+            }
+        };
+
+        // 监听来自iframe的消息
+        window.addEventListener('message', function(event) {
+            // 可以验证origin
+            const data = event.data;
+            if (data && data.type) {
+                window.receiveMessageFromChild(data);
+            }
+        });
+    })();
+</script>
+</body>
+</html>

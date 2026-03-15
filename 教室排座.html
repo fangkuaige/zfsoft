@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>研究生教室排座 · 智能管理 (去预览)</title>
+    <!-- Inter 字体 + 图标库 (沿用参考风格) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .full-screen {
+            width: 100%;
+            padding: 1.5rem 1.8rem;
+            flex: 1;
+        }
+        @media (max-width: 640px) {
+            .full-screen { padding: 1rem 1rem; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem 1.2rem; }
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 1.5rem;
+        }
+        .section-title i { color: #2f6e9e; font-size: 1.4rem; }
+
+        /* 两列布局：左侧教室/小组树，右侧可视化 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.8rem;
+        }
+        @media (max-width: 800px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+        .left-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #e9eef4;
+            padding: 1.2rem 1rem;
+            overflow-y: auto;
+        }
+        .right-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #e9eef4;
+            padding: 1.5rem;
+        }
+
+        /* 树形列表 */
+        .tree-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            padding: 0 0.3rem;
+        }
+        .tree-header h3 { font-size: 1rem; font-weight: 600; color: #1e3a5f; text-transform: uppercase; }
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.65rem 0.8rem;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: 0.1s;
+            margin-bottom: 2px;
+            font-size: 0.9rem;
+        }
+        .list-item:hover { background: #f2f8ff; }
+        .list-item.active {
+            background: #e1effb;
+            border-left: 4px solid #1e4a6f;
+            font-weight: 500;
+        }
+        .list-item i { color: #2f6e9e; width: 20px; text-align: center; }
+        .badge-count {
+            margin-left: auto;
+            background: #dae4f0;
+            padding: 0.15rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .group-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem 0.5rem 2rem;
+            font-size: 0.9rem;
+        }
+        .group-item input[type="checkbox"] { margin-right: 8px; accent-color: #1e4a6f; }
+
+        /* 规则栏 (预览按钮已移除) */
+        .rule-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.2rem 0 1.5rem;
+            background: #f8fbfe;
+            padding: 0.8rem 1.5rem;
+            border-radius: 60px;
+        }
+        .rule-selector {
+            background: white;
+            border: 1px solid #cbddee;
+            border-radius: 40px;
+            padding: 0.45rem 1.2rem;
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+        .btn-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-left: auto;
+        }
+        .btn {
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            padding: 0.7rem 1.6rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #1e4a6f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
+        }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #2c455d;
+        }
+        .btn-outline:hover { background: #f1f7fd; border-color: #9bb0c5; }
+        .btn-sm { padding: 0.45rem 1.2rem; font-size: 0.8rem; }
+
+        /* 座位表可视化 */
+        .seating-grid {
+            display: inline-grid;
+            gap: 12px;
+            background: #f2f7fd;
+            padding: 2rem;
+            border-radius: 32px;
+            margin-top: 0.8rem;
+            width: 100%;
+            overflow-x: auto;
+            justify-content: center;
+        }
+        .seat {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: white;
+            border: 2px solid #c7ddf0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: 0.1s;
+            cursor: grab;
+            line-height: 1.2;
+            color: #1d3b5c;
+        }
+        .seat.occupied { background: #d9ecfa; border-color: #1e4a6f; color: #0a2842; }
+        .seat.locked { background: #fcede4; border-color: #b0542e; cursor: not-allowed; opacity: 0.8; }
+        .seat.teacher-area { background: #f2e8d5; border-color: #ab8e5a; }
+        .seat small { font-size: 0.5rem; opacity: 0.7; }
+        .seat-legend {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; }
+
+        /* 弹窗 (完全复用原风格) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: white; border-radius: 32px; width: 90%; max-width: 600px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.6rem; font-weight: 600; color: #0c2b48; }
+        .modal-close {
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1;
+        }
+        .modal-close:hover { color: #1e3a5f; }
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.8rem;
+        }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-group label {
+            font-weight: 600; font-size: 0.75rem; color: #4e6f8c; text-transform: uppercase;
+        }
+        .input-field {
+            background: #f8fafd; border: 1px solid #dde3ea; border-radius: 16px;
+            padding: 0.75rem 1.2rem; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+        }
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.2rem;
+        }
+        /* toast */
+        .toast-message {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+        /* 历史复用卡片 */
+        .history-snippets {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1rem;
+        }
+        .history-item {
+            background: #f0f6fe; padding: 0.5rem 1.2rem; border-radius: 40px;
+            font-size: 0.8rem; display: flex; align-items: center; gap: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="full-screen">
+    <!-- 主卡片 -->
+    <div class="card" style="padding-bottom: 1rem;">
+        <!-- 标题行 -->
+        <!-- <div class="section-title">
+            <i class="fas fa-chair"></i> 研究生上课排座 · 智能工坊
+        </div> -->
+
+        <!-- 左右内容网格 -->
+        <div class="dashboard-grid">
+            <!-- 左侧：教室模板 + 小组列表 -->
+            <div class="left-panel">
+                <div class="tree-header">
+                    <h3><i class="fas fa-school"></i> 教室模板</h3>
+                    <span class="badge-count">3</span>
+                </div>
+                <div id="classroomList">
+                    <div class="list-item active" data-id="c301"><i class="fas fa-chalkboard"></i> 301阶梯教室 <span class="badge-count">36座</span></div>
+                    <div class="list-item" data-id="c302"><i class="fas fa-chalkboard"></i> 302智慧教室 <span class="badge-count">24座</span></div>
+                    <div class="list-item" data-id="c401"><i class="fas fa-chalkboard"></i> 401研讨室 <span class="badge-count">16座</span></div>
+                </div>
+                <div class="tree-header" style="margin-top: 2rem;">
+                    <h3><i class="fas fa-users"></i> 小组列表</h3>
+                    <span class="badge-count">4</span>
+                </div>
+                <div id="groupList">
+                    <label class="group-item"><input type="checkbox" class="group-check" value="g1" checked> <i class="fas fa-users-between-lines"></i> 课题组·机器学习</label>
+                    <label class="group-item"><input type="checkbox" class="group-check" value="g2" checked> <i class="fas fa-users-between-lines"></i> 课题组·数据挖掘</label>
+                    <label class="group-item"><input type="checkbox" class="group-check" value="g3" checked> <i class="fas fa-users-between-lines"></i> 讨论组·论文精读</label>
+                    <label class="group-item"><input type="checkbox" class="group-check" value="g4"> <i class="fas fa-users-between-lines"></i> 项目组·算法竞赛</label>
+                </div>
+            </div>
+
+            <!-- 右侧：可视化排座 + 工具栏 (无预览) -->
+            <div class="right-panel">
+                <!-- 规则 + 操作栏 (预览按钮已移除) -->
+                <div class="rule-bar">
+                    <i class="fas fa-ruler-combined"></i>
+                    <select class="rule-selector" id="ruleSelect">
+                        <option value="groupCluster" selected>按小组集中 (默认)</option>
+                        <option value="teacherFront">组长/老师前排</option>
+                        <option value="avoidCorner">避开角落</option>
+                        <option value="random">随机打乱</option>
+                    </select>
+                    <div class="btn-toolbar">
+                        <!-- 预览按钮已移除，保留编辑、重排、复用、发布 -->
+                        <button class="btn btn-outline btn-sm" id="editBtn"><i class="fas fa-pencil-alt"></i> 编辑</button>
+                        <button class="btn btn-outline btn-sm" id="reshuffleBtn"><i class="fas fa-random"></i> 重排</button>
+                        <button class="btn btn-outline btn-sm" id="reuseBtn"><i class="fas fa-copy"></i> 复用</button>
+                        <button class="btn btn-primary btn-sm" id="publishBtn"><i class="fas fa-check-circle"></i> 发布</button>
+                    </div>
+                </div>
+
+                <!-- 座位图例 -->
+                <div class="seat-legend">
+                    <span class="legend-item"><span class="seat" style="width:20px; height:20px; border-radius:6px;"></span> 空位</span>
+                    <span class="legend-item"><span class="seat occupied" style="width:20px; height:20px; border-radius:6px;"></span> 已占用(有组)</span>
+                    <span class="legend-item"><span class="seat locked" style="width:20px; height:20px; border-radius:6px;"></span> 锁定/教师</span>
+                </div>
+
+                <!-- 动态座位网格 (按教室模板生成) -->
+                <div id="seatGridContainer" style="overflow-x: auto;">
+                    <div class="seating-grid" id="seatGrid" style="grid-template-columns: repeat(8, 60px);">
+                        <!-- 动态js生成 -->
+                    </div>
+                </div>
+
+                <!-- 历史复用面板 (模拟) -->
+                <div class="history-snippets">
+                    <span class="history-item" onclick="quickReuse('prev1')"><i class="far fa-clock"></i> 2026-03-14 上午</span>
+                    <span class="history-item" onclick="quickReuse('prev2')"><i class="far fa-clock"></i> 2026-03-13 小组讨论</span>
+                    <span class="history-item" onclick="quickReuse('prev3')"><i class="far fa-clock"></i> 默认模板·阶梯</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑/锁定弹窗 (模拟简单编辑) -->
+<div class="modal-overlay" id="editSeatModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fas fa-lock"></i> 编辑座位</h3>
+            <button class="modal-close" id="closeEditModal">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group full-width">
+                <label>座位号 <span id="seatLabel">A01</span></label>
+            </div>
+            <div class="input-group">
+                <label>分配小组</label>
+                <select id="editGroupSelect" class="input-field">
+                    <option value="">— 无 —</option>
+                    <option value="g1">机器学习组</option>
+                    <option value="g2">数据挖掘组</option>
+                    <option value="g3">论文精读组</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>锁定座位</label>
+                <input type="checkbox" id="lockSeatCheck" style="margin-top: 12px; width:20px; height:20px;">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="cancelEditBtn">取消</button>
+            <button class="btn btn-primary" id="saveSeatEdit">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast-message">操作成功</div>
+
+<script>
+    (function() {
+        // ************ 模拟数据 ************
+        const classrooms = {
+            c301: { name: '301阶梯教室', rows: 4, cols: 8, seats: [] },
+            c302: { name: '302智慧教室', rows: 4, cols: 6, seats: [] },
+            c401: { name: '401研讨室', rows: 4, cols: 4, seats: [] }
+        };
+        // 初始化座位元数据 (空闲)
+        for (let id in classrooms) {
+            let seats = [];
+            for (let r = 1; r <= classrooms[id].rows; r++) {
+                for (let c = 1; c <= classrooms[id].cols; c++) {
+                    let rowLetter = String.fromCharCode(64 + r); // A开始
+                    seats.push({
+                        seatId: `${rowLetter}${c}`,
+                        row: r, col: c,
+                        groupId: null,      // 所属小组
+                        locked: false,
+                        type: 'standard'
+                    });
+                }
+            }
+            classrooms[id].seats = seats;
+        }
+        // 预设一些小组颜色/分配 (模拟当前排座)
+        let demoSrc = classrooms['c301'].seats;
+        demoSrc[0].groupId = 'g1'; demoSrc[1].groupId = 'g1'; demoSrc[2].groupId = 'g2'; 
+        demoSrc[8].groupId = 'g1'; demoSrc[9].groupId = 'g2'; demoSrc[16].groupId = 'g3';
+        demoSrc[17].groupId = 'g3'; demoSrc[24].groupId = 'g2'; demoSrc[10].locked = true; // 锁
+
+        // 当前选中的教室
+        let currentClassroomId = 'c301';
+        let currentSeats = classrooms['c301'].seats.map(s => ({ ...s, groupId: s.groupId ? s.groupId : null, locked: s.locked || false }));
+
+        // 小组映射
+        const groupNames = { g1: '机器学习', g2: '数据挖掘', g3: '论文精读', g4: '算法竞赛' };
+
+        // 当前编辑目标座位 (弹窗)
+        let currentEditingSeatId = null;
+
+        // 历史快照简单版本
+        let historySnapshots = [];
+
+        // DOM 元素
+        const seatGrid = document.getElementById('seatGrid');
+        const classroomItems = document.querySelectorAll('.list-item');
+        const groupChecks = document.querySelectorAll('.group-check');
+        const ruleSelect = document.getElementById('ruleSelect');
+        // 预览按钮已移除，只保留编辑、重排、复用、发布
+        const editBtn = document.getElementById('editBtn');
+        const reshuffleBtn = document.getElementById('reshuffleBtn');
+        const reuseBtn = document.getElementById('reuseBtn');
+        const publishBtn = document.getElementById('publishBtn');
+        const toast = document.getElementById('toast');
+
+        // 弹窗
+        const editModal = document.getElementById('editSeatModal');
+        const closeEditModal = document.getElementById('closeEditModal');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const saveSeatEdit = document.getElementById('saveSeatEdit');
+        const seatLabel = document.getElementById('seatLabel');
+        const editGroupSelect = document.getElementById('editGroupSelect');
+        const lockSeatCheck = document.getElementById('lockSeatCheck');
+
+        // 辅助函数
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1500);
+        }
+
+        // 获取选中的小组
+        function getSelectedGroups() {
+            let selected = [];
+            document.querySelectorAll('.group-check:checked').forEach(cb => selected.push(cb.value));
+            return selected;
+        }
+
+        // 渲染座位网格
+        function renderSeats() {
+            let cls = classrooms[currentClassroomId];
+            if (!cls) return;
+            let seats = currentSeats;
+            let cols = cls.cols;
+            let html = '';
+            seats.forEach(seat => {
+                let classes = 'seat';
+                if (seat.locked) classes += ' locked';
+                else if (seat.groupId) classes += ' occupied';
+                let groupShort = seat.groupId ? (groupNames[seat.groupId] || '??').substring(0,2) : '';
+                html += `<div class="${classes}" data-seatid="${seat.seatId}" data-group="${seat.groupId || ''}" data-locked="${seat.locked}">
+                    ${seat.seatId}<small>${groupShort}</small>
+                </div>`;
+            });
+            seatGrid.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
+            seatGrid.innerHTML = html;
+
+            // 绑定双击编辑 (根据编辑按钮状态，但保留双击打开)
+            document.querySelectorAll('.seat').forEach(seatDiv => {
+                seatDiv.addEventListener('dblclick', (e) => {
+                    let seatId = e.currentTarget.dataset.seatid;
+                    openEditSeatModal(seatId);
+                });
+            });
+        }
+
+        // 打开编辑座位弹窗
+        function openEditSeatModal(seatId) {
+            let seat = currentSeats.find(s => s.seatId === seatId);
+            if (!seat) return;
+            currentEditingSeatId = seatId;
+            seatLabel.innerText = seatId;
+            editGroupSelect.value = seat.groupId || '';
+            lockSeatCheck.checked = seat.locked || false;
+            editModal.classList.add('show');
+        }
+
+        // 保存座位编辑
+        function saveCurrentSeatEdit() {
+            if (!currentEditingSeatId) return;
+            let seat = currentSeats.find(s => s.seatId === currentEditingSeatId);
+            if (seat) {
+                seat.groupId = editGroupSelect.value || null;
+                seat.locked = lockSeatCheck.checked;
+                showToast(`座位 ${currentEditingSeatId} 已更新`);
+                renderSeats();
+            }
+            editModal.classList.remove('show');
+        }
+
+        // 切换教室
+        function switchClassroom(classId) {
+            currentClassroomId = classId;
+            // 深拷贝原始座位 (保留原有分配)
+            currentSeats = classrooms[classId].seats.map(s => ({ 
+                ...s, 
+                groupId: s.groupId ? s.groupId : null, 
+                locked: s.locked || false 
+            }));
+            renderSeats();
+            // 激活样式
+            classroomItems.forEach(item => {
+                if (item.dataset.id === classId) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+        }
+
+        // 编辑模式切换 (视觉提示)
+        function enableEditMode() {
+            editBtn.classList.toggle('btn-primary');
+            showToast('编辑模式 ' + (editBtn.classList.contains('btn-primary') ? '启用' : '关闭') + ' (双击座位修改)');
+            renderSeats(); // 重新绑定
+        }
+
+        // 重新排座 (智能规则简化)
+        function reshuffleSeating() {
+            let rule = ruleSelect.value;
+            let selectedGroups = getSelectedGroups();
+            if (selectedGroups.length === 0) {
+                showToast('请至少选择一个小组');
+                return;
+            }
+            // 重置所有座位group (保留locked)
+            currentSeats.forEach(seat => { if (!seat.locked) seat.groupId = null; });
+            // 简单循环分配: 按顺序循环填充非锁定座位
+            let freeSeats = currentSeats.filter(s => !s.locked);
+            let groupIndex = 0;
+            for (let i = 0; i < freeSeats.length; i++) {
+                let g = selectedGroups[groupIndex % selectedGroups.length];
+                freeSeats[i].groupId = g;
+                groupIndex++;
+            }
+            // 根据规则微调
+            if (rule === 'teacherFront') {
+                // 前两排给第一个小组 (简化)
+                currentSeats.forEach(s => { if (s.row <= 1 && !s.locked) s.groupId = selectedGroups[0] || s.groupId; });
+            } else if (rule === 'avoidCorner') {
+                // 角落座位不放组 (四角)
+                let corners = currentSeats.filter(s => (s.row === 1 && (s.col === 1 || s.col === classrooms[currentClassroomId].cols)));
+                corners.forEach(c => { if (!c.locked) c.groupId = null; });
+            }
+            // 随机：已实现循环，故不需要额外操作
+            showToast('已重新排座，规则：' + rule);
+            renderSeats();
+            // 保存快照
+            historySnapshots.push(JSON.parse(JSON.stringify(currentSeats)));
+        }
+
+        // 复用 (从历史快照恢复)
+        function reuseSeating(histId) {
+            if (historySnapshots.length > 0) {
+                // 简单恢复最近一次
+                let last = historySnapshots[historySnapshots.length-1];
+                if (last) {
+                    currentSeats = JSON.parse(JSON.stringify(last));
+                    showToast('已复用最近排座方案');
+                    renderSeats();
+                }
+            } else {
+                // 模拟一个默认复用 (使用demo)
+                currentSeats = classrooms[currentClassroomId].seats.map(s => ({ 
+                    ...s, 
+                    groupId: (s.seatId === 'A1'||s.seatId==='A2') ? 'g1' : null,
+                    locked: false
+                }));
+                showToast('复用默认模板');
+                renderSeats();
+            }
+        }
+        window.quickReuse = reuseSeating;
+
+        // 发布
+        function publishPlan() {
+            showToast('排座已发布，通知已发送至各小组');
+        }
+
+        // 初始化
+        function init() {
+            switchClassroom('c301');
+            // 事件绑定
+            classroomItems.forEach(el => {
+                el.addEventListener('click', (e) => {
+                    let id = el.dataset.id;
+                    if (id) switchClassroom(id);
+                });
+            });
+
+            // 预览按钮已移除，不再绑定
+            editBtn.addEventListener('click', enableEditMode);
+            reshuffleBtn.addEventListener('click', reshuffleSeating);
+            reuseBtn.addEventListener('click', () => reuseSeating('last'));
+            publishBtn.addEventListener('click', publishPlan);
+
+            closeEditModal.addEventListener('click', ()=> editModal.classList.remove('show'));
+            cancelEditBtn.addEventListener('click', ()=> editModal.classList.remove('show'));
+            saveSeatEdit.addEventListener('click', saveCurrentSeatEdit);
+            window.addEventListener('click', (e) => { if (e.target === editModal) editModal.classList.remove('show'); });
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>

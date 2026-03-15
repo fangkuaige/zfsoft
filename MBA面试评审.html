@@ -3,106 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>MBA面试评审 · 一体化工作台</title>
-    <!-- Font Awesome 6 -->
+    <title>MBA面试评审 · 正式提交确认</title>
+    <!-- 引入目标风格的字体与图标库 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Chart.js 3 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- JSZip 用于生成压缩包 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
+        /* 完全沿用第二个文件的风格基底 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #f2f7fd;  /* 单一背景，全屏平铺 */
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef3f8;
+            color: #1e293b;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* 自定义滚动条 (细线) */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #d9e2ec; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #2b5f8a; border-radius: 10px; }
 
         .dashboard {
             flex: 1;
-            padding: 20px 24px 30px;
+            padding: 1.5rem 1.8rem;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
-            gap: 0;  /* 用border-bottom制造分隔，不用gap */
+            gap: 1.5rem;
             max-width: 100%;
             margin: 0 auto;
             width: 100%;
         }
+        @media (max-width: 640px) {
+            .dashboard { padding: 1rem 1rem; }
+        }
 
-        /* 每个功能区块：去掉卡片背景、阴影、圆角，只用底部细线分隔 */
         .section {
-            padding: 24px 0;
-            border-bottom: 1px solid rgba(45, 85, 125, 0.15);
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 15px 40px rgba(0,20,40,0.08);
+            padding: 1.8rem 2rem;
+            border: 1px solid #e9eef4;
+            width: 100%;
         }
-        .section:last-child {
-            border-bottom: none;
+        @media (max-width: 640px) {
+            .section { padding: 1.5rem 1.2rem; }
         }
 
-        /* 区块标题样式（保留，但无背景） */
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
             gap: 12px;
         }
         .section-header h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #103450;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin: 0;
         }
         .section-header h2 i {
-            color: #1d6295;
-            background: rgba(30, 100, 150, 0.1);
-            padding: 6px 12px;
-            border-radius: 40px;
+            color: #2f6e9e;
+            font-size: 1.4rem;
+            background: transparent;
+            padding: 0;
         }
         .header-note {
-            background: rgba(30, 100, 150, 0.08);
+            background: #f2f8ff;
             padding: 6px 20px;
             border-radius: 40px;
             color: #1f4b73;
             font-size: 0.9rem;
+            border: 1px solid #d4e2f5;
         }
 
-        /* 批次列表 */
         .batch-grid {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
         .batch-card {
-            background: white;
+            background: #ffffff;
             border-radius: 20px;
             padding: 16px 22px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 10px rgba(0, 30, 60, 0.04);
-            border: 1px solid rgba(70, 130, 180, 0.15);
+            border: 1px solid #e2eaf3;
             transition: all 0.1s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
         }
         .batch-card.active-batch {
             border-left: 6px solid #1f6eaf;
-            background: #f2f9ff;
+            background: #f9fcff;
         }
         .batch-info {
             display: flex;
@@ -118,65 +125,71 @@
             font-weight: 500;
         }
         .batch-status {
-            background: #e1ecf9;
-            color: #175d9c;
+            background: #e3f0fa;
+            color: #11517c;
             padding: 5px 15px;
             border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            white-space: nowrap;
         }
         .batch-actions {
             display: flex;
             gap: 8px;
         }
 
-        /* 按钮样式 (保留原样) */
         .btn-sm {
-            padding: 8px 18px;
-            border-radius: 40px;
             border: none;
+            background: transparent;
             font-weight: 500;
-            font-size: 0.9rem;
+            padding: 0.45rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 0.5rem;
             cursor: pointer;
             transition: 0.15s;
+            border: 1px solid transparent;
+            white-space: nowrap;
             background: white;
-            color: #1e4a7a;
-            border: 1px solid #b9cee8;
+            border-color: #cbd5e1;
+            color: #2c455d;
         }
-        .btn-sm:hover { background: #e3efff; }
+        .btn-sm:hover { background: #f1f7fd; border-color: #9bb0c5; }
         .btn-primary {
-            background: #1e4a7a;
+            background: #1e4a6f;
             color: white;
+            box-shadow: 0 4px 10px rgba(0,60,110,0.2);
             border: none;
-            padding: 10px 22px;
+            padding: 0.7rem 1.6rem;
             border-radius: 40px;
             font-weight: 500;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,60,130,0.2);
+            transition: 0.15s;
         }
-        .btn-primary:hover { background: #123a5e; }
+        .btn-primary:hover { background: #123a58; transform: translateY(-2px); }
         .btn-outline {
             background: white;
-            border: 1px solid #a0bedb;
-            color: #1e4a7a;
+            border: 1px solid #cbd5e1;
+            color: #2c455d;
         }
 
-        /* 搜索条 */
         .search-bar {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 12px;
-            background: #e9f2fc;
+            background: #f8fafd;
             border-radius: 60px;
             padding: 8px 16px 8px 24px;
             margin-bottom: 24px;
+            border: 1px solid #dde3ea;
         }
         .search-input-wrap {
             flex: 3 1 260px;
@@ -184,7 +197,7 @@
             align-items: center;
             background: white;
             border-radius: 60px;
-            border: 1px solid #cbd9ec;
+            border: 1px solid #dde3ea;
             padding: 0 8px 0 18px;
         }
         .search-input-wrap i { color: #5f7d9e; }
@@ -195,29 +208,30 @@
             outline: none;
             background: transparent;
             font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
         }
 
-        /* 统计数字卡片 (保留浅背景，但无外阴影) */
         .stats-row {
             display: flex;
             flex-wrap: wrap;
             gap: 20px 32px;
-            background: #ffffffd6;
+            background: #f8fafd;
             border-radius: 28px;
             padding: 18px 28px;
             margin-bottom: 16px;
             align-items: center;
-            border: 1px solid rgba(0,0,0,0.03);
+            border: 1px solid #e2eaf3;
         }
         .stat-cell {
             display: flex;
             flex-direction: column;
         }
         .stat-cell .label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #52718e;
+            letter-spacing: 0.02em;
+            color: #4e6f8c;
         }
         .stat-cell .number {
             font-size: 2.2rem;
@@ -230,20 +244,19 @@
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            background: #f4faff;
-            padding: 16px 20px;
-            border-radius: 48px;
-            margin: 16px 0;
-            border: 1px solid rgba(0,0,0,0.03);
+            background: transparent;
+            padding: 16px 0;
+            margin: 8px 0;
         }
         .distrib-tag {
-            background: white;
+            background: #e3f0fa;
+            color: #11517c;
+            padding: 0.3rem 1.2rem;
             border-radius: 40px;
-            padding: 6px 20px;
+            font-size: 0.8rem;
             font-weight: 500;
-            border: 1px solid #c7daf0;
-            color: #1f4465;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            border: none;
+            box-shadow: none;
         }
 
         .chart-grid {
@@ -253,14 +266,13 @@
             margin-top: 10px;
         }
         .chart-card {
-            background: #ffffff;
+            background: #f8fafd;
             border-radius: 24px;
             padding: 12px 12px 8px;
             border: 1px solid #e2edff;
         }
         .chart-container { height: 160px; width: 100%; }
 
-        /* 考生标签页 */
         .candidate-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -268,27 +280,29 @@
             margin: 16px 0 18px;
         }
         .candidate-tab {
-            padding: 8px 20px;
+            padding: 0.45rem 1.4rem;
             border-radius: 40px;
-            background: #edf4fd;
+            background: #f8fafd;
             font-weight: 500;
             color: #1d3e62;
             cursor: pointer;
-            border: 1px solid transparent;
+            border: 1px solid #dde3ea;
             transition: 0.1s;
+            font-size: 0.9rem;
         }
         .candidate-tab.active-tab {
-            background: #1e4a7a;
+            background: #1e4a6f;
             color: white;
-            box-shadow: 0 2px 8px #abc0dd;
+            border-color: #1e4a6f;
+            box-shadow: 0 4px 8px rgba(0,60,110,0.2);
         }
 
         .material-panel {
-            background: #ffffff;
+            background: #f8fafd;
             border-radius: 28px;
             padding: 20px;
             margin: 10px 0 20px;
-            border: 1px solid #e2edff;
+            border: 1px solid #e2eaf3;
         }
 
         .flex-row {
@@ -299,7 +313,7 @@
         }
 
         .score-area {
-            background: #f2f8ff;
+            background: #f8fafd;
             border-radius: 40px;
             padding: 18px 24px;
             display: flex;
@@ -307,37 +321,45 @@
             align-items: center;
             gap: 20px;
             margin-top: 15px;
-            border: 1px solid #dae6f5;
+            border: 1px solid #e2eaf3;
+        }
+        .score-area label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #4e6f8c;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .score-area input[type=number] {
+            background: white;
+            border: 1px solid #dde3ea;
+            border-radius: 16px;
+            padding: 0.65rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            width: 110px;
         }
 
-        /* 模态框 (保持不变) */
+        /* 模态框 (完全套用第二个文件的模态框) */
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 30, 50, 0.5);
-            backdrop-filter: blur(5px);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,20,40,0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
         }
+        .modal.show { visibility: visible; opacity: 1; }
         .modal-card {
-            background: white;
-            max-width: 500px;
-            width: 90%;
-            border-radius: 48px;
-            padding: 30px 28px;
-            box-shadow: 0 40px 70px rgba(0,20,50,0.5);
-            position: relative;
+            background: white; border-radius: 32px; width: 90%; max-width: 600px;
+            padding: 2rem 2.2rem; box-shadow: 0 40px 70px rgba(0,20,50,0.4);
+            transform: scale(0.95); transition: transform 0.2s ease;
+            max-height: 90vh; overflow-y: auto;
         }
+        .modal.show .modal-card { transform: scale(1); }
         .modal-close {
-            position: absolute;
-            top: 20px; right: 24px;
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: #5f7d9f;
+            background: none; border: none; font-size: 2.2rem; cursor: pointer;
+            color: #8ba5c2; line-height: 1; position: absolute; top: 20px; right: 24px;
         }
-        .modal-close:hover { color: #1e3f60; }
+        .modal-close:hover { color: #1e3a5f; }
 
         .file-list {
             margin-top: 16px;
@@ -357,26 +379,21 @@
         .file-item span { flex:1; color: #1d3f5e; }
         .file-item:hover { background: #e3ecf7; }
 
-        /* 轻提示 */
-        .toast-msg {
-            visibility: hidden;
-            min-width: 200px;
-            background: #1d3f5e;
-            color: white;
-            text-align: center;
-            border-radius: 60px;
-            padding: 12px 24px;
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-weight: 500;
-            box-shadow: 0 15px 25px -8px #0b2540;
-            z-index: 1100;
-            opacity: 0;
-            transition: opacity 0.2s, visibility 0.2s;
+        /* 确认弹窗特殊样式 */
+        .confirm-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
         }
-        .toast-msg.show { visibility: visible; opacity: 1; }
+
+        .toast-msg {
+            background: #1e4a6f; color: white; padding: 0.8rem 2rem;
+            border-radius: 60px; font-weight: 500; box-shadow: 0 15px 30px rgba(0,40,70,0.4);
+            position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+            opacity: 0; transform: translateY(10px); transition: 0.2s; pointer-events: none;
+        }
+        .toast-msg.show { opacity: 1; transform: translateY(0); }
 
         @media (max-width: 700px) {
             .dashboard { padding: 12px; }
@@ -387,13 +404,10 @@
 </head>
 <body>
 <div class="dashboard">
-    <!-- 头部标题已完全移除，直接从第一个区块开始 -->
-
-    <!-- 评审批次列表区块 (section) -->
+    <!-- 评审批次列表区块 -->
     <div class="section">
         <div class="section-header">
             <h2><i class="fas fa-list-ul"></i> 当前评审批次</h2>
-            <!-- <span class="header-note"><i class="far fa-calendar-alt"></i> 2025-04-07 实时</span> -->
         </div>
         <div class="batch-grid" id="batchListContainer"></div>
     </div>
@@ -404,7 +418,7 @@
             <h2><i class="fas fa-chart-pie"></i> 评审统计信息</h2>
             <span class="header-note"><i class="fas fa-info-circle"></i> 综合材料+面试表现打分</span>
         </div>
-        <!-- 搜索+评审入口 (查询正常使用) -->
+        <!-- 搜索+评审入口 -->
         <div class="search-bar">
             <div class="search-input-wrap">
                 <i class="fas fa-search"></i>
@@ -437,8 +451,8 @@
         <div class="score-area" id="scorePanel"></div>
     </div>
 
-    <!-- 模态框 (用于查看材料下载路径) -->
-    <div id="infoModal" class="modal" onclick="if(event.target === this) closeModal()">
+    <!-- 通用模态框 (用于材料列表和确认提示) -->
+    <div id="infoModal" class="modal">
         <div class="modal-card">
             <i class="fas fa-times modal-close" onclick="closeModal()"></i>
             <div id="modalContent" style="font-size:1rem; line-height:1.6; color:#1f3f5f;"></div>
@@ -449,9 +463,10 @@
     <div id="toast" class="toast-msg">提示</div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
     (function() {
-        // 数据模型 (与上一版相同)
+        // 数据模型
         const batchData = [
             { id: 'b1', name: '全日制MBA', round: '第二批', date: '2025-04-15', status: '待评审', statusClass: '',
               candidates: [
@@ -473,8 +488,221 @@
 
         let currentBatchId = 'b1';
         let currentCandidateId = 'c1';
-
         let barChart, lineChart;
+
+        // 工具函数：下载文件
+        function downloadFile(content, filename, mimeType = 'application/octet-stream') {
+            const blob = (content instanceof Blob) ? content : new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // 模拟生成文件内容（用于演示）
+        function generateFileContent(candidate, fileType) {
+            const base = `考生: ${candidate.name} (${candidate.appId})\n教育: ${candidate.education}\n工作: ${candidate.work}\n`;
+            switch(fileType) {
+                case '陈述': return base + `个人陈述：本人立志于MBA学习...`;
+                case '学历': return base + `学历学位证：复旦大学本科毕业证、学位证`;
+                case '推荐信': return base + `推荐信：来自XX总监和XX教授`;
+                case '荣誉': return base + `荣誉证书：优秀员工奖、创新之星`;
+                default: return base + `默认文件内容`;
+            }
+        }
+
+        // ---------- 材料弹窗：显示文件列表，点击单个下载 ----------
+        function showMaterialList(candidate) {
+            const files = [
+                { name: '个人陈述.pdf', type: '陈述', icon: 'fa-file-pdf' },
+                { name: '学历学位证.pdf', type: '学历', icon: 'fa-file-pdf' },
+                { name: '推荐信合集.pdf', type: '推荐信', icon: 'fa-file-pdf' },
+                { name: '荣誉证书.jpg', type: '荣誉', icon: 'fa-file-image' }
+            ];
+            
+            let fileListHtml = `
+                <div class="file-list">
+                    <h4><i class="fas fa-folder-open"></i> ${candidate.name} 的申请材料</h4>
+                    <p style="color:#4e6f8c; margin-bottom:12px;">点击下方文件即可下载</p>
+            `;
+            
+            files.forEach(f => {
+                fileListHtml += `
+                    <div class="file-item" onclick="window.downloadSingleFile('${candidate.id}', '${f.type}')">
+                        <i class="fas ${f.icon}" style="color:#d54e4e;"></i>
+                        <span>${f.name}</span>
+                        <i class="fas fa-download" style="color:#1e4a7a;"></i>
+                    </div>
+                `;
+            });
+            
+            fileListHtml += `</div>`;
+            
+            // 存储当前candidate到全局，供下载函数使用
+            window.__currentCandidate = candidate;
+            openModal(fileListHtml);
+        }
+
+        // 全局函数：下载单个文件（由文件列表点击调用）
+        window.downloadSingleFile = (candidateId, fileType) => {
+            const candidate = window.__currentCandidate;
+            if (!candidate) return;
+            
+            let filename = `${candidate.name}_`;
+            let content = generateFileContent(candidate, fileType);
+            
+            switch(fileType) {
+                case '陈述': filename += '个人陈述.pdf'; break;
+                case '学历': filename += '学历学位证.pdf'; break;
+                case '推荐信': filename += '推荐信合集.pdf'; break;
+                case '荣誉': filename += '荣誉证书.jpg'; content = `模拟JPG图片内容：` + content; break;
+                default: filename += '文件.pdf';
+            }
+            
+            downloadFile(content, filename, 'application/pdf');
+            showToast(`开始下载: ${filename}`);
+        };
+
+        // 打印总表：先弹窗确认，确认后生成压缩包
+        function handlePrintBatch(batchId) {
+            const batch = batchData.find(b => b.id === batchId);
+            if (!batch) return;
+            
+            const confirmHtml = `
+                <div style="text-align:center;">
+                    <i class="fas fa-print" style="font-size:3rem; color:#1e4a6f; margin-bottom:15px;"></i>
+                    <h3>打印批次总表</h3>
+                    <p>确认生成并下载 “${batch.name} ${batch.round}” 的总表压缩包吗？</p>
+                    <p style="font-size:0.85rem; color:#6c8aa8;">包含所有考生的材料摘要和评分汇总</p>
+                </div>
+                <div class="confirm-buttons">
+                    <button class="btn-sm" onclick="closeModal()"><i class="fas fa-times"></i> 取消</button>
+                    <button class="btn-primary" onclick="window.confirmPrintBatch('${batch.id}')"><i class="fas fa-check"></i> 确认下载</button>
+                </div>
+            `;
+            openModal(confirmHtml);
+        }
+
+        // 确认后生成压缩包
+        window.confirmPrintBatch = (batchId) => {
+            closeModal();
+            const batch = batchData.find(b => b.id === batchId);
+            if (!batch) return;
+            
+            showToast('⏳ 正在生成压缩包...', 1500);
+            
+            // 模拟异步生成zip
+            setTimeout(async () => {
+                const zip = new JSZip();
+                
+                // 添加一个总览文件
+                let overview = `批次: ${batch.name} ${batch.round}\n日期: ${batch.date}\n考生人数: ${batch.candidates.length}\n\n`;
+                batch.candidates.forEach((c, index) => {
+                    overview += `${index+1}. ${c.name} (${c.appId}) 得分:${c.score}\n   教育:${c.education}\n   工作:${c.work}\n   材料:${c.material}\n\n`;
+                });
+                zip.file("批次总览.txt", overview);
+                
+                // 为每个考生添加一个材料摘要文件
+                batch.candidates.forEach(c => {
+                    const content = `姓名: ${c.name}\n申请号: ${c.appId}\n教育: ${c.education}\n工作: ${c.work}\n材料清单: ${c.material}\n当前得分: ${c.score}`;
+                    zip.file(`${c.name}_材料摘要.txt`, content);
+                });
+                
+                // 生成zip
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                downloadFile(zipBlob, `${batch.name}${batch.round}_总表.zip`, 'application/zip');
+                showToast(`✅ 压缩包下载完成: ${batch.name}${batch.round}_总表.zip`);
+            }, 300);
+        };
+
+        // 下载报名表：弹窗确认，确认后输出单个文件
+        function handleDownloadAppForm(candidate) {
+            const confirmHtml = `
+                <div style="text-align:center;">
+                    <i class="fas fa-file-alt" style="font-size:3rem; color:#1e4a6f; margin-bottom:15px;"></i>
+                    <h3>下载报名表</h3>
+                    <p>确认下载 “${candidate.name}” 的报名表吗？</p>
+                </div>
+                <div class="confirm-buttons">
+                    <button class="btn-sm" onclick="closeModal()"><i class="fas fa-times"></i> 取消</button>
+                    <button class="btn-primary" onclick="window.confirmDownloadForm('${candidate.id}')"><i class="fas fa-check"></i> 确认下载</button>
+                </div>
+            `;
+            // 临时存储candidate
+            window.__formCandidate = candidate;
+            openModal(confirmHtml);
+        }
+
+        window.confirmDownloadForm = (candidateId) => {
+            closeModal();
+            const candidate = window.__formCandidate;
+            if (!candidate) return;
+            
+            const formContent = `
+报名表 - ${candidate.name} (${candidate.appId})
+========================================
+姓名: ${candidate.name}
+申请号: ${candidate.appId}
+教育背景: ${candidate.education}
+工作经历: ${candidate.work}
+提交材料清单: ${candidate.material}
+报名时间: 2025-03-01
+面试批次: ${batchData.find(b => b.id === currentBatchId)?.name} ${batchData.find(b => b.id === currentBatchId)?.round}
+            `.trim();
+            
+            downloadFile(formContent, `${candidate.name}_报名表.pdf`, 'application/pdf');
+            showToast(`📥 下载报名表: ${candidate.name}_报名表.pdf`);
+        };
+
+        // ---------- 提交考生数据：去除模拟字样，增加弹窗确认 ----------
+        function handleSubmitAllData() {
+            const batch = batchData.find(b => b.id === currentBatchId);
+            if (!batch) return;
+            
+            // 计算统计数据用于展示
+            const scores = batch.candidates.map(c => c.score);
+            const avg = (scores.reduce((a,b) => a+b,0) / scores.length).toFixed(1);
+            
+            const confirmHtml = `
+                <div style="text-align:center;">
+                    <i class="fas fa-upload" style="font-size:3rem; color:#1e4a6f; margin-bottom:15px;"></i>
+                    <h3>提交考生数据</h3>
+                    <p>您确定要提交 “${batch.name} ${batch.round}” 的所有考生数据吗？</p>
+                    <div style="background:#f0f7ff; border-radius:16px; padding:12px; margin:15px 0; text-align:left;">
+                        <p><i class="fas fa-users"></i> 考生人数：${batch.candidates.length}</p>
+                        <p><i class="fas fa-chart-line"></i> 平均得分：${avg}</p>
+                        <p style="font-size:0.85rem; color:#6c8aa8;">提交后将无法撤回，请确认信息无误。</p>
+                    </div>
+                </div>
+                <div class="confirm-buttons">
+                    <button class="btn-sm" onclick="closeModal()"><i class="fas fa-times"></i> 取消</button>
+                    <button class="btn-primary" onclick="window.confirmSubmitAllData()"><i class="fas fa-check"></i> 确认提交</button>
+                </div>
+            `;
+            openModal(confirmHtml);
+        }
+
+        // 确认提交数据
+        window.confirmSubmitAllData = () => {
+            closeModal();
+            const batch = batchData.find(b => b.id === currentBatchId);
+            if (!batch) return;
+            
+            // 模拟提交到服务器的过程
+            showToast('⏳ 正在提交数据...', 1500);
+            
+            setTimeout(() => {
+                // 将当前批次状态改为"已评审"
+                batch.status = '已评审';
+                // 重新渲染批次列表以更新状态
+                renderBatches();
+                showToast(`✅ 成功提交 ${batch.name} ${batch.round} 的考生数据`, 3000);
+            }, 800);
+        };
 
         function showToast(msg, duration = 2000) {
             const toast = document.getElementById('toast');
@@ -483,12 +711,13 @@
             setTimeout(() => toast.classList.remove('show'), duration);
         }
 
+        // 模态框控制
         window.openModal = (content) => {
             document.getElementById('modalContent').innerHTML = content;
-            document.getElementById('infoModal').style.display = 'flex';
+            document.getElementById('infoModal').classList.add('show');
         };
         window.closeModal = () => {
-            document.getElementById('infoModal').style.display = 'none';
+            document.getElementById('infoModal').classList.remove('show');
         };
 
         // 渲染批次列表
@@ -496,7 +725,7 @@
             const container = document.getElementById('batchListContainer');
             container.innerHTML = batchData.map(batch => {
                 const isActive = batch.id === currentBatchId;
-                let statusStyle = batch.status === '已评审' ? 'background:#deedd9; color:#1f704a;' : 'background:#e1ecf9; color:#175d9c;';
+                let statusStyle = batch.status === '已评审' ? 'background:#deedd9; color:#1f704a;' : 'background:#e3f0fa; color:#11517c;';
                 return `
                 <div class="batch-card ${isActive ? 'active-batch' : ''}" data-batch-id="${batch.id}">
                     <div class="batch-info">
@@ -534,27 +763,10 @@
             document.querySelectorAll('.print-batch-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    showToast('⏬ 正在下载中... (打印总表)');
+                    const batchId = btn.dataset.batchId;
+                    handlePrintBatch(batchId);
                 });
             });
-        }
-
-        // 材料下载弹窗
-        function showMaterialDownload(candidate) {
-            const files = [
-                { name: '个人陈述.pdf', path: '/材料/个人陈述_张明扬.pdf' },
-                { name: '学历学位证.pdf', path: '/材料/学历学位证.pdf' },
-                { name: '推荐信合集.pdf', path: '/材料/推荐信.pdf' },
-                { name: '荣誉证书.jpg', path: '/材料/荣誉证书.jpg' }
-            ];
-            let fileListHtml = '<div class="file-list"><h4><i class="fas fa-download"></i> 材料下载路径（点击模拟下载）</h4>';
-            files.forEach(f => {
-                fileListHtml += `<div class="file-item" onclick="showToast('开始下载: ${f.name} (模拟)');">
-                    <i class="fas fa-file-pdf"></i><span>${f.name}</span><i class="fas fa-cloud-download-alt" style="color:#1e4a7a;"></i>
-                </div>`;
-            });
-            fileListHtml += '<p style="margin-top:12px; font-size:0.9rem;">* 实际路径已隐藏，点击条目模拟下载</p></div>';
-            openModal(fileListHtml);
         }
 
         // 更新考生区域
@@ -597,25 +809,25 @@
                         <p><i class="fas fa-paperclip"></i> <strong>考生材料</strong></p>
                         <p style="font-size:0.9rem;">📄 ${candidate.material}</p>
                         <div style="display:flex; gap:8px; margin-top:12px;">
-                            <button class="btn-sm" id="viewMaterialBtn"><i class="fas fa-eye"></i> 查看材料</button>
-                            <button class="btn-sm" id="viewAppFormBtn"><i class="fas fa-file-alt"></i> 报名表</button>
+                            <button class="btn-sm" id="viewMaterialBtn"><i class="fas fa-folder-open"></i> 查看材料</button>
+                            <button class="btn-sm" id="viewAppFormBtn"><i class="fas fa-file-alt"></i> 下载报名表</button>
                         </div>
                     </div>
                 </div>
             `;
 
             document.getElementById('viewMaterialBtn')?.addEventListener('click', () => {
-                showMaterialDownload(candidate);
+                showMaterialList(candidate);
             });
 
             document.getElementById('viewAppFormBtn')?.addEventListener('click', () => {
-                showToast('⏬ 正在下载中... (报名表)');
+                handleDownloadAppForm(candidate);
             });
 
             const scorePanel = document.getElementById('scorePanel');
             scorePanel.innerHTML = `
                 <label><i class="fas fa-star"></i> 面试得分:</label>
-                <input type="number" id="candidateScore" value="${candidate.score}" min="0" max="100" step="0.5" style="width:100px; padding:10px 16px; border-radius:40px; border:1px solid #b0cde0;">
+                <input type="number" id="candidateScore" value="${candidate.score}" min="0" max="100" step="0.5">
                 <button class="btn-sm btn-outline" id="saveScoreBtn"><i class="fas fa-save"></i> 保存打分信息</button>
                 <button class="btn-sm btn-primary" id="submitScoreBtn"><i class="fas fa-check-circle"></i> 提交打分信息</button>
                 <span style="color:#36648b;"><i class="far fa-clock"></i> 草稿将保存</span>
@@ -733,13 +945,13 @@
                 }
             });
 
+            // 提交考生数据：去除模拟字样，增加弹窗确认
             document.getElementById('submitAllBtn').addEventListener('click', () => {
-                showToast('已提交当前批次所有考生数据 (模拟)', 2000);
+                handleSubmitAllData();  // 直接调用确认弹窗
             });
         }
 
-        window.showToast = showToast; // 供文件列表调用
-
+        // 启动
         function init() {
             renderBatches();
             currentBatchId = 'b1';
